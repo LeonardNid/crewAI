@@ -27,7 +27,7 @@ class Player(db.Model):
     team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=False)
     country = db.Column(db.String(50), nullable=False)
 
-    team = db.relationship('Team', back_populates='players')
+    team = db.relationship('Team', backref='players')
 
     def to_dict(self):
         return {
@@ -37,5 +37,3 @@ class Player(db.Model):
             'team_id': self.team_id,
             'country': self.country
         }
-
-Team.players = db.relationship('Player', order_by=Player.id, back_populates='team')

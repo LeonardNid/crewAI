@@ -5,9 +5,9 @@ db = SQLAlchemy()
 class Team(db.Model):
     __tablename__ = 'teams'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    city = db.Column(db.String(50), nullable=False)
-    country = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    city = db.Column(db.String(100), nullable=False)
+    country = db.Column(db.String(100), nullable=False)
     stadium = db.Column(db.String(100), nullable=False)
 
     def to_dict(self):
@@ -22,12 +22,12 @@ class Team(db.Model):
 class Player(db.Model):
     __tablename__ = 'players'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
     position = db.Column(db.String(50), nullable=False)
     team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=False)
-    country = db.Column(db.String(50), nullable=False)
+    country = db.Column(db.String(100), nullable=False)
 
-    team = db.relationship('Team', back_populates='players')
+    team = db.relationship('Team', backref='players')
 
     def to_dict(self):
         return {
@@ -37,5 +37,3 @@ class Player(db.Model):
             'team_id': self.team_id,
             'country': self.country
         }
-
-Team.players = db.relationship('Player', order_by=Player.id, back_populates='team')

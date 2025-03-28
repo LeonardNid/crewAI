@@ -1,20 +1,12 @@
 #!/usr/bin/env python
-from dotenv import load_dotenv
-load_dotenv()
-import os
 import sys
 import warnings
-import weave
 
 from datetime import datetime
 
-from backend3.crew import Backend3
-
-weave.init(project_name="backend3")
+from backend4.crew import Backend4
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
-
-
 
 # This main file is intended to be a way for you to run your
 # crew locally, so refrain from adding unnecessary logic into this file.
@@ -32,7 +24,7 @@ def run():
     }
     
     try:
-        Backend3().crew().kickoff(inputs=inputs)
+        Backend4().crew().kickoff(inputs=inputs)
     except Exception as e:
         raise Exception(f"An error occurred while running the crew: {e}")
 
@@ -45,7 +37,7 @@ def run():
 #         "topic": "AI LLMs"
 #     }
 #     try:
-#         Backend3().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
+#         Backend4().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
 
 #     except Exception as e:
 #         raise Exception(f"An error occurred while training the crew: {e}")
@@ -55,7 +47,7 @@ def run():
 #     Replay the crew execution from a specific task.
 #     """
 #     try:
-#         Backend3().crew().replay(task_id=sys.argv[1])
+#         Backend4().crew().replay(task_id=sys.argv[1])
 
 #     except Exception as e:
 #         raise Exception(f"An error occurred while replaying the crew: {e}")
@@ -65,10 +57,11 @@ def run():
 #     Test the crew execution and returns the results.
 #     """
 #     inputs = {
-#         "topic": "AI LLMs"
+#         "topic": "AI LLMs",
+#         "current_year": str(datetime.now().year)
 #     }
 #     try:
-#         Backend3().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
+#         Backend4().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
 
 #     except Exception as e:
 #         raise Exception(f"An error occurred while testing the crew: {e}")

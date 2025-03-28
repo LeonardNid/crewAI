@@ -1,5 +1,5 @@
 Standart datenobjekte bsp. Adresse, rechnung, person ... (Deepresarch)
-best practicec für backend anwendungen
+best practices für backend anwendungen
 promt vergrößern (topic) und tasks verallgeminern
 welche teamrollen es in einer echten firma gibt
 Test für fertige Anwendung

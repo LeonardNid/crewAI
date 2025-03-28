@@ -1,11 +1,16 @@
 from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
-
+from crewai_tools import FileReadTool
 from backend3.tools.custom_tool import FileReaderTool, FileWriterTool
 
 # If you want to run a snippet of code before or after the crew starts, 
 # you can use the @before_kickoff and @after_kickoff decorators
 # https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
+
+# initialize tools
+read_temp_models = FileReadTool(file_path='templates/models_template.py')
+read_temp_app = FileReadTool(file_path='templates/app_template.py')
+
 
 @CrewBase
 class Backend3():
@@ -34,7 +39,7 @@ class Backend3():
 		return Agent(
 			config=self.agents_config['code_creator'],
 			verbose=True,
-			tools=[FileReaderTool()],
+			tools=[read_temp_models, read_temp_app],
 			# llm=self.ollama_llm
 		)
 	
