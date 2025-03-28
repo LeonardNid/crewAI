@@ -1,0 +1,35 @@
+backend_models_task:
+  description: >
+    1) Use the "file_reader" tool to read the "templates/models_template.py" file 
+       Then strictly follow that template's structure, 
+       only filling in the designated placeholders with your actual model definitions.
+    2) Define at least two db.Model classes (e.g., Team and Player), each with:
+       - A primary key
+       - Some relevant fields
+       - A 'serialize()' method or a Marshmallow schema for JSON output
+    3) Do not alter the general structure of the template (e.g., do not rename the imported db, 
+       do not remove essential comments or placeholders).
+    4) Use the 'file_writer' tool exactly once to create "models.py" 
+       with the updated content from the template.
+  expected_output: >
+    1) A single call to 'file_writer' that writes "models.py" in the Output folder.
+    2) A brief explanation of how these models integrate with app.py.
+  agent: code_creator
+  output_file: 'Output/backend_models_summary.md'
+
+backend_app_task:
+  description: >
+    1) Use the "file_reader" tool to read the "templates/app_template.py" file
+       Then strictly follow that template's structure, 
+       only filling in the designated placeholders with your code (for example, 
+       adding specific routes, but not altering the overall layout or imports).
+    2) The resulting "app.py" must:
+       - Use Flask-SQLAlchemy (db = SQLAlchemy(app))
+       - Set SQLALCHEMY_DATABASE_URI to 'sqlite:///database.db'
+       - Contain at least one basic route (e.g., GET / or GET /health) to confirm functionality
+    3) Use the 'file_writer' tool exactly once to create "app.py" 
+       with the updated content from the template.
+  expected_output: >
+    1) A single call to 'file_writer' that writes "app.py" in the Output folder.
+    2) A summary explaining how to start and test the application.
+  agent: code_creator

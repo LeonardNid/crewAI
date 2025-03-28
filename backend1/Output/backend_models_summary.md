@@ -1,0 +1,2 @@
+The "models.py" file in the Output folder contains two SQLAlchemy models, Team and Player. These models define database tables for a football application with appropriate fields and serialization methods. The models integrate with app.py by providing data structures that can be used to create CRUD endpoints, leveraging Flask-SQLAlchemy's ORM capabilities to interact with the SQLite database.
+```
