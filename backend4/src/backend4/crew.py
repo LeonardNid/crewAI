@@ -2,6 +2,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
 from backend4.tools.custom_tool import FileReaderTool, FileWriterTool
+from backend4.tools.test_tool import FlaskTestClientTool
 
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
@@ -27,6 +28,15 @@ class Backend4():
 			tools=[FileReaderTool()],
 			# llm=self.ollama_llm
 		)
+    
+    @agent
+    def code_tester(self) -> Agent:
+        return Agent(
+			config=self.agents_config['code_tester'],
+			verbose=True,
+			tools=[FlaskTestClientTool()],
+			# llm=self.ollama_llm
+		)
 
     # To learn more about structured task outputs,
     # task dependencies, and task callbacks, check out the documentation:
@@ -42,6 +52,20 @@ class Backend4():
         return Task(
 			config=self.tasks_config['backend_app_task']
 		)
+    
+    @task
+    def backend_endpoint_summary_task(self) -> Task:
+        return Task(
+			config=self.tasks_config['backend_endpoint_summary_task']
+		)
+    
+    @task
+    def backend_test_task(self) -> Task:
+        return Task(
+			config=self.tasks_config['backend_test_task']
+		)
+    
+    
 
     @crew
     def crew(self) -> Crew:

@@ -35,10 +35,64 @@ backend_app_task:
       - import the models from the models.py file.
       - have every route as per the requirement of the customer.
       - be fully operational and error free.
-    More Information:
+
+    More instructions:
       - Never define your own Models, import and use the models from the context you got 
   expected_output: >
     Your Final answer must be the full Output/app.py file, only the python code and nothing else.
     The code must not be in any quotes e.g. """<code>""".
   agent: code_creator
   output_file: Output/app.py
+
+backend_endpoint_summary_task:
+  description: >
+    The goal is to summarize all available endpoints in the newly created application.
+    1) Parse or scan ALL the routes (like @app.route(...)) to figure out:
+       - Which endpoints (URL patterns) exist,
+       - Which methods (GET, POST, PUT, DELETE) they accept,
+       - What data (JSON fields) are expected for each method, 
+         if that can be inferred from the code.
+    2) Produce a concise, human-readable summary, 
+
+    More instructions:
+      - This summary does NOT have to be code. 
+      - It can be plain text or markdown that the next task can rely on. 
+      - Avoid unnecessary details, but be specific about the JSON fields needed.
+      - Don't use any tools during this specific task
+
+  expected_output: >
+    Your final answer must be a summary listing each route, HTTP method(s), and the expected JSON structure if applicable.
+    For instance:
+    "1. GET /teams -> returns list of teams
+     2. POST /teams -> needs {
+        name: string,
+        city: string,
+        country: string,
+        stadium: string
+       }
+    etc."
+  agent: code_tester
+  context: [backend_models_task, backend_app_task]
+  output_file: 'Output/endpoint_summary.md'
+
+backend_test_task:
+  description: >
+    Based on the summary in the context, test each endpoint 
+    by sending appropriate HTTP requests.
+    1) You are now allowed to and must use the "FlaskTestClientTool" to:
+       - Make GET/POST/PUT/DELETE calls as described in the summary,
+       - Provide valid JSON bodies where required,
+       - Check that status codes and response structures match expectations 
+         (e.g. 200 for success, 404 for "not found", etc.).
+    2) Record the results of each test (status code, response body) 
+       and produce a final test report summarizing which endpoints passed or failed.
+
+  expected_output: >
+    Your final answer must be a structured test report (e.g. in Markdown) listing each endpoint, 
+    the requests made, and the results. 
+    For instance: 
+    "GET /teams -> 200 OK, returned [...]. 
+     POST /teams -> 201 Created, returned new team data."
+  agent: code_tester
+  context: [backend_endpoint_summary_task]
+  output_file: 'Output/test_report.md'

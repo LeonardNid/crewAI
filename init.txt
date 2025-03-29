@@ -1,0 +1,4 @@
+mit cmd in .\.venv\Script\activate (deactivate)
+uv add weave
+uv add flask
+uv add flask_sqlalchemy
