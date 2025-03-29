@@ -2,10 +2,11 @@
 import sys
 import warnings
 
-from datetime import datetime
+import weave
 
 from backend4.crew import Backend4
 
+weave.init(project_name="backend4")
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
 # This main file is intended to be a way for you to run your

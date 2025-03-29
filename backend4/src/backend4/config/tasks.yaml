@@ -35,6 +35,8 @@ backend_app_task:
       - import the models from the models.py file.
       - have every route as per the requirement of the customer.
       - be fully operational and error free.
+    More Information:
+      - Never define your own Models, import and use the models from the context you got 
   expected_output: >
     Your Final answer must be the full Output/app.py file, only the python code and nothing else.
     The code must not be in any quotes e.g. """<code>""".
