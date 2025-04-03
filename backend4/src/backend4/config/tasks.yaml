@@ -1,39 +1,86 @@
+# structure_designer
+
+models_planning_task:
+  description: >
+    Customer thoughts: {customer}
+    1) Read and interpret the customer's domain requirements for {topic}.
+    2) Propose a database schema focusing on models/entities, their fields, 
+       and any relevant relationships (e.g. foreign keys).
+    3) Each model should list the fields needed, including data types or constraints 
+       if relevant (e.g. "name: string", "age: integer").
+       Each Model should have a primary key.
+    4) If the "customer" mentions extra data (like addresses), 
+       factor that in (possibly as a separate model).
+    5) The final output must NOT contain any code. 
+       Provide only a structured outline (in text or Markdown bullets) 
+       of the models and how they link together.
+    Important instructions:
+      - You should use the "data_object_lookup" Tool to help you define the models
+      - Only define the models, don't define any CRUD Endpoints
+  expected_output: >
+    Your final answer must contain:
+      - A "Database Schema" section listing all models with their fields/relationships
+      - No code, only text.
+  agent: structure_designer
+  output_file: Output/models_plan.md
+
+
+routes_planning_task:
+  description: >
+    Customer toughts: {customer}
+    1) Read the domain requirements for {topic} and any established models 
+       (The Context you got is the database schema for the application).
+    2) Outline the main REST endpoints you recommend: 
+       e.g., GET/POST/PUT/DELETE for each model, plus any special routes (like 
+       "GET /teams/<id>/players" or "GET /players/country/<country>").
+    3) Include what kind of request body or query parameters each route might need, 
+       and what responses they return (basic idea).
+    4) Do NOT write any code. Only provide a structured text plan 
+       that the code_creator can later implement in Flask.
+    5) You are no longer allowed to use the "data_object_lookup" Tool
+  expected_output: >
+    Your final answer must contain:
+      - A "Routes Plan" section enumerating each endpoint, 
+        the HTTP method(s), and what data is needed.
+      - No code, only text.
+      - Don't relist the already mentioned models in your final answer.
+  agent: structure_designer
+  output_file: Output/app_plan.md
+
+
+# code_creator
+
 backend_models_task:
   description: >
-    main goal: {goal}
-    the topic of the application: {topic}
-    customers thoughts: {customer}
+    main goal: A fully fletched python backend application with a Flask API and a SQLite database.
     
     current Task: create a Output/models.py file with the following instructions:
-    1) Use the "FileReaderTool" tool exactly once to read the "templates/models_template.py" file 
+    1) Use the "FileReaderTool" tool exactly once to read the "files/templates/models_template.py" file 
       Then strictly follow that template's structure, 
       only filling in the designated placeholders (examples) with your actual model definitions.
-    2) Define Models as per the requirement of the customer.
-      Add primary key to each model.
-      Each Model should have all the fields as per the requirement of the customer
+    2) Implement the models as per the database schema you recieved in your context.
+      Each Model should have all the fields as per the database schema
       and have a "to_dict" Method.
   expected_output: >
     Your Final answer must be the full Output/model.py file, only the python code and nothing else.
     The code must not be in any quotes e.g. """<code>""".
   agent: code_creator
+  context: [models_planning_task]
   output_file: Output/models.py
 
 backend_app_task:
   description: >
-    main goal: {goal}
-    the topic of the application: {topic}
-    customers thoughts: {customer}
+    main goal: A fully fletched python backend application with a Flask API and a SQLite database.
 
     current Task: create an Output/app.py file with the  following instructions:
-    1) Use the "FileReaderTool" tool exactly once to read the "templates/app_template.py" file
+    1) Use the "FileReaderTool" tool exactly once to read the "files/templates/app_template.py" file
       Then strictly follow that template's structure, 
       only filling in the designated placeholders with your code (example).
-      You may add new routes, but do not alter the overall layout.
-      You may add new model imports as needed.
-    2) Define the endpoints as per the requirement of the customer.
+      You must import all the models from your context.
+    2) Implement the endpoints as per the "routes plan" from your context..
       The resulting "Output/app.py" must:
       - import the models from the models.py file.
-      - have every route as per the requirement of the customer.
+      - have every route as per the routes plan.
       - be fully operational and error free.
 
     More instructions:
@@ -42,57 +89,55 @@ backend_app_task:
     Your Final answer must be the full Output/app.py file, only the python code and nothing else.
     The code must not be in any quotes e.g. """<code>""".
   agent: code_creator
+  context: [backend_models_task, routes_planning_task]
   output_file: Output/app.py
+
+# code_tester
 
 backend_endpoint_summary_task:
   description: >
-    The goal is to summarize all available endpoints in the newly created application.
-    1) Parse or scan ALL the routes (like @app.route(...)) to figure out:
-       - Which endpoints (URL patterns) exist,
-       - Which methods (GET, POST, PUT, DELETE) they accept,
-       - What data (JSON fields) are expected for each method, 
-         if that can be inferred from the code.
-    2) Produce a concise, human-readable summary, 
-
-    More instructions:
-      - This summary does NOT have to be code. 
-      - It can be plain text or markdown that the next task can rely on. 
-      - Avoid unnecessary details, but be specific about the JSON fields needed.
-      - Don't use any tools during this specific task
+    Summarize all the Flask routes by scanning each @app.route(...).
+    1) List every route's URL pattern (e.g., /teams, /teams/<id>) 
+       and each HTTP method it handles (GET, POST, PUT, DELETE, etc.).
+    2) For each POST or PUT route, specify which JSON fields it expects if known.
+    3) Present them in the order they should be tested:
+       all POST routes first, then GET, then PUT, then DELETE.
+       It is extremly important to follow this order.
+    4) Do not write code; only produce a textual or Markdown list. 
+    5) Do not use any tools for this task.
 
   expected_output: >
-    Your final answer must be a summary listing each route, HTTP method(s), and the expected JSON structure if applicable.
-    For instance:
-    "1. GET /teams -> returns list of teams
-     2. POST /teams -> needs {
-        name: string,
-        city: string,
-        country: string,
-        stadium: string
-       }
-    etc."
+    Your final answer must be a numbered summary of each route, including:
+      - The HTTP method(s)
+      - The path (with path parameters if any)
+      - The required JSON fields for POST/PUT
+      - Any response details you can infer
+    Example:
+      "1. POST /teams -> Needs { name: string, city: string, ... } 
+        Returns the newly created team data."
+
   agent: code_tester
   context: [backend_models_task, backend_app_task]
   output_file: 'Output/endpoint_summary.md'
 
 backend_test_task:
   description: >
-    Based on the summary in the context, test each endpoint 
-    by sending appropriate HTTP requests.
-    1) You are now allowed to and must use the "FlaskTestClientTool" to:
-       - Make GET/POST/PUT/DELETE calls as described in the summary,
-       - Provide valid JSON bodies where required,
-       - Check that status codes and response structures match expectations 
-         (e.g. 200 for success, 404 for "not found", etc.).
-    2) Record the results of each test (status code, response body) 
-       and produce a final test report summarizing which endpoints passed or failed.
+    You are now allowed and should use the "FlaskTestClientTool" to test each endpoint based on the summary in the context.
+    1) For each route (GET, POST, PUT, DELETE), call it exactly once.
+       Provide valid JSON data for POST/PUT as described, and check 
+       status codes and response structures (200, 404, etc.).
+    2) Keep track of each test's outcome (status code, response body).
+    3) Produce a test report summarizing which endpoints passed or failed. 
+       Do not write code—only provide the results in text or Markdown.
 
   expected_output: >
-    Your final answer must be a structured test report (e.g. in Markdown) listing each endpoint, 
-    the requests made, and the results. 
-    For instance: 
-    "GET /teams -> 200 OK, returned [...]. 
-     POST /teams -> 201 Created, returned new team data."
+    Provide a structured test report listing each endpoint, 
+    how it was called (method + path + JSON body if applicable), 
+    and the outcome (status code, response details).
+    Example:
+      "GET /teams -> 200 OK, returned [...]. 
+       POST /teams -> 201 Created, returned { id: ..., name: ... }."
   agent: code_tester
   context: [backend_endpoint_summary_task]
   output_file: 'Output/test_report.md'
+

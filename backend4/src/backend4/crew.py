@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 
 from backend4.tools.custom_tool import FileReaderTool, FileWriterTool
 from backend4.tools.test_tool import FlaskTestClientTool
+from backend4.tools.lookup_tool import DataObjectLoopupTool
 
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
@@ -21,6 +22,15 @@ class Backend4():
     # If you would like to add tools to your agents, you can learn more about it here:
     # https://docs.crewai.com/concepts/agents#agent-tools
     @agent
+    def structure_designer(self) -> Agent:
+        return Agent(
+			config=self.agents_config['structure_designer'],
+			verbose=True,
+			tools=[DataObjectLoopupTool()],
+			# llm=self.ollama_llm
+		)
+    
+    @agent
     def code_creator(self) -> Agent:
         return Agent(
 			config=self.agents_config['code_creator'],
@@ -37,10 +47,26 @@ class Backend4():
 			tools=[FlaskTestClientTool()],
 			# llm=self.ollama_llm
 		)
-
+    
     # To learn more about structured task outputs,
     # task dependencies, and task callbacks, check out the documentation:
     # https://docs.crewai.com/concepts/tasks#overview-of-a-task
+
+    # structure_designer
+    @task
+    def models_planning_task(self) -> Task:
+        return Task(
+			config=self.tasks_config['models_planning_task'],
+		)
+	
+    @task
+    def routes_planning_task(self) -> Task:
+        return Task(
+			config=self.tasks_config['routes_planning_task'],
+		)
+
+    # code_creator
+
     @task
     def backend_models_task(self) -> Task:
         return Task(
@@ -53,6 +79,8 @@ class Backend4():
 			config=self.tasks_config['backend_app_task']
 		)
     
+    # code_tester
+
     @task
     def backend_endpoint_summary_task(self) -> Task:
         return Task(

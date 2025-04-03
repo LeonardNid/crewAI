@@ -1,0 +1,1828 @@
+[
+    {
+      "name": "Address",
+      "synonyms": [
+        "address",
+        "mailing address",
+        "residential address",
+        "residence",
+        "location address",
+        "postal address"
+      ],
+      "fields": [
+        {
+          "name": "street",
+          "type": "string",
+          "description": "Street address line."
+        },
+        {
+          "name": "city",
+          "type": "string",
+          "description": "City or town name."
+        },
+        {
+          "name": "state",
+          "type": "string",
+          "description": "State, province, or region."
+        },
+        {
+          "name": "postal_code",
+          "type": "string",
+          "description": "Postal or ZIP code."
+        },
+        {
+          "name": "country",
+          "type": "string",
+          "description": "Country name or code."
+        }
+      ]
+    },
+    {
+      "name": "GeoCoordinates",
+      "synonyms": [
+        "coordinates",
+        "geolocation",
+        "GPS coordinates",
+        "latitude longitude",
+        "location coordinates"
+      ],
+      "fields": [
+        {
+          "name": "latitude",
+          "type": "float",
+          "description": "Latitude value of the location."
+        },
+        {
+          "name": "longitude",
+          "type": "float",
+          "description": "Longitude value of the location."
+        },
+        {
+          "name": "altitude",
+          "type": "float",
+          "description": "Altitude or elevation above sea level."
+        }
+      ]
+    },
+    {
+      "name": "ContactInfo",
+      "synonyms": [
+        "contact info",
+        "contact information",
+        "contact details",
+        "communication info",
+        "contact data"
+      ],
+      "fields": [
+        {
+          "name": "email",
+          "type": "string",
+          "description": "Email address for contact."
+        },
+        {
+          "name": "phone",
+          "type": "string",
+          "description": "Primary phone number."
+        },
+        {
+          "name": "alternate_phone",
+          "type": "string",
+          "description": "Alternate or mobile phone number."
+        },
+        {
+          "name": "alternate_email",
+          "type": "string",
+          "description": "Secondary email address."
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "synonyms": [
+        "contact",
+        "contact person",
+        "client",
+        "lead",
+        "customer contact",
+        "business contact"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the contact."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Full name of the contact person."
+        },
+        {
+          "name": "organization",
+          "type": "Organization",
+          "description": "Associated organization or company."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Job title or role of the contact."
+        },
+        {
+          "name": "contact_info",
+          "type": "ContactInfo",
+          "description": "Contact details such as phone and email."
+        },
+        {
+          "name": "address",
+          "type": "Address",
+          "description": "Physical mailing address of the contact."
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "synonyms": [
+        "user",
+        "account",
+        "member",
+        "customer account",
+        "system user",
+        "platform user"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "description": "Login username for the user."
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "description": "Password (hashed) for authentication."
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "description": "Email address of the user."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Full name of the user."
+        },
+        {
+          "name": "role",
+          "type": "Role",
+          "description": "Role or access level assigned to the user."
+        },
+        {
+          "name": "profile",
+          "type": "UserProfile",
+          "description": "Detailed profile information of the user."
+        }
+      ]
+    },
+    {
+      "name": "UserProfile",
+      "synonyms": [
+        "user profile",
+        "profile",
+        "user details",
+        "account profile",
+        "personal info",
+        "user information"
+      ],
+      "fields": [
+        {
+          "name": "first_name",
+          "type": "string",
+          "description": "First (given) name of the user."
+        },
+        {
+          "name": "last_name",
+          "type": "string",
+          "description": "Last (family) name of the user."
+        },
+        {
+          "name": "date_of_birth",
+          "type": "date",
+          "description": "Birth date of the user."
+        },
+        {
+          "name": "bio",
+          "type": "string",
+          "description": "Short biography or personal description."
+        },
+        {
+          "name": "profile_picture_url",
+          "type": "string",
+          "description": "URL of the user's profile picture."
+        },
+        {
+          "name": "address",
+          "type": "Address",
+          "description": "Residential or mailing address of the user."
+        },
+        {
+          "name": "contact_info",
+          "type": "ContactInfo",
+          "description": "Contact details like phone and secondary email."
+        }
+      ]
+    },
+    {
+      "name": "Role",
+      "synonyms": [
+        "role",
+        "user role",
+        "access role",
+        "permission role",
+        "security role",
+        "access level"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the role."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Name of the role (e.g., admin, user, guest)."
+        },
+        {
+          "name": "permissions",
+          "type": "array(string)",
+          "description": "List of permissions or actions allowed."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "Description of the role's purpose or scope."
+        }
+      ]
+    },
+    {
+      "name": "Organization",
+      "synonyms": [
+        "organization",
+        "company",
+        "business",
+        "firm",
+        "enterprise",
+        "organization unit"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the organization."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Name of the organization or company."
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "description": "Type or category of organization (e.g., nonprofit, corporation)."
+        },
+        {
+          "name": "industry",
+          "type": "string",
+          "description": "Industry or sector the organization belongs to."
+        },
+        {
+          "name": "address",
+          "type": "Address",
+          "description": "Registered address of the organization."
+        },
+        {
+          "name": "contact_info",
+          "type": "ContactInfo",
+          "description": "General contact details for the organization."
+        }
+      ]
+    },
+    {
+      "name": "Team",
+      "synonyms": [
+        "team",
+        "group",
+        "workgroup",
+        "squad",
+        "department team",
+        "project team"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the team."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Name of the team or group."
+        },
+        {
+          "name": "members",
+          "type": "array(User)",
+          "description": "List of users who are members of the team."
+        },
+        {
+          "name": "lead",
+          "type": "User",
+          "description": "User who leads or manages the team."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "Brief description or purpose of the team."
+        }
+      ]
+    },
+    {
+      "name": "Product",
+      "synonyms": [
+        "product",
+        "item",
+        "goods",
+        "merchandise",
+        "product item",
+        "catalog item"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the product."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Name of the product."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "Detailed description of the product."
+        },
+        {
+          "name": "price",
+          "type": "float",
+          "description": "Price of the product."
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "description": "Currency for the product price (e.g., USD)."
+        },
+        {
+          "name": "category",
+          "type": "string",
+          "description": "Category or type of product."
+        },
+        {
+          "name": "sku",
+          "type": "string",
+          "description": "Stock keeping unit identifier for the product."
+        },
+        {
+          "name": "in_stock",
+          "type": "boolean",
+          "description": "Availability of the product (true if in stock)."
+        }
+      ]
+    },
+    {
+      "name": "InventoryItem",
+      "synonyms": [
+        "inventory item",
+        "stock item",
+        "inventory record",
+        "stock record",
+        "inventory entry"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the inventory entry."
+        },
+        {
+          "name": "product",
+          "type": "Product",
+          "description": "Product associated with this inventory entry."
+        },
+        {
+          "name": "location",
+          "type": "string",
+          "description": "Location or warehouse for this inventory stock."
+        },
+        {
+          "name": "quantity",
+          "type": "integer",
+          "description": "Quantity of the product available at this location."
+        },
+        {
+          "name": "last_restock_date",
+          "type": "date",
+          "description": "Date when the stock was last restocked or updated."
+        }
+      ]
+    },
+    {
+      "name": "ShoppingCart",
+      "synonyms": [
+        "shopping cart",
+        "cart",
+        "basket",
+        "cart items",
+        "checkout cart"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the shopping cart."
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "description": "User who owns this cart."
+        },
+        {
+          "name": "items",
+          "type": "array(OrderItem)",
+          "description": "List of items currently in the cart."
+        },
+        {
+          "name": "total",
+          "type": "float",
+          "description": "Total price of all items in the cart."
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "description": "Currency of the cart's total price."
+        }
+      ]
+    },
+    {
+      "name": "Order",
+      "synonyms": [
+        "order",
+        "purchase order",
+        "sales order",
+        "customer order",
+        "purchase record"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the order."
+        },
+        {
+          "name": "date",
+          "type": "datetime",
+          "description": "Date and time when the order was placed."
+        },
+        {
+          "name": "customer",
+          "type": "User",
+          "description": "User or customer who placed the order."
+        },
+        {
+          "name": "items",
+          "type": "array(OrderItem)",
+          "description": "List of items included in the order."
+        },
+        {
+          "name": "shipping_address",
+          "type": "Address",
+          "description": "Shipping address where the order will be delivered."
+        },
+        {
+          "name": "billing_address",
+          "type": "Address",
+          "description": "Billing address for the order."
+        },
+        {
+          "name": "total_amount",
+          "type": "float",
+          "description": "Total monetary amount of the order."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Current status of the order (e.g., pending, shipped, delivered)."
+        },
+        {
+          "name": "payment_method",
+          "type": "PaymentMethod",
+          "description": "Payment method used for the order."
+        }
+      ]
+    },
+    {
+      "name": "OrderItem",
+      "synonyms": [
+        "order item",
+        "line item",
+        "order line",
+        "product line",
+        "purchase item"
+      ],
+      "fields": [
+        {
+          "name": "product",
+          "type": "Product",
+          "description": "Product that was ordered."
+        },
+        {
+          "name": "quantity",
+          "type": "integer",
+          "description": "Quantity of the product ordered."
+        },
+        {
+          "name": "price",
+          "type": "float",
+          "description": "Price per unit of the product at the time of order."
+        },
+        {
+          "name": "total",
+          "type": "float",
+          "description": "Total price for this item (price * quantity)."
+        }
+      ]
+    },
+    {
+      "name": "PaymentMethod",
+      "synonyms": [
+        "payment method",
+        "payment information",
+        "billing info",
+        "payment details",
+        "credit card info",
+        "bank info"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the payment method."
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "description": "Type of payment method (e.g., credit_card, paypal, bank_transfer)."
+        },
+        {
+          "name": "card_number",
+          "type": "string",
+          "description": "Card or account number (e.g., credit card number)."
+        },
+        {
+          "name": "expiration_date",
+          "type": "string",
+          "description": "Expiration date of the card (if applicable)."
+        },
+        {
+          "name": "cardholder_name",
+          "type": "string",
+          "description": "Name on the card or account."
+        },
+        {
+          "name": "billing_address",
+          "type": "Address",
+          "description": "Billing address associated with this payment method."
+        }
+      ]
+    },
+    {
+      "name": "Payment",
+      "synonyms": [
+        "payment",
+        "transaction",
+        "payment transaction",
+        "payment record",
+        "transaction record"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the payment transaction."
+        },
+        {
+          "name": "amount",
+          "type": "float",
+          "description": "Amount that was paid in the transaction."
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "description": "Currency of the payment (e.g., USD, EUR)."
+        },
+        {
+          "name": "date",
+          "type": "datetime",
+          "description": "Date and time when the payment was made."
+        },
+        {
+          "name": "method",
+          "type": "PaymentMethod",
+          "description": "Payment method or instrument used."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Status of the payment (e.g., completed, pending, failed)."
+        },
+        {
+          "name": "order",
+          "type": "Order",
+          "description": "Order associated with this payment."
+        }
+      ]
+    },
+    {
+      "name": "Invoice",
+      "synonyms": [
+        "invoice",
+        "bill",
+        "billing invoice",
+        "billing statement",
+        "invoice bill"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Invoice identifier or number."
+        },
+        {
+          "name": "issue_date",
+          "type": "date",
+          "description": "Date when the invoice was issued."
+        },
+        {
+          "name": "due_date",
+          "type": "date",
+          "description": "Date by which payment is due."
+        },
+        {
+          "name": "customer",
+          "type": "User",
+          "description": "Customer or client being billed."
+        },
+        {
+          "name": "line_items",
+          "type": "array(OrderItem)",
+          "description": "Items or services listed on the invoice."
+        },
+        {
+          "name": "total_amount",
+          "type": "float",
+          "description": "Total amount to be paid."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Payment status of the invoice (e.g., unpaid, paid, past_due)."
+        },
+        {
+          "name": "payment_terms",
+          "type": "string",
+          "description": "Payment terms or notes (e.g., Net 30)."
+        }
+      ]
+    },
+    {
+      "name": "Subscription",
+      "synonyms": [
+        "subscription",
+        "membership",
+        "service subscription",
+        "subscription plan",
+        "membership plan"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the subscription."
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "description": "User or customer who is subscribed."
+        },
+        {
+          "name": "plan_name",
+          "type": "string",
+          "description": "Name of the subscription plan."
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "description": "Date when the subscription started."
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "description": "Date when the subscription ends or renews."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Status of the subscription (e.g., active, canceled, expired)."
+        },
+        {
+          "name": "auto_renew",
+          "type": "boolean",
+          "description": "Whether the subscription auto-renews."
+        }
+      ]
+    },
+    {
+      "name": "Event",
+      "synonyms": [
+        "event",
+        "meeting",
+        "occasion",
+        "function",
+        "calendar event",
+        "conference"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the event."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Title or name of the event."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "Detailed description of the event."
+        },
+        {
+          "name": "date",
+          "type": "datetime",
+          "description": "Date and time when the event takes place."
+        },
+        {
+          "name": "venue",
+          "type": "Venue",
+          "description": "Venue or location details for the event."
+        },
+        {
+          "name": "capacity",
+          "type": "integer",
+          "description": "Maximum number of attendees for the event."
+        },
+        {
+          "name": "attendees_count",
+          "type": "integer",
+          "description": "Number of attendees registered for the event."
+        }
+      ]
+    },
+    {
+      "name": "Venue",
+      "synonyms": [
+        "venue",
+        "event venue",
+        "location",
+        "event location",
+        "site"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the venue."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Name of the venue or location."
+        },
+        {
+          "name": "address",
+          "type": "Address",
+          "description": "Address of the venue."
+        },
+        {
+          "name": "capacity",
+          "type": "integer",
+          "description": "Maximum capacity of the venue."
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "description": "Type of venue (e.g., auditorium, stadium, online platform)."
+        }
+      ]
+    },
+    {
+      "name": "Ticket",
+      "synonyms": [
+        "ticket",
+        "event ticket",
+        "entry ticket",
+        "pass",
+        "booking ticket"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the ticket."
+        },
+        {
+          "name": "event",
+          "type": "Event",
+          "description": "Event for which this ticket is valid."
+        },
+        {
+          "name": "attendee",
+          "type": "User",
+          "description": "User or person who holds the ticket."
+        },
+        {
+          "name": "seat_number",
+          "type": "string",
+          "description": "Seat number or location assigned to the ticket."
+        },
+        {
+          "name": "price",
+          "type": "float",
+          "description": "Price paid for the ticket."
+        },
+        {
+          "name": "purchase_date",
+          "type": "datetime",
+          "description": "Date and time when the ticket was purchased."
+        }
+      ]
+    },
+    {
+      "name": "SupportTicket",
+      "synonyms": [
+        "support ticket",
+        "helpdesk ticket",
+        "support case",
+        "issue",
+        "incident",
+        "service request"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the support ticket."
+        },
+        {
+          "name": "customer",
+          "type": "User",
+          "description": "User or customer who reported the issue."
+        },
+        {
+          "name": "subject",
+          "type": "string",
+          "description": "Short summary of the issue or request."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "Detailed description of the problem or request."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Current status of the ticket (e.g., open, in_progress, resolved)."
+        },
+        {
+          "name": "priority",
+          "type": "string",
+          "description": "Priority level of the ticket (e.g., low, medium, high)."
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "Time when the ticket was created."
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "Time of the last update on the ticket."
+        },
+        {
+          "name": "assigned_to",
+          "type": "User",
+          "description": "Support agent or team member handling the ticket."
+        }
+      ]
+    },
+    {
+      "name": "Patient",
+      "synonyms": [
+        "patient",
+        "medical patient",
+        "clinic patient",
+        "healthcare patient",
+        "patient record"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the patient."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Full name of the patient."
+        },
+        {
+          "name": "date_of_birth",
+          "type": "date",
+          "description": "Birth date of the patient."
+        },
+        {
+          "name": "gender",
+          "type": "string",
+          "description": "Gender of the patient."
+        },
+        {
+          "name": "contact_info",
+          "type": "ContactInfo",
+          "description": "Contact details for the patient."
+        },
+        {
+          "name": "allergies",
+          "type": "array(string)",
+          "description": "List of known allergies the patient has."
+        },
+        {
+          "name": "blood_type",
+          "type": "string",
+          "description": "Blood type of the patient (e.g., O+, A-)."
+        }
+      ]
+    },
+    {
+      "name": "Doctor",
+      "synonyms": [
+        "doctor",
+        "physician",
+        "medical provider",
+        "healthcare provider",
+        "clinician"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the doctor."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Full name of the doctor."
+        },
+        {
+          "name": "specialty",
+          "type": "string",
+          "description": "Medical specialty or department (e.g., cardiology)."
+        },
+        {
+          "name": "contact_info",
+          "type": "ContactInfo",
+          "description": "Contact details for the doctor."
+        },
+        {
+          "name": "clinic",
+          "type": "Organization",
+          "description": "Clinic or hospital organization the doctor is affiliated with."
+        }
+      ]
+    },
+    {
+      "name": "Appointment",
+      "synonyms": [
+        "appointment",
+        "medical appointment",
+        "consultation",
+        "meeting",
+        "visit"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the appointment."
+        },
+        {
+          "name": "patient",
+          "type": "Patient",
+          "description": "Patient who has the appointment."
+        },
+        {
+          "name": "doctor",
+          "type": "Doctor",
+          "description": "Doctor or provider for the appointment."
+        },
+        {
+          "name": "date",
+          "type": "datetime",
+          "description": "Scheduled date and time of the appointment."
+        },
+        {
+          "name": "location",
+          "type": "Address",
+          "description": "Location or address where the appointment takes place."
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "description": "Reason or purpose of the appointment."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Status of the appointment (e.g., scheduled, completed, canceled)."
+        }
+      ]
+    },
+    {
+      "name": "Prescription",
+      "synonyms": [
+        "prescription",
+        "medication order",
+        "drug prescription",
+        "medical prescription",
+        "Rx"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the prescription."
+        },
+        {
+          "name": "patient",
+          "type": "Patient",
+          "description": "Patient for whom the prescription is issued."
+        },
+        {
+          "name": "doctor",
+          "type": "Doctor",
+          "description": "Doctor who wrote the prescription."
+        },
+        {
+          "name": "medication_name",
+          "type": "string",
+          "description": "Name of the prescribed medication."
+        },
+        {
+          "name": "dosage",
+          "type": "string",
+          "description": "Dosage instructions for the medication."
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "description": "Date to start the medication."
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "description": "Date to stop the medication."
+        },
+        {
+          "name": "refills",
+          "type": "integer",
+          "description": "Number of refills allowed for this prescription."
+        }
+      ]
+    },
+    {
+      "name": "MedicalRecord",
+      "synonyms": [
+        "medical record",
+        "patient record",
+        "health record",
+        "medical history",
+        "patient file"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the medical record."
+        },
+        {
+          "name": "patient",
+          "type": "Patient",
+          "description": "Patient whom this record pertains to."
+        },
+        {
+          "name": "conditions",
+          "type": "array(string)",
+          "description": "List of diagnosed conditions or illnesses."
+        },
+        {
+          "name": "medications",
+          "type": "array(string)",
+          "description": "List of current medications the patient is taking."
+        },
+        {
+          "name": "allergies",
+          "type": "array(string)",
+          "description": "List of known allergies for the patient."
+        },
+        {
+          "name": "immunizations",
+          "type": "array(string)",
+          "description": "List of immunizations/vaccinations the patient has received."
+        },
+        {
+          "name": "last_visit_date",
+          "type": "date",
+          "description": "Date of the patient's last medical visit."
+        }
+      ]
+    },
+    {
+      "name": "Course",
+      "synonyms": [
+        "course",
+        "class",
+        "subject",
+        "training course",
+        "course module"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the course."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Title or name of the course."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "Brief summary describing the course."
+        },
+        {
+          "name": "instructor",
+          "type": "Instructor",
+          "description": "Instructor or teacher for the course."
+        },
+        {
+          "name": "schedule",
+          "type": "string",
+          "description": "Schedule or timing details for the course."
+        },
+        {
+          "name": "credits",
+          "type": "integer",
+          "description": "Credit value or hours of the course."
+        }
+      ]
+    },
+    {
+      "name": "StudentProfile",
+      "synonyms": [
+        "student",
+        "student profile",
+        "pupil",
+        "learner",
+        "student record"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the student."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Full name of the student."
+        },
+        {
+          "name": "student_id_number",
+          "type": "string",
+          "description": "Official student identification number."
+        },
+        {
+          "name": "enrollment_year",
+          "type": "integer",
+          "description": "Year the student enrolled or started."
+        },
+        {
+          "name": "major",
+          "type": "string",
+          "description": "Major field of study or department."
+        },
+        {
+          "name": "contact_info",
+          "type": "ContactInfo",
+          "description": "Contact details (phone, email) of the student."
+        },
+        {
+          "name": "address",
+          "type": "Address",
+          "description": "Home or mailing address of the student."
+        }
+      ]
+    },
+    {
+      "name": "Instructor",
+      "synonyms": [
+        "instructor",
+        "teacher",
+        "professor",
+        "educator",
+        "lecturer"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the instructor."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Full name of the instructor."
+        },
+        {
+          "name": "employee_id",
+          "type": "string",
+          "description": "Employee or staff ID of the instructor."
+        },
+        {
+          "name": "department",
+          "type": "string",
+          "description": "Department or faculty the instructor belongs to."
+        },
+        {
+          "name": "contact_info",
+          "type": "ContactInfo",
+          "description": "Contact details (email, phone) of the instructor."
+        },
+        {
+          "name": "office_address",
+          "type": "Address",
+          "description": "Office or campus address of the instructor."
+        }
+      ]
+    },
+    {
+      "name": "Enrollment",
+      "synonyms": [
+        "enrollment",
+        "registration",
+        "course enrollment",
+        "course registration",
+        "enrolment"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the enrollment record."
+        },
+        {
+          "name": "student",
+          "type": "StudentProfile",
+          "description": "Student who is enrolled."
+        },
+        {
+          "name": "course",
+          "type": "Course",
+          "description": "Course that the student is enrolled in."
+        },
+        {
+          "name": "enrollment_date",
+          "type": "date",
+          "description": "Date when the enrollment occurred."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Status of the enrollment (e.g., enrolled, dropped, completed)."
+        }
+      ]
+    },
+    {
+      "name": "Grade",
+      "synonyms": [
+        "grade",
+        "score",
+        "mark",
+        "result",
+        "evaluation"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the grade record."
+        },
+        {
+          "name": "student",
+          "type": "StudentProfile",
+          "description": "Student who received the grade."
+        },
+        {
+          "name": "course",
+          "type": "Course",
+          "description": "Course for which the grade is given."
+        },
+        {
+          "name": "grade_value",
+          "type": "string",
+          "description": "Grade or score (e.g., A, 95%)."
+        },
+        {
+          "name": "date_recorded",
+          "type": "date",
+          "description": "Date when the grade was recorded."
+        }
+      ]
+    },
+    {
+      "name": "Message",
+      "synonyms": [
+        "message",
+        "chat message",
+        "text message",
+        "communication",
+        "email message"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the message."
+        },
+        {
+          "name": "sender",
+          "type": "User",
+          "description": "User or entity who sent the message."
+        },
+        {
+          "name": "recipient",
+          "type": "User",
+          "description": "User or entity who is intended to receive the message."
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "description": "Text content of the message."
+        },
+        {
+          "name": "timestamp",
+          "type": "datetime",
+          "description": "Date and time when the message was sent."
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "description": "Type of message (e.g., chat, email, SMS)."
+        }
+      ]
+    },
+    {
+      "name": "Notification",
+      "synonyms": [
+        "notification",
+        "alert",
+        "reminder",
+        "alert message",
+        "notice"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the notification."
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "description": "User who receives the notification."
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "description": "Content of the notification."
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "description": "Notification type (e.g., email, SMS, push)."
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "Time when the notification was created."
+        },
+        {
+          "name": "read",
+          "type": "boolean",
+          "description": "Whether the notification has been read."
+        }
+      ]
+    },
+    {
+      "name": "Comment",
+      "synonyms": [
+        "comment",
+        "user comment",
+        "feedback comment",
+        "remark",
+        "note"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the comment."
+        },
+        {
+          "name": "author",
+          "type": "User",
+          "description": "User or person who wrote the comment."
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "description": "Text content of the comment."
+        },
+        {
+          "name": "posted_at",
+          "type": "datetime",
+          "description": "Date and time when the comment was posted."
+        },
+        {
+          "name": "related_to",
+          "type": "string",
+          "description": "Identifier of the entity this comment is related to (e.g., post ID)."
+        }
+      ]
+    },
+    {
+      "name": "Review",
+      "synonyms": [
+        "review",
+        "rating",
+        "evaluation",
+        "product review",
+        "user review"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the review."
+        },
+        {
+          "name": "author",
+          "type": "User",
+          "description": "User or customer who wrote the review."
+        },
+        {
+          "name": "rating",
+          "type": "integer",
+          "description": "Rating score given in the review (e.g., 1-5)."
+        },
+        {
+          "name": "comment",
+          "type": "string",
+          "description": "Text content of the review."
+        },
+        {
+          "name": "date",
+          "type": "date",
+          "description": "Date when the review was submitted."
+        },
+        {
+          "name": "item",
+          "type": "Product",
+          "description": "Product or item that is being reviewed."
+        }
+      ]
+    },
+    {
+      "name": "Article",
+      "synonyms": [
+        "article",
+        "blog post",
+        "post",
+        "news article",
+        "content piece"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the article or post."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Title of the article."
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "description": "Main body content of the article."
+        },
+        {
+          "name": "author",
+          "type": "User",
+          "description": "Author who wrote the article."
+        },
+        {
+          "name": "tags",
+          "type": "array(string)",
+          "description": "List of tags or categories for the article."
+        },
+        {
+          "name": "published_at",
+          "type": "datetime",
+          "description": "Date and time when the article was published."
+        },
+        {
+          "name": "updated_at",
+          "type": "datetime",
+          "description": "Date and time of the last update to the article."
+        }
+      ]
+    },
+    {
+      "name": "File",
+      "synonyms": [
+        "file",
+        "document",
+        "file attachment",
+        "uploaded file",
+        "digital file"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the file."
+        },
+        {
+          "name": "filename",
+          "type": "string",
+          "description": "Name of the file including extension."
+        },
+        {
+          "name": "file_type",
+          "type": "string",
+          "description": "File format or MIME type (e.g., PDF, JPEG)."
+        },
+        {
+          "name": "size",
+          "type": "integer",
+          "description": "Size of the file in bytes."
+        },
+        {
+          "name": "url",
+          "type": "string",
+          "description": "URL or storage path where the file is accessible."
+        },
+        {
+          "name": "uploaded_at",
+          "type": "datetime",
+          "description": "Timestamp when the file was uploaded."
+        },
+        {
+          "name": "uploaded_by",
+          "type": "User",
+          "description": "User who uploaded the file."
+        }
+      ]
+    },
+    {
+      "name": "Image",
+      "synonyms": [
+        "image",
+        "photo",
+        "picture",
+        "graphic",
+        "image file"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the image."
+        },
+        {
+          "name": "filename",
+          "type": "string",
+          "description": "Filename of the image."
+        },
+        {
+          "name": "format",
+          "type": "string",
+          "description": "Image format (e.g., PNG, JPEG)."
+        },
+        {
+          "name": "width",
+          "type": "integer",
+          "description": "Width of the image in pixels."
+        },
+        {
+          "name": "height",
+          "type": "integer",
+          "description": "Height of the image in pixels."
+        },
+        {
+          "name": "url",
+          "type": "string",
+          "description": "URL where the image can be accessed."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "Description or alt text for the image."
+        }
+      ]
+    },
+    {
+      "name": "Task",
+      "synonyms": [
+        "task",
+        "to-do",
+        "action item",
+        "work item",
+        "to-do item"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the task."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Short title or summary of the task."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "Detailed description of the task."
+        },
+        {
+          "name": "assigned_to",
+          "type": "User",
+          "description": "User or team member responsible for the task."
+        },
+        {
+          "name": "due_date",
+          "type": "date",
+          "description": "Due date for the task completion."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Current status of the task (e.g., not_started, in_progress, completed)."
+        },
+        {
+          "name": "priority",
+          "type": "string",
+          "description": "Priority level of the task (e.g., low, medium, high)."
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "description": "Timestamp when the task was created."
+        }
+      ]
+    },
+    {
+      "name": "Project",
+      "synonyms": [
+        "project",
+        "initiative",
+        "campaign",
+        "endeavor",
+        "project plan"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the project."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Name of the project."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "Brief description of the project."
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "description": "Start date of the project."
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "description": "End date or deadline of the project."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Current status of the project (e.g., planning, active, completed)."
+        },
+        {
+          "name": "team",
+          "type": "Team",
+          "description": "Team responsible for the project."
+        },
+        {
+          "name": "tasks",
+          "type": "array(Task)",
+          "description": "List of tasks associated with the project."
+        }
+      ]
+    },
+    {
+      "name": "Device",
+      "synonyms": [
+        "device",
+        "hardware",
+        "equipment",
+        "machine",
+        "gadget"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier for the device."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Name or label of the device."
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "description": "Type or category of device (e.g., sensor, phone, computer)."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Current status of the device (e.g., active, offline)."
+        },
+        {
+          "name": "owner",
+          "type": "User",
+          "description": "User or organization that owns the device."
+        },
+        {
+          "name": "last_seen",
+          "type": "datetime",
+          "description": "Last timestamp when the device was active or reported."
+        }
+      ]
+    }
+  ]
+  
