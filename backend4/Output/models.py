@@ -3,8 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class Team(db.Model):
-    __tablename__ = 'teams'
-    id = db.Column(db.String, primary_key=True)
+    __tablename__ = 'team'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
     city = db.Column(db.String, nullable=False)
     country = db.Column(db.String, nullable=False)
@@ -20,11 +20,11 @@ class Team(db.Model):
         }
 
 class Player(db.Model):
-    __tablename__ = 'players'
-    id = db.Column(db.String, primary_key=True)
+    __tablename__ = 'player'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False)
     position = db.Column(db.String, nullable=False)
-    team_id = db.Column(db.String, db.ForeignKey('teams.id'), nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
     country = db.Column(db.String, nullable=False)
 
     def to_dict(self):

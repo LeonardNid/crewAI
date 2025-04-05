@@ -3,7 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 
 from backend4.tools.custom_tool import FileReaderTool, FileWriterTool
 from backend4.tools.test_tool import FlaskTestClientTool
-from backend4.tools.lookup_tool import DataObjectLoopupTool
+from backend4.tools.lookup_tool import DataObjectLookupTool
 
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
@@ -26,7 +26,7 @@ class Backend4():
         return Agent(
 			config=self.agents_config['structure_designer'],
 			verbose=True,
-			tools=[DataObjectLoopupTool()],
+			tools=[DataObjectLookupTool()],
 			# llm=self.ollama_llm
 		)
     

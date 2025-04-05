@@ -1,4 +1,3 @@
-# lookup_tool.py
 import os
 import json
 from difflib import SequenceMatcher
@@ -6,13 +5,13 @@ from typing import Type, List, Dict, Any
 from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
 
-class DataObjectLoopupInput(BaseModel):
+class DataObjectLookupInput(BaseModel):
     query: str = Field(..., description="Keyword or phrase to look up (e.g., 'home', 'residence', 'contact', 'role').")
 
-class DataObjectLoopupTool(BaseTool):
+class DataObjectLookupTool(BaseTool):
     name: str = "data_object_lookup"
     description: str = "Returns the fields of the most commonly used data objects based on a given keyword."
-    args_schema: Type[BaseModel] = DataObjectLoopupInput
+    args_schema: Type[BaseModel] = DataObjectLookupInput
 
     # wir halten die JSON-Daten im Speicher, damit wir nicht jedes Mal neu laden müssen
     _cached_data: List[Dict[str, Any]] = []

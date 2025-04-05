@@ -8,21 +8,27 @@ models_planning_task:
        and any relevant relationships (e.g. foreign keys).
     3) Each model should list the fields needed, including data types or constraints 
        if relevant (e.g. "name: string", "age: integer").
-       Each Model should have a primary key.
-    4) If the "customer" mentions extra data (like addresses), 
-       factor that in (possibly as a separate model).
-    5) The final output must NOT contain any code. 
-       Provide only a structured outline (in text or Markdown bullets) 
-       of the models and how they link together.
+       - By default, each primary key should be defined as an auto-increment integer
+         unless the customer specifically wants a different approach (like UUID or string).
+       - If you define a foreign key (e.g., `team_id` referencing `teams.id`),
+         make sure the foreign key column's type matches the primary key's type.
+         For example, if `teams.id` is an integer, `players.team_id` must also be integer.
+    4) If the "customer" mentions extra data (like addresses), factor that in 
+       (possibly as a separate model).
+    5) The final output must NOT contain any code. Provide only a structured outline 
+       (in text or Markdown bullets) of the models and how they link together.
+    6) You should use the "data_object_lookup" Tool to help you define the models
     Important instructions:
-      - You should use the "data_object_lookup" Tool to help you define the models
       - Only define the models, don't define any CRUD Endpoints
   expected_output: >
     Your final answer must contain:
       - A "Database Schema" section listing all models with their fields/relationships
       - No code, only text.
+      - Ensure that primary keys are auto-increment integer by default
+        and foreign keys have matching types.
   agent: structure_designer
   output_file: Output/models_plan.md
+
 
 
 routes_planning_task:
@@ -46,7 +52,6 @@ routes_planning_task:
       - Don't relist the already mentioned models in your final answer.
   agent: structure_designer
   output_file: Output/app_plan.md
-
 
 # code_creator
 
@@ -102,42 +107,57 @@ backend_endpoint_summary_task:
     2) For each POST or PUT route, specify which JSON fields it expects if known.
     3) Present them in the order they should be tested:
        all POST routes first, then GET, then PUT, then DELETE.
-       It is extremly important to follow this order.
+       It is extremely important to follow this order.
     4) Do not write code; only produce a textual or Markdown list. 
     5) Do not use any tools for this task.
-
   expected_output: >
     Your final answer must be a numbered summary of each route, including:
       - The HTTP method(s)
       - The path (with path parameters if any)
       - The required JSON fields for POST/PUT
-      - Any response details you can infer
+      - Any response details you can infer.
     Example:
-      "1. POST /teams -> Needs { name: string, city: string, ... } 
-        Returns the newly created team data."
-
+      "1. POST /teams -> Needs { name: string, city: string, country: string, stadium: string } 
+       Returns the newly created team data."
   agent: code_tester
   context: [backend_models_task, backend_app_task]
   output_file: 'Output/endpoint_summary.md'
 
 backend_test_task:
   description: >
-    You are now allowed and should use the "FlaskTestClientTool" to test each endpoint based on the summary in the context.
-    1) For each route (GET, POST, PUT, DELETE), call it exactly once.
-       Provide valid JSON data for POST/PUT as described, and check 
-       status codes and response structures (200, 404, etc.).
-    2) Keep track of each test's outcome (status code, response body).
-    3) Produce a test report summarizing which endpoints passed or failed. 
-       Do not write code—only provide the results in text or Markdown.
-
+    Use the "flask_test_client" tool to test the backend application based on the endpoint summary in your context.
+    
+    Your responsibilities:
+      1. Read the endpoint summary carefully.
+         For each route listed, construct an HTTP request definition.
+         **Important:**
+         - Use the key `"route"` for the URL path (not `"path"`).
+         - Use `"json_data"` for the JSON body (do not pass a stringified JSON; pass an actual JSON object).
+         - For routes that require a JSON body (POST/PUT), include a valid JSON object based on the expected fields.
+         - For routes with URL parameters (e.g., `/teams/<id>`), use `1` as a default value (e.g., `/teams/1`).
+      2. Combine all request definitions into a single list and pass them to the tool in one bulk call.
+         - All POST routes first, then GET, then PUT, then DELETE.
+         - It is extremely important to follow this order.
+      3. After the tool executes the tests, produce a Markdown report that summarizes:
+         - For each request: method, route, payload (if any), status code, and a brief summary of the response.
+         - Clearly indicate if a request failed (e.g., with a ❌ marker).
   expected_output: >
-    Provide a structured test report listing each endpoint, 
-    how it was called (method + path + JSON body if applicable), 
-    and the outcome (status code, response details).
+    Your final answere must be a Markdown report that includes:
+      - A section for each tested request.
+      - The HTTP method and route.
+      - The JSON payload (if applicable).
+      - The status code and a summary of the response.
+      - A clear indication (e.g., ❌) if a request failed.
     Example:
-      "GET /teams -> 200 OK, returned [...]. 
-       POST /teams -> 201 Created, returned { id: ..., name: ... }."
+      ### POST /teams
+      Payload: {"name": "Test FC", "city": "Berlin", "country": "Germany", "stadium": "Olympiastadion"}
+      Result: ✅ 201 Created
+      Response: { "id": 1, ... }
+      
+      ### PUT /teams/1
+      Payload: {"name": "Updated FC"}
+      Result: ❌ 500 Internal Server Error
+      Response: Missing field "city"
   agent: code_tester
   context: [backend_endpoint_summary_task]
   output_file: 'Output/test_report.md'
-

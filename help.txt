@@ -1,5 +1,4 @@
 Standart datenobjekte bsp. Adresse, rechnung, person ... (Deepresarch)
-best practices für backend anwendungen
 promt vergrößern (topic) und tasks verallgeminern ✓
 welche teamrollen es in einer echten firma gibt
 Test für fertige Anwendung ✓
@@ -20,6 +19,8 @@ infos an code_creator weiterleiten damit er nur code schreiben muss und nicht na
 ✓
 
 lookup tool anpassen: mehrere keywords
+
+Deepresarch: nach einer absolut perfekten backend anwendung recherchieren und das als template benutzen (best practices für backend anwendungen)
 
 
 
