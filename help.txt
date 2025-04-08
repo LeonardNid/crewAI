@@ -22,5 +22,7 @@ lookup tool anpassen: mehrere keywords
 
 Deepresarch: nach einer absolut perfekten backend anwendung recherchieren und das als template benutzen (best practices für backend anwendungen)
 
+Wenn etwas im test schief läuft muss crew den fehler versuchen zu fixen
+
 
 

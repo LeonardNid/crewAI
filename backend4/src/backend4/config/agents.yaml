@@ -10,7 +10,7 @@ structure_designer:
     You have deep knowledge in data modeling, entity relationships, 
     and REST endpoint design for the domain {topic}. 
     Your job is strictly to analyze the input given by the customer 
-    and produce a textual plan that code_creator can implement in code later.
+    and produce a textual plan that code_creator can implement in code later. 
 
 code_creator:
   role: >

@@ -44,7 +44,7 @@ class DataObjectLookupTool(BaseTool):
 
         # 2) Search in Data for fuzzy match
         query_lower = query.lower()
-        threshold = 0.6  # Adjust as needed
+        threshold = 0.6
 
         matches = []
         for obj in data:

@@ -1,102 +1,88 @@
 ### Routes Plan
 
-**1. Teams Endpoints**
-- **POST /teams**  
-  - **Request Body:**  
-    - `name`: string (required)  
-    - `city`: string (required)  
-    - `country`: string (required)  
-    - `stadium`: string (required)  
-  - **Response:**  
-    - Status 201: Team Created with team ID, team details  
-    - Status 400: Bad Request if any field is missing/invalid  
+1. **Teams**
+   - **GET /teams**
+     - **Description**: Retrieve a list of all teams.
+     - **Response**: Returns an array of team objects.
 
-- **GET /teams**  
-  - **Response:**  
-    - Status 200: Array of all teams, each with ID, name, city, country, and stadium  
+   - **GET /teams/<id>**
+     - **Description**: Retrieve a specific team by ID.
+     - **Response**: Returns a team object.
 
-- **GET /teams/{id}**  
-  - **Path Parameter:**  
-    - `id`: integer (required)  
-  - **Response:**  
-    - Status 200: Team details for the specified ID  
-    - Status 404: Not Found if team does not exist  
+   - **POST /teams**
+     - **Description**: Create a new team.
+     - **Request Body**: 
+       ```json
+       {
+         "name": "string",
+         "city": "string",
+         "country": "string",
+         "stadium": "string"
+       }
+       ```
+     - **Response**: Returns the created team object.
 
-- **PUT /teams/{id}**  
-  - **Path Parameter:**  
-    - `id`: integer (required)  
-  - **Request Body:**  
-    - `name`: string (optional)  
-    - `city`: string (optional)  
-    - `country`: string (optional)  
-    - `stadium`: string (optional)  
-  - **Response:**  
-    - Status 200: Updated team details  
-    - Status 404: Not Found if team does not exist  
-    - Status 400: Bad Request if all fields are empty  
+   - **PUT /teams/<id>**
+     - **Description**: Update an existing team.
+     - **Request Body**: 
+       ```json
+       {
+         "name": "string",
+         "city": "string",
+         "country": "string",
+         "stadium": "string"
+       }
+       ```
+     - **Response**: Returns the updated team object.
 
-- **DELETE /teams/{id}**  
-  - **Path Parameter:**  
-    - `id`: integer (required)  
-  - **Response:**  
-    - Status 204: No Content, team deleted successfully  
-    - Status 404: Not Found if team does not exist  
+   - **DELETE /teams/<id>**
+     - **Description**: Delete a specific team by ID.
+     - **Response**: Confirmation message or status.
 
-**2. Players Endpoints**
-- **POST /players**  
-  - **Request Body:**  
-    - `name`: string (required)  
-    - `position`: string (required)  
-    - `country`: string (required)  
-    - `team_id`: integer (required, must reference an existing team)  
-  - **Response:**  
-    - Status 201: Player Created with player ID, player details  
-    - Status 400: Bad Request if any field is missing/invalid  
+2. **Players**
+   - **GET /players**
+     - **Description**: Retrieve a list of all players.
+     - **Response**: Returns an array of player objects.
 
-- **GET /players**  
-  - **Response:**  
-    - Status 200: Array of all players, each with ID, name, position, country, and team_id  
+   - **GET /players/<id>**
+     - **Description**: Retrieve a specific player by ID.
+     - **Response**: Returns a player object.
 
-- **GET /players/{id}**  
-  - **Path Parameter:**  
-    - `id`: integer (required)  
-  - **Response:**  
-    - Status 200: Player details for the specified ID  
-    - Status 404: Not Found if player does not exist  
+   - **POST /players**
+     - **Description**: Create a new player.
+     - **Request Body**: 
+       ```json
+       {
+         "name": "string",
+         "position": "string",
+         "team_id": "integer",
+         "country": "string"
+       }
+       ```
+     - **Response**: Returns the created player object.
 
-- **PUT /players/{id}**  
-  - **Path Parameter:**  
-    - `id`: integer (required)  
-  - **Request Body:**  
-    - `name`: string (optional)  
-    - `position`: string (optional)  
-    - `country`: string (optional)  
-    - `team_id`: integer (optional, must reference an existing team)  
-  - **Response:**  
-    - Status 200: Updated player details  
-    - Status 404: Not Found if player does not exist  
-    - Status 400: Bad Request if all fields are empty  
+   - **PUT /players/<id>**
+     - **Description**: Update an existing player.
+     - **Request Body**: 
+       ```json
+       {
+         "name": "string",
+         "position": "string",
+         "team_id": "integer",
+         "country": "string"
+       }
+       ```
+     - **Response**: Returns the updated player object.
 
-- **DELETE /players/{id}**  
-  - **Path Parameter:**  
-    - `id`: integer (required)  
-  - **Response:**  
-    - Status 204: No Content, player deleted successfully  
-    - Status 404: Not Found if player does not exist  
+   - **DELETE /players/<id>**
+     - **Description**: Delete a specific player by ID.
+     - **Response**: Confirmation message or status.
 
-**3. Special Routes**
-- **GET /teams/{team_id}/players**  
-  - **Path Parameter:**  
-    - `team_id`: integer (required)  
-  - **Response:**  
-    - Status 200: Array of players associated with the specified team ID  
-    - Status 404: Not Found if team does not exist  
+3. **Special Routes**
+   - **GET /teams/<id>/players**
+     - **Description**: Retrieve all players for a specific team.
+     - **Response**: Returns an array of player objects associated with the specified team.
 
-- **GET /players/country/{country}**  
-  - **Path Parameter:**  
-    - `country`: string (required)  
-  - **Response:**  
-    - Status 200: Array of players from the specified country  
-    - Status 404: Not Found if no players exist from that country  
-
-This structured plan outlines the necessary routes, expected data, and response formats to be implemented for the football team and player management system.
+   - **GET /players/country/<country>**
+     - **Description**: Retrieve players from a specific country.
+     - **Response**: Returns an array of player objects from the specified country.

@@ -1,33 +1,24 @@
-1. GET / -> returns a message indicating the API is running.
-2. POST /teams -> needs {
-    name: string,
-    city: string,
-    country: string,
-    stadium: string
-   }
-3. GET /teams -> returns a list of all teams.
-4. GET /teams/<id> -> returns details of a specific team by ID.
-5. PUT /teams/<id> -> needs at least one of the following fields to update: {
-    name: string,
-    city: string,
-    country: string,
-    stadium: string
-   }
-6. DELETE /teams/<id> -> deletes a specific team by ID.
-7. POST /players -> needs {
-    name: string,
-    position: string,
-    country: string,
-    team_id: integer
-   }
-8. GET /players -> returns a list of all players.
-9. GET /players/<id> -> returns details of a specific player by ID.
-10. PUT /players/<id> -> needs at least one of the following fields to update: {
-    name: string,
-    position: string,
-    country: string,
-    team_id: integer
-   }
-11. DELETE /players/<id> -> deletes a specific player by ID.
-12. GET /teams/<team_id>/players -> returns a list of players for a specific team by team ID.
-13. GET /players/country/<country> -> returns a list of players from a specific country.
+1. POST /teams -> Needs { name: string, city: string, country: string, stadium: string } 
+   Returns the newly created team data.
+2. POST /players -> Needs { name: string, position: string, team_id: integer, country: string } 
+   Returns the newly created player data.
+3. GET /teams 
+   Returns a list of all teams.
+4. GET /teams/<id> 
+   Returns the team data for the specified id.
+5. GET /players 
+   Returns a list of all players.
+6. GET /players/<id> 
+   Returns the player data for the specified id.
+7. GET /teams/<id>/players 
+   Returns a list of players belonging to the specified team.
+8. GET /players/country/<country> 
+   Returns a list of players from the specified country.
+9. PUT /teams/<id> -> Needs { name: string, city: string, country: string, stadium: string } 
+   Returns the updated team data.
+10. PUT /players/<id> -> Needs { name: string, position: string, team_id: integer, country: string } 
+    Returns the updated player data.
+11. DELETE /teams/<id>
+    Returns a success message if the team is deleted.
+12. DELETE /players/<id>
+    Returns a success message if the player is deleted.

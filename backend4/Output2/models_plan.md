@@ -1,35 +1,21 @@
-### Database Schema
+```
+Database Schema:
 
-#### Model: Team
-- **Fields:**
-  - `id`: integer (Primary Key, Auto-increment)
-  - `name`: string (Not Null)
-  - `city`: string (Not Null)
-  - `country`: string (Not Null)
-  - `stadium`: string (Not Null)
+1. Team
+   - id: integer (auto-increment, primary key)
+   - name: string (team name)
+   - city: string (city where the team is based)
+   - country: string (country where the team is located)
+   - stadium: string (name of the stadium)
 
-#### Model: Player
-- **Fields:**
-  - `id`: integer (Primary Key, Auto-increment)
-  - `name`: string (Not Null)
-  - `position`: string (Not Null)
-  - `country`: string (Not Null)
-  - `team_id`: integer (Foreign Key referencing Team(id))
+2. Player
+   - id: integer (auto-increment, primary key)
+   - name: string (player name)
+   - position: string (player position, e.g., forward, midfielder)
+   - team_id: integer (foreign key referencing Team.id)
+   - country: string (country of the player)
 
-### Relationships
-- One-to-Many relationship between Team and Player, where one Team can have multiple Players, but each Player belongs to exactly one Team.
-
-### CRUD Endpoints
-1. **Teams**
-   - `POST /teams` - Create a new team
-   - `GET /teams` - Retrieve all teams
-   - `GET /teams/{id}` - Retrieve a single team by ID
-   - `PUT /teams/{id}` - Update an existing team by ID
-   - `DELETE /teams/{id}` - Delete a team by ID
-
-2. **Players**
-   - `POST /players` - Create a new player
-   - `GET /players` - Retrieve all players
-   - `GET /players/{id}` - Retrieve a single player by ID
-   - `PUT /players/{id}` - Update an existing player by ID
-   - `DELETE /players/{id}` - Delete a player by ID
+Relationships:
+- A Team has many Players (one-to-many relationship).
+- Each Player belongs to one Team (many-to-one relationship).
+```

@@ -1,90 +1,59 @@
-# Test Report for API Endpoints
+### POST /teams
+Payload: {"name": "Test FC", "city": "Berlin", "country": "Germany", "stadium": "Olympiastadion"}
+Result: ✅ 201 Created
+Response: { "city": "Berlin", "country": "Germany", "id": 1, "name": "Test FC", "stadium": "Olympiastadion" }
 
-## 1. GET /
-- **Request:** GET /
-- **Response:** 200 OK
-- **Body:** {"message":"Football API is Running"}
+### POST /players
+Payload: {"name": "John Doe", "position": "Forward", "team_id": 1, "country": "Germany"}
+Result: ✅ 201 Created
+Response: { "country": "Germany", "id": 1, "name": "John Doe", "position": "Forward", "team_id": 1 }
 
-## 2. POST /teams
-- **Request:** POST /teams with body 
-  ```json
-  {
-    "name": "The Invincibles",
-    "city": "London",
-    "country": "England",
-    "stadium": "Emirates Stadium"
-  }
-  ```
-- **Response:** 201 Created
-- **Body:** {"id": 1, "name": "The Invincibles", "city": "London", "country": "England", "stadium": "Emirates Stadium"}
+### GET /teams
+Payload: None
+Result: ✅ 200 OK
+Response: [ { "city": "Berlin", "country": "Germany", "id": 1, "name": "Test FC", "stadium": "Olympiastadion" } ]
 
-## 3. GET /teams
-- **Request:** GET /teams
-- **Response:** 200 OK
-- **Body:** [{"id": 1, "name": "The Invincibles", "city": "London", "country": "England", "stadium": "Emirates Stadium"}]
+### GET /teams/1
+Payload: None
+Result: ✅ 200 OK
+Response: { "city": "Berlin", "country": "Germany", "id": 1, "name": "Test FC", "stadium": "Olympiastadion" }
 
-## 4. GET /teams/1
-- **Request:** GET /teams/1
-- **Response:** 200 OK
-- **Body:** {"id": 1, "name": "The Invincibles", "city": "London", "country": "England", "stadium": "Emirates Stadium"}
+### GET /players
+Payload: None
+Result: ✅ 200 OK
+Response: [ { "country": "Germany", "id": 1, "name": "John Doe", "position": "Forward", "team_id": 1 } ]
 
-## 5. PUT /teams/1
-- **Request:** PUT /teams/1 with body 
-  ```json
-  {
-   "stadium": "Wembley Stadium"
-  }
-  ```
-- **Response:** 200 OK
-- **Body:** {"id": 1, "name": "The Invincibles", "city": "London", "country": "England", "stadium": "Wembley Stadium"}
+### GET /players/1
+Payload: None
+Result: ✅ 200 OK
+Response: { "country": "Germany", "id": 1, "name": "John Doe", "position": "Forward", "team_id": 1 }
 
-## 6. DELETE /teams/1
-- **Request:** DELETE /teams/1
-- **Response:** 204 No Content
+### GET /teams/1/players
+Payload: None
+Result: ✅ 200 OK
+Response: [ { "country": "Germany", "id": 1, "name": "John Doe", "position": "Forward", "team_id": 1 } ]
 
-## 7. POST /players
-- **Request:** POST /players with body 
-  ```json
-  {
-    "name": "John Doe",
-    "position": "Defender",
-    "country": "USA",
-    "team_id": 1
-  }
-  ```
-- **Response:** 201 Created
-- **Body:** {"id": 1, "name": "John Doe", "position": "Defender", "country": "USA", "team_id": 1}
+### GET /players/country/Germany
+Payload: None
+Result: ✅ 200 OK
+Response: [ { "country": "Germany", "id": 1, "name": "John Doe", "position": "Forward", "team_id": 1 } ]
 
-## 8. GET /players
-- **Request:** GET /players
-- **Response:** 200 OK
-- **Body:** [{"id": 1, "name": "John Doe", "position": "Defender", "country": "USA", "team_id": 1}]
+### PUT /teams/1
+Payload: {"name": "Updated FC", "city": "Berlin", "country": "Germany", "stadium": "Olympiastadion"}
+Result: ✅ 200 OK
+Response: { "city": "Berlin", "country": "Germany", "id": 1, "name": "Updated FC", "stadium": "Olympiastadion" }
 
-## 9. GET /players/1
-- **Request:** GET /players/1
-- **Response:** 200 OK
-- **Body:** {"id": 1, "name": "John Doe", "position": "Defender", "country": "USA", "team_id": 1}
+### PUT /players/1
+Payload: {"name": "John Doe Updated", "position": "Midfielder", "team_id": 1, "country": "Germany"}
+Result: ✅ 200 OK
+Response: { "country": "Germany", "id": 1, "name": "John Doe Updated", "position": "Midfielder", "team_id": 1 }
 
-## 10. PUT /players/1
-- **Request:** PUT /players/1 with body 
-  ```json
-  {
-   "position": "Goalkeeper"
-  }
-  ```
-- **Response:** 200 OK
-- **Body:** {"id": 1, "name": "John Doe", "position": "Goalkeeper", "country": "USA", "team_id": 1}
+### DELETE /teams/1
+Payload: None
+Result: ❌ 500 Internal Server Error
+Response: Internal Server Error: The server encountered an internal error and was unable to complete your request.
 
-## 11. DELETE /players/1
-- **Request:** DELETE /players/1
-- **Response:** 204 No Content
-
-## 12. GET /teams/1/players
-- **Request:** GET /teams/1/players
-- **Response:** 200 OK
-- **Body:** []  # Assuming no players are associated after deletion
-
-## 13. GET /players/country/USA
-- **Request:** GET /players/country/USA
-- **Response:** 200 OK
-- **Body:** []  # Assuming no players are associated after deletion
+### DELETE /players/1
+Payload: None
+Result: ✅ 200 OK
+Response: { "message": "Player deleted successfully" }

@@ -2,6 +2,7 @@ import os
 import sys
 import importlib.util
 import json
+import time
 from typing import Type, List, Optional, Dict, Any
 from pydantic import BaseModel, ValidationError
 from crewai.tools import BaseTool
@@ -73,6 +74,8 @@ class FlaskTestClientTool(BaseTool):
                     "status_code": resp.status_code,
                     "response": resp.data.decode("utf-8")
                 })
+            
+                time.sleep(0.2)
 
             except Exception as e:
                 results.append({
