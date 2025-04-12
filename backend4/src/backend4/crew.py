@@ -1,110 +1,154 @@
+from pathlib import Path
+import shutil
+
 from crewai import Agent, Crew, Process, Task
-from crewai.project import CrewBase, agent, crew, task
+from crewai.project import CrewBase, agent, crew, task as task_decorator
 
 from backend4.tools.custom_tool import FileReaderTool, FileWriterTool
 from backend4.tools.test_tool import FlaskTestClientTool
 from backend4.tools.lookup_tool import DataObjectLookupTool
 
-# If you want to run a snippet of code before or after the crew starts,
-# you can use the @before_kickoff and @after_kickoff decorators
-# https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
+
+# 🔧 Tool-Mapping für YAML-Tasks
+tool_functions = {
+    "file_reader": FileReaderTool,
+    "file_writer": FileWriterTool,
+    "flask_test_client": FlaskTestClientTool,
+}
+
 
 @CrewBase
 class Backend4():
-    """Backend4 crew"""
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks.yaml"
 
-    # Learn more about YAML configuration files here:
-    # Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended
-    # Tasks: https://docs.crewai.com/concepts/tasks#yaml-configuration-recommended
-    agents_config = 'config/agents.yaml'
-    tasks_config = 'config/tasks.yaml'
-
-    # If you would like to add tools to your agents, you can learn more about it here:
-    # https://docs.crewai.com/concepts/agents#agent-tools
+    # 🧠 AGENTS ---------------------------------------------------------------
     @agent
     def structure_designer(self) -> Agent:
         return Agent(
-			config=self.agents_config['structure_designer'],
-			verbose=True,
-			tools=[DataObjectLookupTool()],
-			# llm=self.ollama_llm
-		)
-    
+            config=self.agents_config["structure_designer"],
+            verbose=True,
+            tools=[DataObjectLookupTool()],
+        )
+
     @agent
     def code_creator(self) -> Agent:
         return Agent(
-			config=self.agents_config['code_creator'],
-			verbose=True,
-			tools=[FileReaderTool()],
-			# llm=self.ollama_llm
-		)
-    
+            config=self.agents_config["code_creator"],
+            verbose=True,
+            tools=[FileReaderTool()],
+        )
+
     @agent
     def code_tester(self) -> Agent:
         return Agent(
-			config=self.agents_config['code_tester'],
-			verbose=True,
-			tools=[FlaskTestClientTool()],
-			# llm=self.ollama_llm
-		)
-    
-    # To learn more about structured task outputs,
-    # task dependencies, and task callbacks, check out the documentation:
-    # https://docs.crewai.com/concepts/tasks#overview-of-a-task
+            config=self.agents_config["code_tester"],
+            verbose=True,
+            tools=[FlaskTestClientTool(), FileReaderTool()],
+        )
 
-    # structure_designer
-    @task
+    @agent
+    def bug_fixer(self) -> Agent:
+        return Agent(
+            config=self.agents_config["bug_fixer"],
+            verbose=True,
+            tools=[FileReaderTool(), FileWriterTool()],
+        )
+
+    # 🧠 TASKS FÜR DEN CREW-ABLAUF -------------------------------------------
+    @task_decorator
     def models_planning_task(self) -> Task:
-        return Task(
-			config=self.tasks_config['models_planning_task'],
-		)
-	
-    @task
+        return Task(config=self.tasks_config["models_planning_task"])
+
+    @task_decorator
     def routes_planning_task(self) -> Task:
-        return Task(
-			config=self.tasks_config['routes_planning_task'],
-		)
+        return Task(config=self.tasks_config["routes_planning_task"])
 
-    # code_creator
-
-    @task
+    @task_decorator
     def backend_models_task(self) -> Task:
-        return Task(
-			config=self.tasks_config['backend_models_task']
-		)
-	
-    @task
+        return Task(config=self.tasks_config["backend_models_task"])
+
+    @task_decorator
     def backend_app_task(self) -> Task:
-        return Task(
-			config=self.tasks_config['backend_app_task']
-		)
-    
-    # code_tester
+        return Task(config=self.tasks_config["backend_app_task"])
 
-    @task
+    @task_decorator
+    def pause_task(self) -> Task:
+        return Task(config=self.tasks_config["pause_task"])
+
+    @task_decorator
     def backend_endpoint_summary_task(self) -> Task:
-        return Task(
-			config=self.tasks_config['backend_endpoint_summary_task']
-		)
-    
-    @task
-    def backend_test_task(self) -> Task:
-        return Task(
-			config=self.tasks_config['backend_test_task']
-		)
-    
-    
+        return Task(config=self.tasks_config["backend_endpoint_summary_task"])
 
+    @task_decorator
+    def backend_test_task(self) -> Task:
+        return Task(config=self.tasks_config["backend_test_task"])
+
+    # ✅ NICHT als @task: Diese werden manuell mit .build_task() erstellt!
+    def build_task(self, name: str, agent, output_file=None) -> Task:
+        config = self.tasks_config[name]
+        return Task(
+            description=config["description"],
+            expected_output=config["expected_output"],
+            agent=agent,
+            tools=config.get("tools", []),
+            context=config.get("context", []),
+            output_file=output_file or config.get("output_file", None),
+        )
+
+    # 🧠 CREW-ZUSAMMENSTELLUNG ----------------------------------------------
     @crew
     def crew(self) -> Crew:
-        """Creates the Backend4 crew"""
-        # To learn how to add knowledge sources to your crew, check out the documentation:
-        # https://docs.crewai.com/concepts/knowledge#what-is-knowledge
-
         return Crew(
-            agents=self.agents, # Automatically created by the @agent decorator
-            tasks=self.tasks, # Automatically created by the @task decorator
+            agents=self.agents,
+            tasks=[
+                self.models_planning_task(),
+                self.routes_planning_task(),
+                self.backend_models_task(),
+                self.backend_app_task(),
+                self.pause_task(),
+                self.backend_endpoint_summary_task(),
+                self.backend_test_task(),
+            ],
             process=Process.sequential,
             verbose=True,
-            # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )
+
+    # 🔁 FEHLERBEHEBUNGS-LOOP -----------------------------------------------
+    def retry_fixing_errors(self, inputs: dict, max_attempts: int = 3):
+        attempt = 0
+        test_report = Path("Output/test_report.md")
+
+        while attempt < max_attempts:
+            attempt += 1
+            print(f"\n🔁 Bugfix Attempt #{attempt}")
+
+            if not test_report.exists():
+                print("⚠️ Test report not found. Skipping fix.")
+                break
+
+            report_content = test_report.read_text(encoding="utf-8")
+
+            if "❌" not in report_content:
+                print("✅ All tests passed. No more fixes required.")
+                break
+
+            # 🛠 Bugfix-Tasks ausführen
+            analyze_task = self.build_task("analyze_failed_requests_task", self.bug_fixer())
+            analyze_task.kickoff(inputs=inputs)
+
+            fix_task = self.build_task("fix_code_task", self.bug_fixer())
+            fix_task.kickoff(inputs=inputs)
+
+            # 🔁 Test erneut laufen lassen
+            summary_task = self.build_task("backend_endpoint_summary_task", self.code_tester())
+            summary_task.kickoff(inputs=inputs)
+
+            test_task = self.build_task("backend_test_task", self.code_tester())
+            test_task.kickoff(inputs=inputs)
+
+        # 📁 Bericht sichern
+        if test_report.exists():
+            final_path = Path("Output/test_report_final.md")
+            shutil.copy(test_report, final_path)
+            print(f"📁 Final test report saved as {final_path}")

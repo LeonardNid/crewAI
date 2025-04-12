@@ -1,31 +1,44 @@
 #!/usr/bin/env python
-import sys
 import warnings
-
-import weave
-
+import shutil
+from pathlib import Path
 from backend4.crew import Backend4
 
-weave.init(project_name="backend4")
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
-# This main file is intended to be a way for you to run your
-# crew locally, so refrain from adding unnecessary logic into this file.
-# Replace with inputs you want to test with, it will automatically
-# interpolate any tasks and agents information
+def clean_directories():
+    """
+    Cleans the Output and instance directories before running the crew.
+    """
+    for folder in ["Output", "instance"]:
+        dir_path = Path(folder)
+        if dir_path.exists() and dir_path.is_dir():
+            for item in dir_path.iterdir():
+                try:
+                    if item.is_file() or item.is_symlink():
+                        item.unlink()
+                    elif item.is_dir():
+                        shutil.rmtree(item)
+                except Exception as e:
+                    print(f"⚠️ Could not delete {item}: {e}")
+        else:
+            dir_path.mkdir(parents=True, exist_ok=True)
+        print(f"✅ Cleared folder: {folder}")
+
 
 def run():
     """
-    Run the crew.
+    Run the Backend4 crew and retry bugfixes if test failures occur.
     """
-    # inputs = {
-    #     'topic': 'Football',
-    #     'customer': (
-    #         "I want to safe my football team and player data. "
-    #         "Every team has a name, a city, a country, and a stadium."
-    #         "Every player has a name, a position, a team, and a country."
-    #     )
-    # }
+
+    inputs = {
+        'topic': 'Football',
+        'customer': (
+            "I want to safe my football team and player data. "
+            "Every team has a name, a city, a country, and a stadium."
+            "Every player has a name, a position, a team, and a country."
+        )
+    }
 
     # inputs = {
     #     'topic': 'Football Extended',
@@ -38,61 +51,31 @@ def run():
     #         "Please decide which fields we have for addresses and contact info."
     #     )
     # }
-    
-    inputs = {
-        'topic': 'Movies/Series',
-        'customer': (
-            """
-            I want to safe my watched movies and series. I want to rate them from 1 star to 10 stars.
-            Each movie and series has a director, a cast with many actors, a description and a length.
-            I would like a way to get all the movies sequels/prequels.
-            I would also like a way to get all the movies/series from a director or
-            all the movies/series where a specific actor plays in.
-            For the series I also want to safe how many seasons and episodes each seasion has.
-            """
-        )
-    }
 
-    
+    # inputs = {
+    #     'topic': 'Movies/Series',
+    #     'customer': (
+    #         """
+    #         I want to safe my watched movies and series. I want to rate them from 1 star to 10 stars.
+    #         Each movie and series has a director, a cast with many actors, a description and a length.
+    #         I would like a way to get all the movies sequels/prequels.
+    #         I would also like a way to get all the movies/series from a director or
+    #         all the movies/series where a specific actor plays in.
+    #         For the series I also want to safe how many seasons and episodes each seasion has.
+    #         """
+    #     )
+    # }
+
+    clean_directories()
+
+    crew_instance = Backend4()
+
     try:
-        Backend4().crew().kickoff(inputs=inputs)
+        crew_instance.crew().kickoff(inputs=inputs)
+        crew_instance.retry_fixing_errors(inputs=inputs, max_attempts=3)
+
     except Exception as e:
         raise Exception(f"An error occurred while running the crew: {e}")
 
-
-# def train():
-#     """
-#     Train the crew for a given number of iterations.
-#     """
-#     inputs = {
-#         "topic": "AI LLMs"
-#     }
-#     try:
-#         Backend4().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
-
-#     except Exception as e:
-#         raise Exception(f"An error occurred while training the crew: {e}")
-
-# def replay():
-#     """
-#     Replay the crew execution from a specific task.
-#     """
-#     try:
-#         Backend4().crew().replay(task_id=sys.argv[1])
-
-#     except Exception as e:
-#         raise Exception(f"An error occurred while replaying the crew: {e}")
-
-# def test():
-#     """
-#     Test the crew execution and returns the results.
-#     """
-#     inputs = {
-#         "topic": "AI LLMs",
-#         "current_year": str(datetime.now().year)
-#     }
-#     try:
-#         Backend4().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
-
-#     except Exception as e:
-#         raise Exception(f"An error occurred while testing the crew: {e}")
+if __name__ == "__main__":
+    run()

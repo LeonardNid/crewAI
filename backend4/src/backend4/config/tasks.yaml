@@ -65,7 +65,7 @@ backend_models_task:
       Each Model should have all the fields as per the database schema
       and have a "to_dict" Method.
   expected_output: >
-    Your Final answer must be the full Output/model.py file, only the python code and nothing else.
+    Your Final answer must be the full Output/models.py file, only the python code and nothing else.
     The code must not be in any quotes e.g. """<code>""".
   agent: code_creator
   context: [models_planning_task]
@@ -95,10 +95,19 @@ backend_app_task:
   context: [backend_models_task, routes_planning_task]
   output_file: Output/app.py
 
+pause_task:
+  description: >
+    Wait for the user to confirm that the Output/app.py and Output/models.py file is correct and operational.
+  expected_output: >
+    Confirmed that the user has reviewed the current files and pressed ENTER to continue.
+  human_input: true
+  agent: code_creator
+
 # code_tester
 
 backend_endpoint_summary_task:
   description: >
+    Read Output/app.py using the FileReaderTool.
     Summarize all the Flask routes by scanning each @app.route(...).
     1) List every route's URL pattern (e.g., /teams, /teams/<id>) 
        and each HTTP method it handles (GET, POST, PUT, DELETE, etc.).
@@ -119,7 +128,6 @@ backend_endpoint_summary_task:
       "1. POST /teams -> Needs { name: string, city: string, country: string, stadium: string } 
        Returns the newly created team data."
   agent: code_tester
-  context: [backend_models_task, backend_app_task]
   output_file: 'Output/endpoint_summary.md'
 
 backend_test_task:
@@ -160,3 +168,55 @@ backend_test_task:
   agent: code_tester
   context: [backend_endpoint_summary_task]
   output_file: 'Output/test_report.md'
+
+# bug_fixer
+
+analyze_failed_requests_task:
+  description: >
+    Read the file 'Output/test_report.md' and identify each request that failed (❌).
+    Then, read both 'Output/models.py' and 'Output/app.py' to determine what might have caused the failure.
+
+    For each failed request:
+      - Match it to the code sections in models.py or app.py.
+      - Determine if the issue is due to missing fields, wrong data types, missing routes, or logic bugs.
+      - Propose how to fix it.
+    You are not fixing the bug yet. Your job is only to isolate the issue and create a plan.
+
+  expected_output: >
+    Your final output must be a Markdown file titled "Bug Fix Plan",
+    listing each ❌ failed request, the likely root cause, and what changes are needed
+    (which file and what code section to fix).
+
+    Format example:
+    ---
+    ❌ PUT /teams/1
+    Cause: Missing field "city" not handled in PUT route
+    Fix: Add support for 'city' in PUT handler in app.py
+
+    ❌ POST /players
+    Cause: Model 'Player' missing 'position' field
+    Fix: Add 'position = db.String' to Player class in models.py
+    ---
+
+  agent: bug_fixer
+  context: [backend_test_task]
+  output_file: Output/fix_plan.md
+
+fix_code_task:
+  description: >
+    Use the bug fix plan from your context to modify the files 'Output/models.py' and/or 'Output/app.py'.
+    You must:
+      - Read both files first using the FileReaderTool
+      - Apply only the fixes that are clearly defined in the fix plan
+      - Preserve all existing code not related to the bug
+      - Use FileWriterTool to write your fixed version back to the same path
+
+  expected_output: >
+    Your final answer must confirm:
+    - What file(s) were changed
+    - What sections were modified
+    - The final confirmation of write success (e.g. "models.py updated successfully.")
+
+  agent: bug_fixer
+  context: [analyze_failed_requests_task]
+  output_file: Output/fix_summary.md
