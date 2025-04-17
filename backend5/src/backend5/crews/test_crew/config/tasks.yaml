@@ -1,0 +1,68 @@
+# code_tester
+
+backend_endpoint_summary_task:
+  description: >
+    Read Output/app.py using the FileReaderTool.
+    Summarize all the Flask routes by scanning each @app.route(...).
+    1) List every route's URL pattern (e.g., /teams, /teams/<id>) 
+       and each HTTP method it handles (GET, POST, PUT, DELETE, etc.).
+    2) For each POST or PUT route, specify which JSON fields it expects if known.
+    3) Present them in the order they should be tested:
+       All POST routes for each Model first, then GET, then PUT, then DELETE.
+       It is extremely important to follow this order and do the POST methods first and the
+       Delete Methods last.
+    4) Do not write code, only produce a textual or Markdown list. 
+    5) Do not use any tools for this task.
+  expected_output: >
+    Your final answer must be a numbered summary of each route, including:
+      - The HTTP method(s)
+      - The path (with path parameters if any)
+      - The required JSON fields for POST/PUT
+      - Any response details you can infer.
+    Example:
+      "1. POST /teams -> Needs { name: string, city: string, country: string, stadium: string } 
+       Returns the newly created team data."
+  agent: code_tester
+  output_file: 'Output/endpoint_summary.md'
+
+backend_test_task:
+  description: >
+    Use the "flask_test_client" tool to test the backend application based on the endpoint summary in your context.
+    
+    Your responsibilities:
+      1. Read the endpoint summary carefully.
+         For each route listed, construct an HTTP request definition.
+         **Important:**
+         - Use `"json_data"` for the JSON body (do not pass a stringified JSON; pass an actual JSON object).
+         - For routes that require a JSON body (POST/PUT), include a valid JSON object based on the expected fields.
+         - For routes with URL parameters (e.g., `/teams/<id>`), use `1` as a default value (e.g., `/teams/1`).
+      2. Combine all request definitions into a single list and pass them to the tool in one bulk call.
+         - All POST routes first, then GET, then PUT, then DELETE.
+         - It is extremely important to follow this order.
+      3. You MUST provide one list of HTTP request definitions. Each request MUST include:
+         - "method": The HTTP method to use (GET, POST, PUT, DELETE)
+         - "route": The full route, e.g., "/teams" or "/players/1"
+         - "json_data": The request payload as a dictionary (optional for GET/DELETE)
+      
+         Example:
+          {
+            "method": "POST",
+            "route": "/teams",
+            "json_data": {
+              "name": "Test FC",
+              "city": "Berlin",
+              "country": "Germany",
+              "stadium": "Olympiastadion"
+            }
+          }
+
+      4. If the tool returns a validation error you have to:
+         - think about your input for the tool.
+         - correct the input and run the tool again.
+         - try again until you don't get any validation errors.
+  expected_output: >
+    Your final answere is the output of the Tool: "flask_test_client"
+    only if the tool didn't return a validation error.
+  agent: code_tester
+  context: [backend_endpoint_summary_task]
+  output_file: 'Output/test_report.md'
