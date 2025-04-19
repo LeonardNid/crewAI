@@ -43,9 +43,9 @@ class FlaskTestClientTool(BaseTool):
                 error_type = type(e).__name__
                 error_msg = str(e)
                 return (
-                    "❌ Python code is not executable!\n"
-                    f"🛠️ {error_type}: {error_msg}\n"
-                    "📂 Please fix the Output/app.py or Output/models.py file so that it contains clean, valid Python code."
+                    "Python code is not executable!\n"
+                    f"{error_type}: {error_msg}\n"
+                    "Please fix the Output/app.py or Output/models.py file so that it contains clean, valid Python code."
                 )
 
 
@@ -77,12 +77,12 @@ class FlaskTestClientTool(BaseTool):
                 ]
             }
             return (
-                f"❌ Validation failed: {ve}\n\n"
+                f"Validation failed: {ve}\n\n"
                 "🔧 Make sure each request contains at least:\n"
                 "- 'method': one of GET, POST, PUT, DELETE\n"
                 "- 'route': the URL path (e.g., '/teams')\n"
                 "- Optional: 'json_data' as a JSON object for POST/PUT\n\n"
-                f"📌 Example input:\n{json.dumps(example, indent=2)}"
+                f"Example input:\n{json.dumps(example, indent=2)}"
             )
 
 

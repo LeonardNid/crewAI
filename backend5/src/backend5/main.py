@@ -103,8 +103,11 @@ class BackendFlow(Flow[BackendState]):
         """
 
         try:
-            results = json.loads(self.state.test_result)
+            first_line = self.state.test_result.strip().splitlines()[0]
+            if first_line.startswith("Python code is not executable!"):
+                return "failed"
 
+            results = json.loads(self.state.test_result)
             for entry in results:
                 code = entry.get("status_code", "")
                 if code >= 400:
@@ -116,7 +119,7 @@ class BackendFlow(Flow[BackendState]):
 
         except Exception as e:
             print("⚠️ Error parsing test_result:", e)
-            return "failed"
+            return "error"
         
     @listen("failed")
     def fix_bug(self):
