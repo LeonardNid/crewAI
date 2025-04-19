@@ -26,7 +26,23 @@ def cleanup_quotes_in_file(file_path: str):
             # After removing one matching fence pair, break or it might re-check 
             # with single quotes, etc.
             break
-
+    
+    if stripped_content.lower().startswith("python"):
+        stripped_content = stripped_content[len("python"):].lstrip("\n").lstrip()
+    
     # Write back the cleaned content
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(stripped_content)
+
+def read_file(path: str) -> str:
+    """
+    Liest die Datei unter `path` vollständig ein und gibt deren Inhalt
+    als String zurück.
+
+    :param path: Pfad zur Datei (absolut oder relativ)
+    :return: Inhalt der Datei als String
+    :raises FileNotFoundError: wenn die Datei nicht existiert
+    :raises IOError / OSError: bei Lese‑/Zugriffsfehlern
+    """
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()

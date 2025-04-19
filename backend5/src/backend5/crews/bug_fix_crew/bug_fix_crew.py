@@ -7,14 +7,22 @@ from backend5.tools.custom_tool import FileReaderTool, FileWriterTool
 class BugFixCrew:
     """Bug fix Crew"""
 
+    agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
     @agent
-    def bug_fixer(self) -> Agent:
+    def bug_analyzer(self) -> Agent:
         return Agent(
-            config=self.agents_config["bug_fixer"],
+            config=self.agents_config["bug_analyzer"],
             verbose=True,
-            tools=[FileReaderTool(), FileWriterTool()],
+        )
+    
+    @agent
+    def code_modifier(self) -> Agent:
+        return Agent(
+            config=self.agents_config["code_modifier"],
+            verbose=True,
+            tools=[FileWriterTool()],
         )
     
     # Tasks

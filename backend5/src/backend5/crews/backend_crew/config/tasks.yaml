@@ -58,8 +58,9 @@ backend_models_task:
     main goal: A fully fletched python backend application with a Flask API and a SQLite database.
     
     current Task: create a Output/models.py file with the following instructions:
-    1) Use the "FileReaderTool" tool exactly once to read the "files/templates/models_template.py" file 
-      Then strictly follow that template's structure, 
+    1) Here is the template for models.py:
+      """{models_template}"""
+      Strictly follow that template's structure, 
       only filling in the designated placeholders (examples) with your actual model definitions.
     2) Implement the models as per the database schema you recieved in your context.
       Each Model should have all the fields as per the database schema
@@ -76,7 +77,8 @@ backend_app_task:
     main goal: A fully fletched python backend application with a Flask API and a SQLite database.
 
     current Task: create an Output/app.py file with the  following instructions:
-    1) Use the "FileReaderTool" tool exactly once to read the "files/templates/app_template.py" file
+    1) Here is the template for models.py:
+      """{app_template}"""
       Then strictly follow that template's structure, 
       only filling in the designated placeholders with your code (example).
       You must import all the models from your context.

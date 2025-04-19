@@ -8,6 +8,7 @@ from backend5.tools.custom_tool import FileReaderTool, FileWriterTool
 class TestCrew:
     """Test Crew"""
 
+    agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
     @agent
@@ -15,7 +16,7 @@ class TestCrew:
         return Agent(
             config=self.agents_config["code_tester"],
             verbose=True,
-            tools=[FlaskTestClientTool(result_as_answer=True), FileReaderTool()],
+            tools=[FlaskTestClientTool(result_as_answer=True)],
         )
     
     # Tasks

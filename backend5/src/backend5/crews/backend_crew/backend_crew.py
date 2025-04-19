@@ -24,7 +24,6 @@ class DesignCrew:
         return Agent(
             config=self.agents_config["code_creator"],
             verbose=True,
-            tools=[FileReaderTool()],
         )
     
     # Tasks

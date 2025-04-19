@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from models import db, Frame, Rim, Brakes, Gears, Handlebars, Saddle, Seatpost, BrakePad
+from models import db, Team, Player
 
 # -- CREATE FLASK APP --
 app = Flask(__name__)
@@ -8,342 +8,159 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 @app.route('/')
-
 def home():
-    return jsonify({'message': 'Bicycle Workshop API is Running'})
+    return jsonify({'message': 'Football App is Running'})
 
 @app.route('/health')
-
 def health_check():
     return jsonify({'status': 'ok', 'database': db.engine.url})
 
-# Frames Routes
-@app.route('/frames', methods=['GET'])
-def get_frames():
-    frames = Frame.query.all()
-    return jsonify([frame.to_dict() for frame in frames]), 200
+# Team Endpoints
+@app.route('/teams', methods=['GET'])
+def get_teams():
+    try:
+        teams = Team.query.all()
+        return jsonify([team.to_dict() for team in teams])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/frames', methods=['POST'])
-def create_frame():
-    data = request.get_json()
-    new_frame = Frame(**data)
-    db.session.add(new_frame)
-    db.session.commit()
-    return jsonify(new_frame.to_dict()), 201
+@app.route('/teams/<int:id>', methods=['GET'])
+def get_team(id):
+    try:
+        team = Team.query.get(id)
+        if not team:
+            return jsonify({'message': 'Team not found'}), 404
+        return jsonify(team.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/frames/<int:id>', methods=['GET'])
-def get_frame(id):
-    frame = Frame.query.get(id)
-    if not frame:
-        return jsonify({'message': 'Frame not found'}), 404
-    return jsonify(frame.to_dict()), 200
+@app.route('/teams', methods=['POST'])
+def create_team():
+    try:
+        data = request.get_json()
+        new_team = Team(name=data['name'], city=data['city'], country=data['country'], stadium=data['stadium'])
+        db.session.add(new_team)
+        db.session.commit()
+        return jsonify(new_team.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
 
-@app.route('/frames/<int:id>', methods=['PUT'])
-def update_frame(id):
-    frame = Frame.query.get(id)
-    if not frame:
-        return jsonify({'message': 'Frame not found'}), 404
-    data = request.get_json()
-    for key, value in data.items():
-        setattr(frame, key, value)
-    db.session.commit()
-    return jsonify(frame.to_dict()), 200
+@app.route('/teams/<int:id>', methods=['PUT'])
+def update_team(id):
+    try:
+        team = Team.query.get(id)
+        if not team:
+            return jsonify({'message': 'Team not found'}), 404
+        data = request.get_json()
+        team.name = data.get('name', team.name)
+        team.city = data.get('city', team.city)
+        team.country = data.get('country', team.country)
+        team.stadium = data.get('stadium', team.stadium)
+        db.session.commit()
+        return jsonify(team.to_dict())
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
 
-@app.route('/frames/<int:id>', methods=['DELETE'])
-def delete_frame(id):
-    frame = Frame.query.get(id)
-    if not frame:
-        return jsonify({'message': 'Frame not found'}), 404
-    db.session.delete(frame)
-    db.session.commit()
-    return jsonify({'message': 'Frame deleted successfully'}), 200
+@app.route('/teams/<int:id>', methods=['DELETE'])
+def delete_team(id):
+    try:
+        team = Team.query.get(id)
+        if not team:
+            return jsonify({'message': 'Team not found'}), 404
+        
+        # Check if there are players associated with the team
+        players_count = Player.query.filter_by(team_id=id).count()
+        if players_count > 0:
+            return jsonify({'error': 'Cannot delete team with active players.'}), 400
+            
+        db.session.delete(team)
+        db.session.commit()
+        return jsonify({'message': 'Team deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
-# Rims Routes
-@app.route('/rims', methods=['GET'])
-def get_rims():
-    rims = Rim.query.all()
-    return jsonify([rim.to_dict() for rim in rims]), 200
+# Player Endpoints
+@app.route('/players', methods=['GET'])
+def get_players():
+    try:
+        players = Player.query.all()
+        return jsonify([player.to_dict() for player in players])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/rims', methods=['POST'])
-def create_rim():
-    data = request.get_json()
-    new_rim = Rim(**data)
-    db.session.add(new_rim)
-    db.session.commit()
-    return jsonify(new_rim.to_dict()), 201
+@app.route('/players/<int:id>', methods=['GET'])
+def get_player(id):
+    try:
+        player = Player.query.get(id)
+        if not player:
+            return jsonify({'message': 'Player not found'}), 404
+        return jsonify(player.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/rims/<int:id>', methods=['GET'])
-def get_rim(id):
-    rim = Rim.query.get(id)
-    if not rim:
-        return jsonify({'message': 'Rim not found'}), 404
-    return jsonify(rim.to_dict()), 200
+@app.route('/players', methods=['POST'])
+def create_player():
+    try:
+        data = request.get_json()
+        new_player = Player(name=data['name'], position=data['position'], country=data['country'], team_id=data['team_id'])
+        db.session.add(new_player)
+        db.session.commit()
+        return jsonify(new_player.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
 
-@app.route('/rims/<int:id>', methods=['PUT'])
-def update_rim(id):
-    rim = Rim.query.get(id)
-    if not rim:
-        return jsonify({'message': 'Rim not found'}), 404
-    data = request.get_json()
-    for key, value in data.items():
-        setattr(rim, key, value)
-    db.session.commit()
-    return jsonify(rim.to_dict()), 200
+@app.route('/players/<int:id>', methods=['PUT'])
+def update_player(id):
+    try:
+        player = Player.query.get(id)
+        if not player:
+            return jsonify({'message': 'Player not found'}), 404
+        data = request.get_json()
+        player.name = data.get('name', player.name)
+        player.position = data.get('position', player.position)
+        player.country = data.get('country', player.country)
+        player.team_id = data.get('team_id', player.team_id)
+        db.session.commit()
+        return jsonify(player.to_dict())
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
 
-@app.route('/rims/<int:id>', methods=['DELETE'])
-def delete_rim(id):
-    rim = Rim.query.get(id)
-    if not rim:
-        return jsonify({'message': 'Rim not found'}), 404
-    db.session.delete(rim)
-    db.session.commit()
-    return jsonify({'message': 'Rim deleted successfully'}), 200
+@app.route('/players/<int:id>', methods=['DELETE'])
+def delete_player(id):
+    try:
+        player = Player.query.get(id)
+        if not player:
+            return jsonify({'message': 'Player not found'}), 404
+        db.session.delete(player)
+        db.session.commit()
+        return jsonify({'message': 'Player deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
-# Brakes Routes
-@app.route('/brakes', methods=['GET'])
-def get_brakes():
-    brakes = Brakes.query.all()
-    return jsonify([brake.to_dict() for brake in brakes]), 200
+@app.route('/teams/<int:id>/players', methods=['GET'])
+def get_players_by_team(id):
+    try:
+        team = Team.query.get(id)
+        if not team:
+            return jsonify({'message': 'Team not found'}), 404
+        players = Player.query.filter_by(team_id=id).all()
+        return jsonify([player.to_dict() for player in players])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/brakes', methods=['POST'])
-def create_brake():
-    data = request.get_json()
-    new_brake = Brakes(**data)
-    db.session.add(new_brake)
-    db.session.commit()
-    return jsonify(new_brake.to_dict()), 201
-
-@app.route('/brakes/<int:id>', methods=['GET'])
-def get_brake(id):
-    brake = Brakes.query.get(id)
-    if not brake:
-        return jsonify({'message': 'Brake not found'}), 404
-    return jsonify(brake.to_dict()), 200
-
-@app.route('/brakes/<int:id>', methods=['PUT'])
-def update_brake(id):
-    brake = Brakes.query.get(id)
-    if not brake:
-        return jsonify({'message': 'Brake not found'}), 404
-    data = request.get_json()
-    for key, value in data.items():
-        setattr(brake, key, value)
-    db.session.commit()
-    return jsonify(brake.to_dict()), 200
-
-@app.route('/brakes/<int:id>', methods=['DELETE'])
-def delete_brake(id):
-    brake = Brakes.query.get(id)
-    if not brake:
-        return jsonify({'message': 'Brake not found'}), 404
-    db.session.delete(brake)
-    db.session.commit()
-    return jsonify({'message': 'Brake deleted successfully'}), 200
-
-# Gears Routes
-@app.route('/gears', methods=['GET'])
-def get_gears():
-    gears = Gears.query.all()
-    return jsonify([gear.to_dict() for gear in gears]), 200
-
-@app.route('/gears', methods=['POST'])
-def create_gear():
-    data = request.get_json()
-    new_gear = Gears(**data)
-    db.session.add(new_gear)
-    db.session.commit()
-    return jsonify(new_gear.to_dict()), 201
-
-@app.route('/gears/<int:id>', methods=['GET'])
-def get_gear(id):
-    gear = Gears.query.get(id)
-    if not gear:
-        return jsonify({'message': 'Gear not found'}), 404
-    return jsonify(gear.to_dict()), 200
-
-@app.route('/gears/<int:id>', methods=['PUT'])
-def update_gear(id):
-    gear = Gears.query.get(id)
-    if not gear:
-        return jsonify({'message': 'Gear not found'}), 404
-    data = request.get_json()
-    for key, value in data.items():
-        setattr(gear, key, value)
-    db.session.commit()
-    return jsonify(gear.to_dict()), 200
-
-@app.route('/gears/<int:id>', methods=['DELETE'])
-def delete_gear(id):
-    gear = Gears.query.get(id)
-    if not gear:
-        return jsonify({'message': 'Gear not found'}), 404
-    db.session.delete(gear)
-    db.session.commit()
-    return jsonify({'message': 'Gear deleted successfully'}), 200
-
-# Handlebars Routes
-@app.route('/handlebars', methods=['GET'])
-def get_handlebars():
-    handlebars = Handlebars.query.all()
-    return jsonify([handlebar.to_dict() for handlebar in handlebars]), 200
-
-@app.route('/handlebars', methods=['POST'])
-def create_handlebar():
-    data = request.get_json()
-    new_handlebar = Handlebars(**data)
-    db.session.add(new_handlebar)
-    db.session.commit()
-    return jsonify(new_handlebar.to_dict()), 201
-
-@app.route('/handlebars/<int:id>', methods=['GET'])
-def get_handlebar(id):
-    handlebar = Handlebars.query.get(id)
-    if not handlebar:
-        return jsonify({'message': 'Handlebar not found'}), 404
-    return jsonify(handlebar.to_dict()), 200
-
-@app.route('/handlebars/<int:id>', methods=['PUT'])
-def update_handlebar(id):
-    handlebar = Handlebars.query.get(id)
-    if not handlebar:
-        return jsonify({'message': 'Handlebar not found'}), 404
-    data = request.get_json()
-    for key, value in data.items():
-        setattr(handlebar, key, value)
-    db.session.commit()
-    return jsonify(handlebar.to_dict()), 200
-
-@app.route('/handlebars/<int:id>', methods=['DELETE'])
-def delete_handlebar(id):
-    handlebar = Handlebars.query.get(id)
-    if not handlebar:
-        return jsonify({'message': 'Handlebar not found'}), 404
-    db.session.delete(handlebar)
-    db.session.commit()
-    return jsonify({'message': 'Handlebar deleted successfully'}), 200
-
-# Saddles Routes
-@app.route('/saddles', methods=['GET'])
-def get_saddles():
-    saddles = Saddle.query.all()
-    return jsonify([saddle.to_dict() for saddle in saddles]), 200
-
-@app.route('/saddles', methods=['POST'])
-def create_saddle():
-    data = request.get_json()
-    new_saddle = Saddle(**data)
-    db.session.add(new_saddle)
-    db.session.commit()
-    return jsonify(new_saddle.to_dict()), 201
-
-@app.route('/saddles/<int:id>', methods=['GET'])
-def get_saddle(id):
-    saddle = Saddle.query.get(id)
-    if not saddle:
-        return jsonify({'message': 'Saddle not found'}), 404
-    return jsonify(saddle.to_dict()), 200
-
-@app.route('/saddles/<int:id>', methods=['PUT'])
-def update_saddle(id):
-    saddle = Saddle.query.get(id)
-    if not saddle:
-        return jsonify({'message': 'Saddle not found'}), 404
-    data = request.get_json()
-    for key, value in data.items():
-        setattr(saddle, key, value)
-    db.session.commit()
-    return jsonify(saddle.to_dict()), 200
-
-@app.route('/saddles/<int:id>', methods=['DELETE'])
-def delete_saddle(id):
-    saddle = Saddle.query.get(id)
-    if not saddle:
-        return jsonify({'message': 'Saddle not found'}), 404
-    db.session.delete(saddle)
-    db.session.commit()
-    return jsonify({'message': 'Saddle deleted successfully'}), 200
-
-# Seatposts Routes
-@app.route('/seatposts', methods=['GET'])
-def get_seatposts():
-    seatposts = Seatpost.query.all()
-    return jsonify([seatpost.to_dict() for seatpost in seatposts]), 200
-
-@app.route('/seatposts', methods=['POST'])
-def create_seatpost():
-    data = request.get_json()
-    new_seatpost = Seatpost(**data)
-    db.session.add(new_seatpost)
-    db.session.commit()
-    return jsonify(new_seatpost.to_dict()), 201
-
-@app.route('/seatposts/<int:id>', methods=['GET'])
-def get_seatpost(id):
-    seatpost = Seatpost.query.get(id)
-    if not seatpost:
-        return jsonify({'message': 'Seatpost not found'}), 404
-    return jsonify(seatpost.to_dict()), 200
-
-@app.route('/seatposts/<int:id>', methods=['PUT'])
-def update_seatpost(id):
-    seatpost = Seatpost.query.get(id)
-    if not seatpost:
-        return jsonify({'message': 'Seatpost not found'}), 404
-    data = request.get_json()
-    for key, value in data.items():
-        setattr(seatpost, key, value)
-    db.session.commit()
-    return jsonify(seatpost.to_dict()), 200
-
-@app.route('/seatposts/<int:id>', methods=['DELETE'])
-def delete_seatpost(id):
-    seatpost = Seatpost.query.get(id)
-    if not seatpost:
-        return jsonify({'message': 'Seatpost not found'}), 404
-    db.session.delete(seatpost)
-    db.session.commit()
-    return jsonify({'message': 'Seatpost deleted successfully'}), 200
-
-# BrakePads Routes
-@app.route('/brakepads', methods=['GET'])
-def get_brakepads():
-    brakepads = BrakePad.query.all()
-    return jsonify([brakepad.to_dict() for brakepad in brakepads]), 200
-
-@app.route('/brakepads', methods=['POST'])
-def create_brakepad():
-    data = request.get_json()
-    new_brakepad = BrakePad(**data)
-    db.session.add(new_brakepad)
-    db.session.commit()
-    return jsonify(new_brakepad.to_dict()), 201
-
-@app.route('/brakepads/<int:id>', methods=['GET'])
-def get_brakepad(id):
-    brakepad = BrakePad.query.get(id)
-    if not brakepad:
-        return jsonify({'message': 'BrakePad not found'}), 404
-    return jsonify(brakepad.to_dict()), 200
-
-@app.route('/brakepads/<int:id>', methods=['PUT'])
-def update_brakepad(id):
-    brakepad = BrakePad.query.get(id)
-    if not brakepad:
-        return jsonify({'message': 'BrakePad not found'}), 404
-    data = request.get_json()
-    for key, value in data.items():
-        setattr(brakepad, key, value)
-    db.session.commit()
-    return jsonify(brakepad.to_dict()), 200
-
-@app.route('/brakepads/<int:id>', methods=['DELETE'])
-def delete_brakepad(id):
-    brakepad = BrakePad.query.get(id)
-    if not brakepad:
-        return jsonify({'message': 'BrakePad not found'}), 404
-    db.session.delete(brakepad)
-    db.session.commit()
-    return jsonify({'message': 'BrakePad deleted successfully'}), 200
+@app.route('/players/country/<country>', methods=['GET'])
+def get_players_by_country(country):
+    try:
+        players = Player.query.filter_by(country=country).all()
+        return jsonify([player.to_dict() for player in players])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     with app.app_context():

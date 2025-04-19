@@ -1,0 +1,1 @@
+The file 'Output/app.py' was changed. The section modified was the `delete_team` function to properly handle team deletion with active players. The full file content was written successfully. The file 'Output/app.py' has been updated successfully.

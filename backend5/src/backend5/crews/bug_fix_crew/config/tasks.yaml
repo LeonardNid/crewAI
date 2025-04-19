@@ -5,16 +5,19 @@ analyze_startup_failure_task:
     The backend could not start. Error was:
     {test_result}
 
-    Read both 'Output/models.py' and 'Output/app.py' to determine what might have caused the failure
+    Here is the models.py file: 
+    """{models_py}"""
+
+    Here is the app.py file: 
+    """{app_py}"""
 
     Your job:
-    - Read Output/app.py and Output/models.py using FileReaderTool
     - Identify the code sections that make the app not executable
     - Write a fix plan
 
   expected_output: >
     Markdown file with problems and how to fix each
-  agent: bug_fixer
+  agent: bug_analyzer
 
 
 analyze_failed_requests_task:
@@ -22,7 +25,11 @@ analyze_failed_requests_task:
     Here is the test result from the TestCrew:
     {test_result}
 
-    Read both 'Output/models.py' and 'Output/app.py' to determine what might have caused the failure.
+    Here is the models.py file: 
+    """{models_py}"""
+
+    Here is the app.py file: 
+    """{app_py}"""
 
     For each failed request:
       - Match it to the code sections in models.py or app.py.
@@ -46,22 +53,34 @@ analyze_failed_requests_task:
     Fix: Add 'position = db.String' to Player class in models.py
     ---
 
-  agent: bug_fixer
+  agent: bug_analyzer
 
 fix_code_task:
   description: >
-    Use the bug fix plan from your context to modify the files 'Output/models.py' and/or 'Output/app.py'.
+    Use the bug fix plan from your context to modify *and rewrite* the files
+    'Output/models.py' and/or 'Output/app.py'.
+
+    Here is the Output/models.py file: 
+    """{models_py}"""
+
+    Here is the Output/app.py file: 
+    """{app_py}"""
+
     You must:
-      - Read both files first using the FileReaderTool
+      - You have to use the "file_writer" tool to change the app.py and models.py files.
+      - **When calling FileWriterTool, you MUST pass the ENTIRE updated file
+        content - never a partial snippet.**
       - Apply only the fixes that are clearly defined in the fix plan
-      - Preserve all existing code not related to the bug
-      - Use FileWriterTool to write your fixed version back to the same path
+      - **Do NOT delete or omit any existing code that is unrelated to the fix.**
+      - Validate that the written file can still be executed/imported.
 
   expected_output: >
     Your final answer must confirm:
     - What file(s) were changed
     - What sections were modified
     - The final confirmation of write success (e.g. "models.py updated successfully.")
+    - **An explicit statement that the full file content was written (not a diff)**
 
-  agent: bug_fixer
+  agent: code_modifier
   output_file: Output/fix_summary.md
+

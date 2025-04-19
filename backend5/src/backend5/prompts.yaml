@@ -1,0 +1,28 @@
+football:
+  topic: Football
+  customer: |
+    I want to save my football team and player data.
+    Every team has a name, a city, a country, and a stadium.
+    Every player has a name, a position, a team, and a country.
+
+bicycle:
+  topic: Bicycle Workshop
+  customer: |
+    I want to store the inventory of my bicycle workshop with the various parts and their compatibility.
+    There are many different parts: 
+    Frames: Measurements, brand, material, maximum tire width, compatible brakes, compatible bicycle gears, type of compatible drivetrain (hub, chain), 
+    type of frame (gravel, road bike, touring bike, city bike, etc.), each frame type also has specific properties (for example, gravel frames might have 
+    mounting points for attaching bags, road bike frames might have aerodynamic optimization, etc.), price, name (to uniquely identify the frame), weight, 
+    geometry, compatible handlebars, how much weight the frame can carry, compatible seatposts, type of cable routing (external, internal).
+    Rims: Tire width, compatible tire types (tubeless, with tube, etc.), rim height, weight, price, required valve length, material, compatible frames, brand.
+    Brakes (sometimes brakes and bicycle gears come as one inseparable unit, e.g. on road and gravel bikes): Type (hydraulic, mechanical), compatible frames, 
+    weight, price, brand, compatible bicycle gears.
+    Bicycle gears (sometimes brakes and bicycle gears come as one inseparable unit, e.g. on road and gravel bikes): Type (electronic, mechanical), compatible 
+    frames, weight, price, brand, compatible brakes.
+    Handlebars: Type (flat, road, gravel, mountain bike), material, weight, brand, compatible frames, compatible brakes, compatible bicycle gears, price.
+    Saddles: Type (padding, etc.), shape, compatible seatposts, brand, price, weight.
+    Seatposts: Material, compatible frames, compatible seatposts, brand, price, weight.
+    Brake pads: Brake type, compatible Brakes, brand, Price.
+    And overall, I want, for example, to be able to select a frame and then see the possible choices of compatible components. You should also be able 
+    to specify exactly which components should be listed if, for instance, only one part is broken. But in theory, it would also be nice if you could configure 
+    a whole bike, so you can see what fits together.

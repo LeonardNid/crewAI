@@ -2,7 +2,8 @@
 
 backend_endpoint_summary_task:
   description: >
-    Read Output/app.py using the FileReaderTool.
+    Here is the app.py file with all the routes and models:
+    """{app_py}"""
     Summarize all the Flask routes by scanning each @app.route(...).
     1) List every route's URL pattern (e.g., /teams, /teams/<id>) 
        and each HTTP method it handles (GET, POST, PUT, DELETE, etc.).
@@ -12,7 +13,7 @@ backend_endpoint_summary_task:
        It is extremely important to follow this order and do the POST methods first and the
        Delete Methods last.
     4) Do not write code, only produce a textual or Markdown list. 
-    5) Do not use any tools for this task.
+    5) You are not allowed to use the "flask_test_client" Tool.
   expected_output: >
     Your final answer must be a numbered summary of each route, including:
       - The HTTP method(s)
@@ -27,7 +28,7 @@ backend_endpoint_summary_task:
 
 backend_test_task:
   description: >
-    Use the "flask_test_client" tool to test the backend application based on the endpoint summary in your context.
+    You are now allowed and should use the "flask_test_client" tool to test the backend application based on the endpoint summary in your context.
     
     Your responsibilities:
       1. Read the endpoint summary carefully.
