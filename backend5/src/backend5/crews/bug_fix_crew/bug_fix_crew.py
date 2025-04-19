@@ -47,7 +47,6 @@ class BugFixCrew:
     
     
     
-    
     @crew
     def crew(self) -> Crew:
         """Creates the Research Crew"""
@@ -55,7 +54,7 @@ class BugFixCrew:
         # Define a custom manager agent (Manager agent should not be included in agents list.)
         manager = Agent(
             role="Bug Fix Task Manager",
-            goal="Decide how to proceed with the fix attempt based on test results: {test_result}", 
+            goal="The application got a {test_result_type}. Decide how to proceed with the fix attempt based on test results: {test_result}", 
             backstory="You're in charge of managing the bug fix process. Based on the test result, you decide if the problem lies in code execution or in specific failed requests and assign the right team.",
             allow_delegation=True,
         )

@@ -14,9 +14,12 @@ import weave
 import shutil
 from pathlib import Path
 
+SCENARIO_KEY = "football"
+
 class BackendState(BaseModel):
     test_count: int = 0
     test_result: str = ""
+    test_result_type: str = ""
 
 
 class BackendFlow(Flow[BackendState]):
@@ -48,14 +51,13 @@ class BackendFlow(Flow[BackendState]):
         print("Design crew started")
 
         # inputs vorbereiten
-        scenario_key = "football"
         with open("src/backend5/prompts.yaml", "r", encoding="utf-8") as f:
             scenarios = yaml.safe_load(f)
         # Templates laden
         app_tpl = read_file("files/templates/app_template.py")
         models_tpl = read_file("files/templates/models_template.py")
 
-        inputs = scenarios[scenario_key] | {
+        inputs = scenarios[SCENARIO_KEY] | {
             "app_template":    app_tpl,
             "models_template": models_tpl,
         }
@@ -105,13 +107,14 @@ class BackendFlow(Flow[BackendState]):
         try:
             first_line = self.state.test_result.strip().splitlines()[0]
             if first_line.startswith("Python code is not executable!"):
+                self.state.test_result_type = "startup_failure"
                 return "failed"
 
             results = json.loads(self.state.test_result)
             for entry in results:
                 code = entry.get("status_code", "")
                 if code >= 400:
-                    print("Test failed ❌")
+                    self.state.test_result_type = "requests_failure"
                     return "failed"
 
             print("Test passed ✅")
@@ -127,6 +130,7 @@ class BackendFlow(Flow[BackendState]):
         app_py = read_file("Output/app.py")
         models_py = read_file("Output/models.py")
         inputs = {
+            "test_result_type": self.state.test_result_type,
             "test_result": self.state.test_result,
             "app_py": app_py,
             "models_py": models_py,
