@@ -42,7 +42,6 @@ routes_planning_task:
        and what responses they return (basic idea).
     4) Do NOT write any code. Only provide a structured text plan 
        that the code_creator can later implement in Flask.
-    5) You are no longer allowed to use the "data_object_lookup" Tool
   expected_output: >
     Your final answer must be the "Routes Plan", enumerating each endpoint, 
     the HTTP method(s), and what data is needed.

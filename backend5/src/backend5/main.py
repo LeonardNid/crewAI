@@ -72,14 +72,10 @@ class BackendFlow(Flow[BackendState]):
 
     @listen(or_(generate_Backend, "fix_bug"))
     def test_Backend(self):
-        input("Pause")
 
         # Cleanup quotes in the generated files before running tests
         for target_file in ["Output/app.py", "Output/models.py"]:
             cleanup_quotes_in_file(target_file) 
-
-        input("Pause") # Temporary pause for debugging
-
 
         print("Test crew started")
         app_plan_md = read_file("Output/app_plan.md")

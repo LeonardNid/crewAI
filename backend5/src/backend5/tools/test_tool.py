@@ -58,6 +58,7 @@ class FlaskTestClientTool(BaseTool):
         return app_module.app
 
     def _run(self, requests: List[dict]) -> str:
+        print("Using Tool: flask_test_client")
         # Validate all requests using Pydantic
         try:
             validated_requests = [SingleRequest(**r) if isinstance(r, dict) else r for r in requests]

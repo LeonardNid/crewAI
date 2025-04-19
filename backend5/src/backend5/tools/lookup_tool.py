@@ -36,6 +36,7 @@ class DataObjectLookupTool(BaseTool):
         return SequenceMatcher(None, a, b).ratio()
 
     def _run(self, query: str):
+        print("Using Tool: data_object_lookup")
         # 1) load Data
         try:
             data = self._load_data()

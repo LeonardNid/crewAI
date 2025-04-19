@@ -15,7 +15,6 @@ class BackendCrew:
         return Agent(
             config=self.agents_config["structure_designer"],
             verbose=True,
-            tools=[DataObjectLookupTool()],
         )
     
     @agent
@@ -32,6 +31,7 @@ class BackendCrew:
     def models_planning_task(self) -> Task:
         return Task(
             config=self.tasks_config["models_planning_task"],
+            tools=[DataObjectLookupTool()]
         )
     
     @task

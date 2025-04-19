@@ -15,6 +15,7 @@ class FileWriterTool(BaseTool):
     args_schema: Type[BaseModel] = FileWriterToolInput
 
     def _run(self, filename: str, content: str):
+        print("Using Tool: file_writer")
         # 1) Root-Verzeichnis erzwingen (z.B. 'Output')
         base_output_dir = "Output"
         # -> Pfad 'Output/<filename>'
