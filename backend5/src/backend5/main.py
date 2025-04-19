@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from crewai.flow import Flow, listen, start, router, or_
 
-from backend5.crews.backend_crew.backend_crew import DesignCrew
+from backend5.crews.backend_crew.backend_crew import BackendCrew
 from backend5.crews.test_crew.test_crew import TestCrew
 from backend5.crews.bug_fix_crew.bug_fix_crew import BugFixCrew
 from backend5.tools.Utils import read_file, cleanup_quotes_in_file
@@ -47,7 +47,7 @@ class BackendFlow(Flow[BackendState]):
             print(f"✅ Cleared folder: {folder}")
 
     @listen(clean_directories)
-    def generate_Design(self):
+    def generate_Backend(self):
         print("Design crew started")
 
         # inputs vorbereiten
@@ -63,14 +63,14 @@ class BackendFlow(Flow[BackendState]):
         }
 
         result = (
-            DesignCrew()
+            BackendCrew()
             .crew()
             .kickoff(inputs=inputs)
         )
 
         print("Design crew finished")
 
-    @listen(or_(generate_Design, "fix_bug"))
+    @listen(or_(generate_Backend, "fix_bug"))
     def test_Backend(self):
         input("Pause")
 
@@ -94,8 +94,9 @@ class BackendFlow(Flow[BackendState]):
             .kickoff(inputs=inputs)
         )
         self.state.test_count += 1
-        print("Test crew finished")
         self.state.test_result = result.raw
+        print("Test crew finished")
+        input("Pause") # Temporary pause for debugging
 
     @router(test_Backend)
     def check_results(self):

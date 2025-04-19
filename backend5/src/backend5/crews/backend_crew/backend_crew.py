@@ -2,11 +2,10 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
 from backend5.tools.lookup_tool import DataObjectLookupTool
-from backend5.tools.custom_tool import FileReaderTool
 
 @CrewBase
-class DesignCrew:
-    """Design Crew"""
+class BackendCrew:
+    """Backend Crew"""
 
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"

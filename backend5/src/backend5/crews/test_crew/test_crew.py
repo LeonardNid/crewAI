@@ -16,7 +16,6 @@ class TestCrew:
         return Agent(
             config=self.agents_config["code_tester"],
             verbose=True,
-            tools=[FlaskTestClientTool(result_as_answer=True)],
         )
     
     # Tasks
@@ -30,6 +29,7 @@ class TestCrew:
     def backend_test_task(self) -> Task:
         return Task(
             config=self.tasks_config["backend_test_task"],
+            tools=[FlaskTestClientTool(result_as_answer=True)],
         )
     
     @crew
