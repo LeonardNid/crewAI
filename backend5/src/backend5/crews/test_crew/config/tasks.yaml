@@ -2,12 +2,17 @@
 
 backend_endpoint_summary_task:
   description: >
-    Here is the app.py file with all the routes and models:
+    Here is the app.py file with all the routes that were implemented:
     """{app_py}"""
+
+    Here is the app_JSON.json file with all the routes that should be available:
+    """{app_JSON_json}"""
+
     Summarize all the Flask routes by scanning each @app.route(...).
     1) List every route's URL pattern (e.g., /teams, /teams/<id>) 
        and each HTTP method it handles (GET, POST, PUT, DELETE, etc.).
-    2) For each POST or PUT route, specify which JSON fields it expects if known.
+    2) For each POST or PUT route, specify which JSON fields it expects. Use the JSON schema 
+       to determine the required fields and their types.
     3) Present them in the order they should be tested:
        All POST routes for each Model first, then GET, then PUT, then DELETE.
        It is extremely important to follow this order and do the POST methods first and the

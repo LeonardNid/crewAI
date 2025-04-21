@@ -110,6 +110,7 @@ class FlaskTestClientTool(BaseTool):
                 results.append({
                     "method": method,
                     "route": req.route,
+                    "json_data": req.json_data,
                     "status_code": resp.status_code,
                     "response": resp.data.decode("utf-8")
                 })

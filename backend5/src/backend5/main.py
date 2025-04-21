@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import json, yaml
+import json, yaml, shutil
+from pathlib import Path
 
 from pydantic import BaseModel
 
@@ -8,15 +9,15 @@ from crewai.flow import Flow, listen, start, router, or_
 from backend5.crews.backend_crew.backend_crew import BackendCrew
 from backend5.crews.test_crew.test_crew import TestCrew
 from backend5.crews.bug_fix_crew.bug_fix_crew import BugFixCrew
-from backend5.tools.Utils import read_file, cleanup_quotes_in_file
+
+from backend5.tools.Utils import read_file, cleanup_quotes_in_file, renderTemplate
 
 import weave
-import shutil
-from pathlib import Path
 
 SCENARIO_KEY = "football"
 
 class BackendState(BaseModel):
+    skip: bool = False
     test_count: int = 0
     test_result: str = ""
     test_result_type: str = ""
@@ -42,6 +43,7 @@ class BackendFlow(Flow[BackendState]):
                             shutil.rmtree(item)
                     except Exception as e:
                         print(f"⚠️ Could not delete {item}: {e}")
+                        raise e
             else:
                 dir_path.mkdir(parents=True, exist_ok=True)
             print(f"✅ Cleared folder: {folder}")
@@ -68,21 +70,25 @@ class BackendFlow(Flow[BackendState]):
             .kickoff(inputs=inputs)
         )
 
+        renderTemplate("models.j2", result.tasks_output[0].to_dict(), "Output/models.py")
+        renderTemplate("app.j2", result.tasks_output[1].to_dict(), "Output/app.py")
+
         print("Design crew finished")
+        if (input("py's erstellt), continue? (y/n): ") == "n"):
+            self.state.skip = True
 
     @listen(or_(generate_Backend, "fix_bug"))
     def test_Backend(self):
-
-        # Cleanup quotes in the generated files before running tests
-        for target_file in ["Output/app.py", "Output/models.py"]:
-            cleanup_quotes_in_file(target_file) 
+        if self.state.skip:
+            print("Skipping test crew due to previous failure.")
+            return "skipped"
 
         print("Test crew started")
-        app_plan_md = read_file("Output/app_plan.md")
+        app_JSON_json = read_file("Output/app_JSON.json")
         app_py = read_file("Output/app.py")
         inputs = {
             "app_py": app_py,
-            "app_plan_md": app_plan_md,
+            "app_JSON_json": app_JSON_json,
         }
         result = (
             TestCrew()
@@ -92,7 +98,8 @@ class BackendFlow(Flow[BackendState]):
         self.state.test_count += 1
         self.state.test_result = result.raw
         print("Test crew finished")
-        input("Pause") # Temporary pause for debugging
+        if (input("after TestCrew, continue? (y/n): ") == "n"):
+            self.state.skip = True
 
     @router(test_Backend)
     def check_results(self):
@@ -100,6 +107,10 @@ class BackendFlow(Flow[BackendState]):
         Parses the JSON test_result to check for any failed requests.
         Returns 'failed' if any request has a status code >= 400.
         """
+        if self.state.skip:
+            print("Skipping result check due to previous failure.")
+            return "skipped"
+
 
         try:
             first_line = self.state.test_result.strip().splitlines()[0]
@@ -123,6 +134,10 @@ class BackendFlow(Flow[BackendState]):
         
     @listen("failed")
     def fix_bug(self):
+        if self.state.skip:
+            print("Skipping bug fix crew due to previous failure.")
+            return "skipped"
+        
         print("Bug fix crew started")
         app_py = read_file("Output/app.py")
         models_py = read_file("Output/models.py")
@@ -142,6 +157,11 @@ class BackendFlow(Flow[BackendState]):
     @listen("success")
     def final(self):
         print("All tests passed successfully!")
+        print("Test attempts:", self.state.test_count)
+
+    @listen("skipped")
+    def finalSkipped(self):
+        print("Flow stopped due to user input.")
         print("Test attempts:", self.state.test_count)
     
 

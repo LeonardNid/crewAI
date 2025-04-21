@@ -2,96 +2,109 @@
 
 models_planning_task:
   description: >
-    Customer thoughts: {customer}
-    1) Read and interpret the customer's domain requirements for {topic}.
-    2) Propose a database schema focusing on models/entities, their fields, 
-       and any relevant relationships (e.g. foreign keys).
-    3) Each model should list the fields needed, including data types or constraints 
-       if relevant (e.g. "name: string", "age: integer").
-       - By default, each primary key should be defined as an auto-increment integer
-         unless the customer specifically wants a different approach (like UUID or string).
-       - If you define a foreign key (e.g., `team_id` referencing `teams.id`),
-         make sure the foreign key column's type matches the primary key's type.
-         For example, if `teams.id` is an integer, `players.team_id` must also be integer.
-       - Use the String type for Dates.
-    4) If the "customer" mentions extra data (like addresses), factor that in 
-       (possibly as a separate model).
-    5) The final output must NOT contain any code. Provide only a structured outline 
-       (in text or Markdown bullets) of the models and how they link together.
-    6) You should use the "data_object_lookup" Tool to help you define the models
-       - You can modify the Fields to match the requirements of the customer.
-    Important instructions:
-      - Only define the models, don't define any CRUD Endpoints
+    Customer input: {customer}
+
+    Your job as system architect:
+
+      1. Read the customer requirements for {topic}.
+      2. Propose a database schema:
+         - Each model must have
+           * `name`  : the class name (CamelCase)
+           * `table` : the SQL table name (snake_case plural)
+           * `columns`: list of objects with
+               - `name` : column name
+               - `type` : **SQLAlchemy definition string**  
+                 (e.g. "db.Integer, primary_key=True",
+                 "db.String(100), nullable=False").  
+                 Always include `primary_key=True` on the id column.
+               - `description` : short human explanation
+           * `relationships` (optional): list with  
+             `target_model`, `rel_type`, `fk_column`, `backref`.
+         - Foreign-key column type must match the referenced
+           primary key's type.
+         - Use `"db.String"` (not `"date"`) for textual dates.
+         - Add extra models (e.g. Address) if the customer asks for
+           additional structured data.
+      3. Use the data_object_lookup tool where helpful, adapting
+         field names / lengths as needed.
+
   expected_output: >
-    Your final answer must be the "Database Schema", listing all models with their fields/relationships
-      - No code, only text.
+    Return valid JSON that matches the schema above.
   agent: structure_designer
-  output_file: Output/models_plan.md
+  output_file: Output/models_JSON.json
+
 
 
 
 routes_planning_task:
   description: >
-    Customer toughts: {customer}
-    1) Read the domain requirements for {topic} and any established models 
-       (The Context you got is the database schema for the application).
-    2) Outline the main REST endpoints you recommend: 
-       e.g., GET/POST/PUT/DELETE for each model, plus any special routes (like 
-       "GET /teams/<id>/players" or "GET /players/country/<country>").
-    3) Include what kind of request body or query parameters each route might need, 
-       and what responses they return (basic idea).
-    4) Do NOT write any code. Only provide a structured text plan 
-       that the code_creator can later implement in Flask.
+    Customer input: {customer}
+
+    You already received the full **models JSON** in your context.
+    Design the REST API for those models:
+
+      1. For every model, list the typical CRUD endpoints
+         (POST, GET list, GET single, PUT, DELETE).
+      2. Add any domain-specific routes the customer would need
+         (e.g. "/teams/<int:id>/players", "/players/country/<country>").
+      3. For each route specify:
+         - `path`      : Flask-style URL (use <int:id>, <string:country>, …)
+         - `methods`   : list of HTTP methods this path accepts
+         - `model`     : affected model name
+         - `json_body` : JSON keys required for POST / PUT  
+                         (omit or null for GET / DELETE)
+         - `description` : short human explanation
+      4. Do not repeat the full model definitions.
+
   expected_output: >
-    Your final answer must be the "Routes Plan", enumerating each endpoint, 
-    the HTTP method(s), and what data is needed.
-      - No code, only text.
-      - Don't relist the already mentioned models in your final answer.
+    Return valid JSON conforming to the schema above
+    (no Markdown, no code).
   agent: structure_designer
-  output_file: Output/app_plan.md
+  output_file: Output/app_JSON.json
+
 
 # code_creator
 
-backend_models_task:
-  description: >
-    main goal: A fully fletched python backend application with a Flask API and a SQLite database.
+# backend_models_task:
+#   description: >
+#     main goal: A fully fletched python backend application with a Flask API and a SQLite database.
     
-    current Task: create a Output/models.py file with the following instructions:
-    1) Here is the template for models.py:
-      """{models_template}"""
-      Strictly follow that template's structure, 
-      only filling in the designated placeholders (examples) with your actual model definitions.
-    2) Implement the models as per the database schema you recieved in your context.
-      Each Model should have all the fields as per the database schema
-      and have a "to_dict" Method.
-  expected_output: >
-    Your Final answer must be the full Output/models.py file, only the python code and nothing else.
-    The first line of the file must be: "from flask_sqlalchemy import SQLAlchemy".
-  agent: code_creator
-  context: [models_planning_task]
-  output_file: Output/models.py
+#     current Task: create a Output/models.py file with the following instructions:
+#     1) Here is the template for models.py:
+#       """{models_template}"""
+#       Strictly follow that template's structure, 
+#       only filling in the designated placeholders (examples) with your actual model definitions.
+#     2) Implement the models as per the database schema you recieved in your context.
+#       Each Model should have all the fields as per the database schema
+#       and have a "to_dict" Method.
+#   expected_output: >
+#     Your Final answer must be the full Output/models.py file, only the python code and nothing else.
+#     The first line of the file must be: "from flask_sqlalchemy import SQLAlchemy".
+#   agent: code_creator
+#   context: [models_planning_task]
+#   output_file: Output/models.py
 
-backend_app_task:
-  description: >
-    main goal: A fully fletched python backend application with a Flask API and a SQLite database.
+# backend_app_task:
+#   description: >
+#     main goal: A fully fletched python backend application with a Flask API and a SQLite database.
 
-    current Task: create an Output/app.py file with the  following instructions:
-    1) Here is the template for models.py:
-      """{app_template}"""
-      Then strictly follow that template's structure, 
-      only filling in the designated placeholders with your code (example).
-      You must import all the models from your context.
-    2) Implement the endpoints as per the "routes plan" from your context..
-      The resulting "Output/app.py" must:
-      - import the models from the models.py file.
-      - have every route as per the routes plan.
-      - be fully operational and error free.
+#     current Task: create an Output/app.py file with the  following instructions:
+#     1) Here is the template for models.py:
+#       """{app_template}"""
+#       Then strictly follow that template's structure, 
+#       only filling in the designated placeholders with your code (example).
+#       You must import all the models from your context.
+#     2) Implement the endpoints as per the "routes plan" from your context..
+#       The resulting "Output/app.py" must:
+#       - import the models from the models.py file.
+#       - have every route as per the routes plan.
+#       - be fully operational and error free.
 
-    More instructions:
-      - Never define your own Models, import and use the models from the context you got 
-  expected_output: >
-    Your Final answer must be the full Output/app.py file, only the python code and nothing else.
-    The first line of the file must be: "from flask import...".
-  agent: code_creator
-  context: [backend_models_task, routes_planning_task]
-  output_file: Output/app.py
+#     More instructions:
+#       - Never define your own Models, import and use the models from the context you got 
+#   expected_output: >
+#     Your Final answer must be the full Output/app.py file, only the python code and nothing else.
+#     The first line of the file must be: "from flask import...".
+#   agent: code_creator
+#   context: [backend_models_task, routes_planning_task]
+#   output_file: Output/app.py

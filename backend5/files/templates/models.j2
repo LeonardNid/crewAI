@@ -1,0 +1,19 @@
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+{% for model in models %}
+class {{ model.name }}(db.Model):
+    __tablename__ = '{{ model.table }}'
+{%  for col in model.columns %}
+    {{ col.name }} = db.Column({{ col.type }})
+{%  endfor %}
+
+    def to_dict(self):
+        return {
+{%      for col in model.columns %}
+            '{{ col.name }}': self.{{ col.name }}{{ "," if not loop.last }}
+{%      endfor %}
+        }
+
+{% endfor %}

@@ -1,0 +1,27 @@
+from flask import Flask, request, jsonify
+from models import db, {{ models_import }}
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+@app.route('/')
+def home():
+    return jsonify({'message': '{{ topic }} API running'})
+
+{% for ep in endpoints %}
+# {{ ep.description }}
+@app.route('{{ ep.path }}', methods={{ ep.methods }})
+def {{ ep.handler_name }}({{ ep.params }}):
+{% for m in ep.methods %}
+{% if loop.first %}    if{% else %}    elif{% endif %} request.method == '{{ m }}':
+{{ ep.branches[m] | indent(8) }}
+{% endfor %}
+
+{% endfor %}
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)

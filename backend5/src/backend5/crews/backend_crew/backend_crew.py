@@ -2,6 +2,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
 from backend5.tools.lookup_tool import DataObjectLookupTool
+from backend5.crews.backend_crew.config.JsonSchema import ModelsPlan, RoutesPlan
 
 @CrewBase
 class BackendCrew:
@@ -31,27 +32,29 @@ class BackendCrew:
     def models_planning_task(self) -> Task:
         return Task(
             config=self.tasks_config["models_planning_task"],
-            tools=[DataObjectLookupTool()]
+            tools=[DataObjectLookupTool()],
+            output_json=ModelsPlan,
         )
     
     @task
     def routes_planning_task(self) -> Task:
         return Task(
             config=self.tasks_config["routes_planning_task"],
+            output_json=RoutesPlan,
         )
     
     # code_creator tasks
-    @task
-    def backend_models_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["backend_models_task"],
-    )
+    # @task
+    # def backend_models_task(self) -> Task:
+    #     return Task(
+    #         config=self.tasks_config["backend_models_task"],
+    # )
 
-    @task
-    def backend_app_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["backend_app_task"],
-        )
+    # @task
+    # def backend_app_task(self) -> Task:
+    #     return Task(
+    #         config=self.tasks_config["backend_app_task"],
+    #     )
     
     @crew
     def crew(self) -> Crew:
