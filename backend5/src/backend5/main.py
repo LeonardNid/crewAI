@@ -10,7 +10,7 @@ from backend5.crews.backend_crew.backend_crew import BackendCrew
 from backend5.crews.test_crew.test_crew import TestCrew
 from backend5.crews.bug_fix_crew.bug_fix_crew import BugFixCrew
 
-from backend5.tools.Utils import read_file, cleanup_quotes_in_file, renderTemplate
+from backend5.tools.Utils import read_file, renderTemplate
 
 import weave
 
@@ -18,6 +18,8 @@ SCENARIO_KEY = "football"
 
 class BackendState(BaseModel):
     skip: bool = False
+    backend_crew_count: int = 0
+    backend_crew_defects: list = []
     test_count: int = 0
     test_result: str = ""
     test_result_type: str = ""
@@ -48,20 +50,31 @@ class BackendFlow(Flow[BackendState]):
                 dir_path.mkdir(parents=True, exist_ok=True)
             print(f"✅ Cleared folder: {folder}")
 
-    @listen(clean_directories)
+    @router(or_(clean_directories, "retryBackendCrew"))
     def generate_Backend(self):
         print("Design crew started")
 
         # inputs vorbereiten
         with open("src/backend5/prompts.yaml", "r", encoding="utf-8") as f:
             scenarios = yaml.safe_load(f)
-        # Templates laden
-        app_tpl = read_file("files/templates/app_template.py")
-        models_tpl = read_file("files/templates/models_template.py")
+
+        feature_checklist = ""
+        entity_overview = ""
+        models_json = ""
+        routes_json = ""
+
+        if (self.state.backend_crew_count > 0):
+            feature_checklist = read_file("Output/backendCrew/feature_checklist.md")
+            entity_overview = read_file("Output/backendCrew/entity_overview.md")
+            models_json = read_file("Output/backendCrew/models.json")
+            routes_json = read_file("Output/backendCrew/routes.json")
 
         inputs = scenarios[SCENARIO_KEY] | {
-            "app_template":    app_tpl,
-            "models_template": models_tpl,
+            "defects": self.state.backend_crew_defects,
+            "feature_checklist": feature_checklist,
+            "entity_overview": entity_overview,
+            "models_json": models_json,
+            "routes_json": routes_json,
         }
 
         result = (
@@ -69,26 +82,38 @@ class BackendFlow(Flow[BackendState]):
             .crew()
             .kickoff(inputs=inputs)
         )
+        self.state.backend_crew_count += 1
 
-        renderTemplate("models.j2", result.tasks_output[0].to_dict(), "Output/models.py")
-        renderTemplate("app.j2", result.tasks_output[1].to_dict(), "Output/app.py")
+        verification_Json = result.tasks_output[4].to_dict()
+        if (verification_Json["retry"]):
+            self.state.backend_crew_defects = verification_Json["defects"]
+            print("verification_Json: ", verification_Json)
+            # input("retryBackendCrew")
+            # return "retryBackendCrew"
+            # einfach eine loop bzw while schleife machen lol
 
-        print("Design crew finished")
-        if (input("py's erstellt), continue? (y/n): ") == "n"):
+        renderTemplate("models.j2", result.tasks_output[2].to_dict(), "Output/models.py")
+        renderTemplate("app.j2", result.tasks_output[3].to_dict(), "Output/app.py")
+
+        print("Backend crew finished")
+        print("Backend crew attempts: ", self.state.backend_crew_count)
+        if (input("py's erstellt, continue? (y/n): ") == "n"):
             self.state.skip = True
+        return "firstTest"
+        
 
-    @listen(or_(generate_Backend, "fix_bug"))
+    @listen(or_("firstTest", "fix_bug"))
     def test_Backend(self):
         if self.state.skip:
             print("Skipping test crew due to previous failure.")
             return "skipped"
 
         print("Test crew started")
-        app_JSON_json = read_file("Output/app_JSON.json")
+        routes_json = read_file("Output/backendCrew/routes.json")
         app_py = read_file("Output/app.py")
         inputs = {
             "app_py": app_py,
-            "app_JSON_json": app_JSON_json,
+            "routes_json": routes_json,
         }
         result = (
             TestCrew()
@@ -130,7 +155,7 @@ class BackendFlow(Flow[BackendState]):
 
         except Exception as e:
             print("⚠️ Error parsing test_result:", e)
-            return "error"
+            return "failed"
         
     @listen("failed")
     def fix_bug(self):
@@ -154,16 +179,14 @@ class BackendFlow(Flow[BackendState]):
         )
         print("Bug fix crew finished")
         
-    @listen("success")
+    @listen(or_("success", "skipped"))
     def final(self):
-        print("All tests passed successfully!")
+        if self.state.skip:
+            print("Flow stopped due to user input.")
+        else:
+            print("All tests passed successfully!")
         print("Test attempts:", self.state.test_count)
-
-    @listen("skipped")
-    def finalSkipped(self):
-        print("Flow stopped due to user input.")
-        print("Test attempts:", self.state.test_count)
-    
+        print("Backend crew attempts:", self.state.backend_crew_count)
 
 def kickoff():
     backendFlow = BackendFlow()

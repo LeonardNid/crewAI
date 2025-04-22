@@ -6,7 +6,7 @@ backend_endpoint_summary_task:
     """{app_py}"""
 
     Here is the app_JSON.json file with all the routes that should be available:
-    """{app_JSON_json}"""
+    """{routes_json}"""
 
     Summarize all the Flask routes by scanning each @app.route(...).
     1) List every route's URL pattern (e.g., /teams, /teams/<id>) 

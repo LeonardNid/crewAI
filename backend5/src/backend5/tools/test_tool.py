@@ -48,10 +48,6 @@ class FlaskTestClientTool(BaseTool):
                     "Please fix the Output/app.py or Output/models.py file so that it contains clean, valid Python code."
                 )
 
-
-        if not hasattr(app_module, "app") or not hasattr(app_module, "db"):
-            raise AttributeError("app.py must have 'app' and 'db'")
-
         with app_module.app.app_context():
             app_module.db.create_all()
 

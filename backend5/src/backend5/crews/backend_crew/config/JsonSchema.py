@@ -30,9 +30,16 @@ class Endpoint(BaseModel):
     path: str                     # "/players/<int:id>"
     methods: List[str]            # ["GET", "PUT", "DELETE"]
     model: str                    # "Player"
+    get_List: Optional[bool]      # True, False
     json_body: Optional[dict]     # erwartete Felder bei POST/PUT
     description: Optional[str]
 
 class RoutesPlan(BaseModel):
     topic: str
     endpoints: List[Endpoint]
+
+# verification
+
+class Verification(BaseModel):
+    retry: bool
+    defects: List[str]

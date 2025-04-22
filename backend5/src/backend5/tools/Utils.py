@@ -4,115 +4,143 @@ import re
 import textwrap
 from jinja2 import Environment, FileSystemLoader
 
-def cleanup_quotes_in_file(file_path: str):
-    """
-    Reads the file, strips away any leading/trailing quotes or triple quotes 
-    if they wrap the entire file, and then rewrites the cleaned content.
-    """
-    if not os.path.exists(file_path):
-        print(f"File not found: {file_path}")
-        return
-
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-
-    # Trim whitespace at start/end
-    stripped_content = content.strip()
-
-    # Potential quote fences to remove if they wrap the entire file
-    fences = ['"""', "'''", "```", '"', "'"]
-
-    # Try each fence in turn. If the file starts & ends with the same fence, remove them.
-    for fence in fences:
-        if stripped_content.startswith(fence) and stripped_content.endswith(fence):
-            # Remove the leading/trailing fence
-            stripped_content = stripped_content[len(fence):-len(fence)].strip()
-            # After removing one matching fence pair, break or it might re-check 
-            # with single quotes, etc.
-            break
-    
-    if stripped_content.lower().startswith("python"):
-        stripped_content = stripped_content[len("python"):].lstrip("\n").lstrip()
-    
-    # Write back the cleaned content
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(stripped_content)
-
 def read_file(path: str) -> str:
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 
 # ------------------------------------------------------------
+
 import re, textwrap
 
-def extract_params(path: str) -> str:
+def _extract_params(path: str) -> list[str]:
     """/teams/<int:id>  ->  id      |  /players/country/<string:country> -> country"""
     m = re.findall(r'<[^:]+:([^>]+)>', path)
     return ", ".join(m)                      # mehrere Parameter möglich
 
-def handler_name(path: str) -> str:
-    """/teams/<int:id>/players  ->  teams_id_players"""
+def _handler_name(path: str) -> str:
     cleaned = re.sub(r'[<>/:]', '_', path).strip('_')
     return cleaned.replace('__', '_')
 
-def make_branch(method: str, ep: dict) -> str:
+def _make_branch(method: str, ep: dict) -> str:
     mdl = ep["model"]
-    if method == "POST":
-        return f"""        data = request.get_json()
-new_obj = {mdl}(**data)
-db.session.add(new_obj)
-db.session.commit()
-return jsonify(new_obj.to_dict()), 201"""
+    path = ep["path"]
+    params = _extract_params(path)           # z.B. ['team_id'] oder ['name']
+    segments = path.strip('/').split('/')    # z.B. ['teams','<int:team_id>','players']
+    code = ""
 
-    if method == "GET":
-        if "<" in ep["path"]:        # Detail‑Abruf
-            pk = extract_params(ep["path"]) or "id"
-            return f"""        obj = {mdl}.query.get({pk})
-if not obj:
-    return jsonify({{"message": "{mdl} not found"}}), 404
-return jsonify(obj.to_dict())"""
-        else:                        # Liste
-            return f"""        objs = {mdl}.query.all()
-return jsonify([o.to_dict() for o in objs])"""
+    # 1) Nested Resource?
+    #   /teams/<int:team_id>/players
+    if len(segments) >= 3 and segments[-2].startswith('<'):
+        parent_seg = segments[-3]               # 'teams'
+        child_seg  = segments[-1]               # 'players'
+        ParentModel = parent_seg[:-1].capitalize()  # 'Team'
+        if method == "GET":
+            code = f"""
+                parent = {ParentModel}.query.get({params})
+                if not parent:
+                    return jsonify({{"message": "{ParentModel} not found"}}), 404
+                children = parent.{child_seg}
+                return jsonify([c.to_dict() for c in children])
+            """
+        elif method == "POST":
+            code = f"""
+                data = request.get_json()
+                data['{params}'] = {params}
+                new_obj = {mdl}(**data)
+                db.session.add(new_obj)
+                db.session.commit()
+                return jsonify(new_obj.to_dict()), 201
+            """
 
-    if method == "PUT":
-        return f"""        obj = {mdl}.query.get(id)
-if not obj:
-    return jsonify({{"message": "{mdl} not found"}}), 404
-data = request.get_json()
-for k, v in data.items():
-    setattr(obj, k, v)
-db.session.commit()
-return jsonify(obj.to_dict())"""
+    # 2) Search Endpoint?
+    #   /players/search/<string:name>
+    elif 'search' in segments:
+        if method == "GET":
+            code = f"""
+                val = {params}
+                obj = {mdl}.query.filter_by(**{{"{params}": val}}).first()
+                if not obj:
+                    return jsonify({{"message": "{mdl} not found"}}), 404
+                return jsonify(obj.to_dict())
+            """
 
-    if method == "DELETE":
-        return f"""        obj = {mdl}.query.get(id)
-if not obj:
-    return jsonify({{"message": "{mdl} not found"}}), 404
-db.session.delete(obj)
-db.session.commit()
-return jsonify({{"message": "{mdl} deleted"}})"""
+    # 3) Filter Endpoint?
+    #   /players/filter/country/<string:country>
+    elif 'filter' in segments:
+        if method == "GET":
+            code = f"""
+                val = {params}
+                objs = {mdl}.query.filter_by(**{{"{params}": val}}).all()
+                return jsonify([o.to_dict() for o in objs])
+            """
 
-    return "pass"   # fallback
+    # 4) Standard CRUD
+    else:
+        if method == "POST":
+            code = f"""
+                data = request.get_json()
+                new_obj = {mdl}(**data)
+                db.session.add(new_obj)
+                db.session.commit()
+                return jsonify(new_obj.to_dict()), 201
+            """
+        elif method == "GET":
+            if params:  # Detail‑GET
+                code = f"""
+                    obj = {mdl}.query.get({params})
+                    if not obj:
+                        return jsonify({{"message": "{mdl} not found"}}), 404
+                    return jsonify(obj.to_dict())
+                """
+            else:       # List‑GET
+                code = f"""
+                    objs = {mdl}.query.all()
+                    return jsonify([o.to_dict() for o in objs])
+                """
+        elif method == "PUT":
+            code = f"""
+                obj = {mdl}.query.get({params})
+                if not obj:
+                    return jsonify({{"message": "{mdl} not found"}}), 404
+                data = request.get_json()
+                for k, v in data.items():
+                    setattr(obj, k, v)
+                db.session.commit()
+                return jsonify(obj.to_dict())
+            """
+        elif method == "DELETE":
+            code = f"""
+                obj = {mdl}.query.get({params})
+                if not obj:
+                    return jsonify({{"message": "{mdl} not found"}}), 404
+                db.session.delete(obj)
+                db.session.commit()
+                return jsonify({{"message": "{mdl} deleted"}})
+            """
 
-def enrich_endpoints(data: dict):
+    # Einrücken
+    return textwrap.dedent(code).strip()
+
+
+
+def _enrich_endpoints(data: dict):
     model_names = ", ".join({ep["model"] for ep in data["endpoints"]})
     data["models_import"] = model_names
     for ep in data["endpoints"]:
-        ep["handler_name"] = handler_name(ep["path"])
-        ep["params"]       = extract_params(ep["path"])
+        ep["handler_name"] = _handler_name(ep["path"])
+        ep["params"]       = _extract_params(ep["path"])
         # Branches dict: {"GET": "...", "POST": "...", ...}
-        ep["branches"] = {m: make_branch(m, ep) for m in ep["methods"]}
+        ep["branches"] = {m: _make_branch(m, ep) for m in ep["methods"]}
 
 # ------------------------------------------------------------
 
 def renderTemplate(template: str, context: dict, output_file: str):
     # --- ENRICH ENDPOINTS -----------------------------------
     if "endpoints" in context:
-        enrich_endpoints(context)
+        _enrich_endpoints(context)
         # Write the enriched context to a JSON file
-        with open("Output/app_Enriched_JSON.json", "w", encoding="utf-8") as json_file:
+        with open("Output/backendCrew/routes_Enriched.json", "w", encoding="utf-8") as json_file:
             json.dump(context, json_file, indent=4)
 
     # --- RENDER ---------------------------------------------
@@ -127,3 +155,17 @@ def renderTemplate(template: str, context: dict, output_file: str):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(rendered)
+
+# Temp Main for testing
+if __name__ == '__main__':
+    print("Render templates")
+    # --- READ JSON FILES -----------------------------------
+    with open("Output/backendCrew/models.json", "r", encoding="utf-8") as f:
+        models = json.load(f)
+    
+    with open("Output/backendCrew/routes.json", "r", encoding="utf-8") as f:
+        routes = json.load(f)
+
+    # --- RENDER TEMPLATES ----------------------------------
+    renderTemplate("models.j2", models, "Output/models.py")
+    renderTemplate("app.j2", routes, "Output/app.py")
