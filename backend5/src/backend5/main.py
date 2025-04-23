@@ -7,10 +7,11 @@ from pydantic import BaseModel
 from crewai.flow import Flow, listen, start, router, or_
 
 from backend5.crews.backend_crew.backend_crew import BackendCrew
+from backend5.crews.checkup_crew.checkup_crew import CheckupCrew
 from backend5.crews.test_crew.test_crew import TestCrew
 from backend5.crews.bug_fix_crew.bug_fix_crew import BugFixCrew
 
-from backend5.tools.Utils import read_file, renderTemplate
+from backend5.Utils import read_file, renderTemplate
 
 import weave
 
@@ -50,10 +51,8 @@ class BackendFlow(Flow[BackendState]):
                 dir_path.mkdir(parents=True, exist_ok=True)
             print(f"✅ Cleared folder: {folder}")
 
-    @router(or_(clean_directories, "retryBackendCrew"))
+    @listen(or_(clean_directories, "retryBackendCrew"))
     def generate_Backend(self):
-        print("Design crew started")
-
         # inputs vorbereiten
         with open("src/backend5/prompts.yaml", "r", encoding="utf-8") as f:
             scenarios = yaml.safe_load(f)
@@ -77,30 +76,46 @@ class BackendFlow(Flow[BackendState]):
             "routes_json": routes_json,
         }
 
+        print("Backend crew started")
         result = (
             BackendCrew()
             .crew()
             .kickoff(inputs=inputs)
         )
+        print("Backend crew finished")
         self.state.backend_crew_count += 1
 
-        verification_Json = result.tasks_output[4].to_dict()
-        if (verification_Json["retry"]):
-            self.state.backend_crew_defects = verification_Json["defects"]
-            print("verification_Json: ", verification_Json)
-            # input("retryBackendCrew")
-            # return "retryBackendCrew"
-            # einfach eine loop bzw while schleife machen lol
 
-        renderTemplate("models.j2", result.tasks_output[2].to_dict(), "Output/models.py")
-        renderTemplate("app.j2", result.tasks_output[3].to_dict(), "Output/app.py")
-
-        print("Backend crew finished")
         print("Backend crew attempts: ", self.state.backend_crew_count)
         if (input("py's erstellt, continue? (y/n): ") == "n"):
             self.state.skip = True
-        return "firstTest"
         
+    @router(generate_Backend)
+    def checkup(self):
+        
+
+        inputs = {
+
+        }
+
+        print("Checkup crew started")
+        result = (
+            CheckupCrew()
+            .crew()
+            .kickoff(inputs=inputs)
+        )
+        print("Checkup crew finished")
+
+        verification_Json = result.tasks_output[2].to_dict()
+        if (verification_Json["retry"]):
+            self.state.backend_crew_defects = verification_Json["defects"]
+            print("verification_Json: ", verification_Json)
+            input("retryBackendCrew")
+            return "retryBackendCrew"
+        
+        renderTemplate("models.j2", "Output/backendCrew/models.json", "Output/models.py")
+        renderTemplate("app.j2", "Output/backendCrew/routes.json", "Output/app.py")
+        return "firstTest"
 
     @listen(or_("firstTest", "fix_bug"))
     def test_Backend(self):
