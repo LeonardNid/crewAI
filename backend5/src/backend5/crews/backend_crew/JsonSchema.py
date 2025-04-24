@@ -1,5 +1,3 @@
-# common_models.py  (nur einmal definieren)
-
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -38,8 +36,3 @@ class RoutesPlan(BaseModel):
     topic: str
     endpoints: List[Endpoint]
 
-# verification
-
-class Verification(BaseModel):
-    retry: bool
-    defects: List[str]

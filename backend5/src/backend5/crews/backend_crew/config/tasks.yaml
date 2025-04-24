@@ -87,10 +87,9 @@ routes_json_task:
           - `description`: (optional) short human explanation
     The full set of endpoints **must enable every feature** in the checklist.
     Do not split different methods with the same path into separate entries.
-    Use these specific paths for:
-    1) Nested Resource? e.g.: /teams/<int:team_id>/players
-    2) Search Endpoint? e.g.: /players/search/<string:name>
-    3) Filter Endpoint? e.g.: /players/filter/country/<string:country>
+    It is extremly important that you :
+    1) Nested Resource? e.g.: /model1/<int:id>/model2
+    2) Search Endpoint? e.g.: /model1/search/<string:name>
 
   expected_output: >
     Pure JSON only. One JSON object conforming exactly to the `RoutesPlan` schema.
@@ -98,54 +97,3 @@ routes_json_task:
   context: [features_extraction_task, entities_extraction_task,
             models_json_task]
   output_file: Output/backendCrew/routes.json
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-#  VERIFICATION AGENT TASK
-# ──────────────────────────────────────────────────────────────────────────────
-
-verification_task:
-  description: >
-    Last defects: {defects}
-    Customer thoughts: {customer}
-    Your job is to verify the functionality of the generated JSON-Files by comparing
-    the customer thoughts against the two JSON outputs:
-      - models_JSON.json (the data models),
-      - app_JSON.json (the defined endpoints and HTTP methods).
-    But don't make up any new requirements the customer didn't mention.
-    Focus on the **features** and **endpoints** the customer asked for.
-    You don't need to check for safety features, security, or performance.
-    Just check if the models and endpoints are complete.
-
-    You must:
-      1. Check whether **all required features** mentioned by the customer are
-         actually supported by the models and endpoints.
-      2. Ensure that each model includes **all necessary fields** and that
-         the data types are correct (e.g., db.String for text, db.Integer for IDs).
-      3. Check if the **relationships** between models (e.g. Team ↔ Player)
-         are properly represented (e.g., foreign keys and backrefs).
-      4. Check if the API includes **all CRUD endpoints** for each model:
-         - POST, GET (list), GET (by ID), PUT, DELETE.
-         - Include special endpoints too, e.g., "GET /players/country/<country>"
-
-    You must return a JSON object of type `Verification`, like this:
-
-    {
-      "retry": true,
-      "defects": [
-        "Missing endpoint: GET /teams/<id>",
-        "Player model has no 'position' field",
-        "Foreign key team_id missing on Player",
-        "No endpoint to filter players by country"
-      ]
-    }
-
-  expected_output: >
-    Return a valid JSON object matching the `Verification` schema:
-    {
-      "retry": <true/false>,
-      "defects": [<list of strings, or empty>]
-    }
-  agent: verification_agent
-  context: [features_extraction_task, entities_extraction_task, models_json_task, routes_json_task]
-  output_file: Output/backendCrew/verification_result.json

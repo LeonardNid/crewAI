@@ -25,6 +25,7 @@ def _handler_name(path: str) -> str:
 def _make_branch(method: str, ep: dict) -> str:
     mdl = ep["model"]
     path = ep["path"]
+    get_List = ep["get_List"]
     params = _extract_params(path)           # z.B. ['team_id'] oder ['name']
     segments = path.strip('/').split('/')    # z.B. ['teams','<int:team_id>','players']
     code = ""
@@ -53,29 +54,26 @@ def _make_branch(method: str, ep: dict) -> str:
                 return jsonify(new_obj.to_dict()), 201
             """
 
-    # 2) Search Endpoint?
-    #   /players/search/<string:name>
-    elif 'search' in segments:
-        if method == "GET":
+    # 2) Search or Filter Endpoint?
+    #   /players/name/<string:name> or /players/country/<string:country>
+    if len(segments) == 2 and segments[-2].startswith('<'):
+        val = params
+        if get_List:
             code = f"""
-                val = {params}
+                objs = {mdl}.query.filter_by(**{{"{params}": val}}).all()
+                if not objs:
+                    return jsonify({{"message": "{mdl} not found"}}), 404
+                return jsonify([o.to_dict() for o in objs])
+            """
+        else:
+            code = f"""
                 obj = {mdl}.query.filter_by(**{{"{params}": val}}).first()
                 if not obj:
                     return jsonify({{"message": "{mdl} not found"}}), 404
                 return jsonify(obj.to_dict())
             """
 
-    # 3) Filter Endpoint?
-    #   /players/filter/country/<string:country>
-    elif 'filter' in segments:
-        if method == "GET":
-            code = f"""
-                val = {params}
-                objs = {mdl}.query.filter_by(**{{"{params}": val}}).all()
-                return jsonify([o.to_dict() for o in objs])
-            """
-
-    # 4) Standard CRUD
+    # 3) Standard CRUD
     else:
         if method == "POST":
             code = f"""
@@ -135,13 +133,19 @@ def _enrich_endpoints(data: dict):
 
 # ------------------------------------------------------------
 
-def renderTemplate(template: str, context: dict, output_file: str):
+def enrich_Endpoints(context: dict):
     # --- ENRICH ENDPOINTS -----------------------------------
     if "endpoints" in context:
         _enrich_endpoints(context)
         # Write the enriched context to a JSON file
-        with open("Output/backendCrew/routes_Enriched.json", "w", encoding="utf-8") as json_file:
+        output_path = "Output/backendCrew/routes_Enriched.json"
+        with open(output_path, "w", encoding="utf-8") as json_file:
             json.dump(context, json_file, indent=4)
+        return context
+
+def renderTemplate(template: str, context_file: str, output_file: str):
+    with open(context_file, "r", encoding="utf-8") as f:
+        context = json.load(f)
 
     # --- RENDER ---------------------------------------------
     env = Environment(

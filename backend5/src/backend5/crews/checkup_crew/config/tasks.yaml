@@ -1,0 +1,86 @@
+# ──────────────────────────────────────────────────────────────────────────────
+#  BRANCH VERIFIER TASK
+# ──────────────────────────────────────────────────────────────────────────────
+
+branch_verification_task:
+  description: >
+    This is the routes_Enriched.json file:
+    {routes_json}
+
+    1. For every element in the "endpoints" array:
+
+         • Read `description` and compare it with the behavioural intent
+           of each branch in `ep.branches`.
+         • Ignore the function header that will be added later; focus only
+           on the **body code** contained in each branch string.
+
+         Example check-list:
+           - Does a GET branch that says "list players" actually query for
+             a collection (e.g., `.query.all()` or a proper filter)?
+           - Does a POST branch that says "add player to team" inject the
+             team_id into the payload before creating the object?
+           - Do PUT / DELETE branches fetch by the correct primary key and
+             commit changes or removals?
+           - Are dictionary keys properly quoted (`{"country": val}`)?
+
+    2. If ANY mismatch is found, call **json_branch_update** tool once and only once:
+         • Provide the path and the corresponding new code for each endpoint that
+           should be changed.
+         • Ensure you fix every incorrect branch code so it truly matches
+           the description.
+
+    3. When you finish, output a concise Markdown summary:
+         - Bullet-list each endpoint you modified with a short note of what
+           changed.  If no changes were needed, state that explicitly.
+
+  expected_output: >
+    A Markdown file summarising the fixes you applied (or confirming that no
+    fixes were necessary).  The JSON file itself must be overwritten by the
+    **json_branch_update** tool call if any edits were required.
+
+  agent: branch_verifier
+  output_file: Output/checkupCrew/refinement_Summary.md
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  VERIFICATION AGENT TASK
+# ──────────────────────────────────────────────────────────────────────────────
+
+verification_task:
+  description: >
+    Feature checklist for the customer:
+    {feature_checklist}
+
+    models.json file:
+    {models_json}
+
+    routes.json file:
+    {routes_json}
+
+
+    Your job is to verify the functionality of the generated JSON-Files by comparing
+    the feature checklist against the two JSON outputs:
+      - models.json (the data models),
+      - routes.json (the defined endpoints and HTTP methods).
+    But don't make up any new requirements the customer didn't mention.
+    Focus on the **features** and **endpoints** the customer asked for.
+    You don't need to check for safety features, security, or performance.
+    Just check for completeness.
+
+    You must:
+      1. Check whether **all required features** mentioned by the customer are
+         actually supported by the models and endpoints.
+      2. Ensure that each model includes **all necessary fields** and that
+         the data types are correct (e.g., db.String for text, db.Integer for IDs).
+      3. Check if the **relationships** between models (e.g. Team ↔ Player)
+         are properly represented (e.g., foreign keys and backrefs).
+      4. Check if the API includes **all CRUD endpoints** for each model:
+         - POST, GET (list), GET (by ID), PUT, DELETE.
+         - Include special endpoints too, e.g., "GET /players/country/<country>"
+  expected_output: >
+    Return a valid JSON object matching the `Verification` schema:
+    {
+      "retry": <true/false>,
+      "defects": [<list of strings, or empty>]
+    }
+  agent: verification_agent
+  output_file: Output/checkupCrew/verification_result.json
