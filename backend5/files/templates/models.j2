@@ -1,19 +1,23 @@
+{# models.j2 – saubere Einrückungen & Beziehungen #}
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
 {% for model in models %}
 class {{ model.name }}(db.Model):
-    __tablename__ = '{{ model.table }}'
-{%  for col in model.columns %}
+    __tablename__ = "{{ model.table }}"
+{% for col in model.columns %}
     {{ col.name }} = db.Column({{ col.type }})
-{%  endfor %}
+{% endfor %}
+{% for line in model.relationship_lines %}
+    {{ line | indent(4) }}
+{% endfor %}
 
     def to_dict(self):
         return {
-{%      for col in model.columns %}
-            '{{ col.name }}': self.{{ col.name }}{{ "," if not loop.last }}
-{%      endfor %}
+{% for col in model.columns %}
+            "{{ col.name }}": self.{{ col.name }}{{ "," if not loop.last }}
+{% endfor %}
         }
 
 {% endfor %}

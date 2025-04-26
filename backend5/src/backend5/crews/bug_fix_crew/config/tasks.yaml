@@ -82,5 +82,5 @@ fix_code_task:
     - **An explicit statement that the full file content was written (not a diff)**
 
   agent: code_modifier
-  output_file: Output/fix_summary.md
+  output_file: Output/bug_Fix_crew/fix_summary.md
 

@@ -3,6 +3,7 @@ import sys
 import importlib.util
 import json
 import time
+import traceback
 from typing import Type, List, Optional, Dict, Any
 from pydantic import BaseModel, ValidationError
 from crewai.tools import BaseTool
@@ -33,6 +34,7 @@ class FlaskTestClientTool(BaseTool):
 
         spec = importlib.util.spec_from_file_location("app_module", app_path)
         app_module = importlib.util.module_from_spec(spec)
+        
 
         try:
             spec.loader.exec_module(app_module)
@@ -48,6 +50,7 @@ class FlaskTestClientTool(BaseTool):
                     "Please fix the Output/app.py or Output/models.py file so that it contains clean, valid Python code."
                 )
 
+        app_module.app.testing = True
         with app_module.app.app_context():
             app_module.db.create_all()
 
@@ -117,7 +120,9 @@ class FlaskTestClientTool(BaseTool):
                 results.append({
                     "method": method,
                     "route": req.route,
-                    "error": str(e)
+                    "json_data": req.json_data,
+                    "status_code": resp.status_code,
+                    "error":  traceback.format_exc()
                 })
 
         return json.dumps(results, indent=2)

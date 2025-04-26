@@ -8,21 +8,33 @@ features_extraction_task:
     Defects detected by verification_agent: {defects}
     Customer thoughts: {customer}
 
-    1. Identify **all distinct user-facing features / use-cases** implied
-       or explicitly mentioned (e.g. “list all players of a team”,
-       “filter persons by country”).
-    2. Write a numbered Markdown checklist - one line per feature.
-    3. No code, no SQL - just plain prose that a later agent can read.
+    **IMPORTANT - ONLY INCLUDE ENDPOINT-LEVEL FEATURES**
+
+    Create a checklist of concrete REST-API operations the backend must expose.
+    A *valid* feature must correspond to **exactly one HTTP endpoint** (for
+    example “list all teams”, “add a player”).
+    Do **NOT** list vague analytical items such as  
+    “View statistics for a player” or “Show team history” - they require
+    extra business logic.
+
+    1. Identify every explicit or implied CRUD, search, filter or nested-resource
+       operation that can be satisfied by a single endpoint.
+    2. Write a numbered Markdown checklist - one line per feature, phrased as an
+       endpoint operation (e.g. “List all teams”, “Filter players by country”).
+    3. No code, no SQL - plain prose only.
+
   expected_output: >
     A Markdown file named "feature_checklist.md" containing the list.
   agent: requirements_analyst
   output_file: Output/backendCrew/feature_checklist.md
 
 
+
 entities_extraction_task:
   description: >
     Last result: {entity_overview}
     Defects detected by verification_agent: {defects}
+
     Customer thoughts: {customer}
 
     1. List **all entities (domain objects)** the product must store.
@@ -44,6 +56,7 @@ models_json_task:
   description: >
     Last result: {models_json}
     Defects detected by verification_agent: {defects}
+
     Produce `models_JSON.json` - a JSON object matching the Pydantic `ModelsPlan` schema:
 
       • `topic`        : string - the domain/topic name (e.g. "Bicycle Workshop").  
@@ -53,14 +66,15 @@ models_json_task:
           - `columns`      : array of objects with:
               * `name`         : column name (e.g. "id")
               * `type`         : SQLAlchemy definition string  
-                                 (e.g. `"db.Integer, primary_key=True"`)
+                                 (e.g. `"db.Integer, db.String(NUMBER),
+                                  primary_key=True, autoincrement=True,
+                                  db.ForeignKey('TABLENAME.ID')"`)
               * `description`  : (optional) human-readable note
           - `relationships`: (optional) array of objects with:
               * `target_model` : related model name (e.g. "Brake")
-              * `rel_type`     : relationship type  
-                                 (`"one_to_many"`, `"many_to_many"`, etc.)
-              * `fk_column`    : foreign key column name (e.g. "frame_id")
-              * `backref`      : (optional) backref attribute name
+              * `rel_type`     : relationship type  ("one_to_many", "many_to_one",
+                                 "many_to_many", etc.)
+              * `cascade`      : rules for propagating operations (e.g. "all, delete-orphan")
     Ensure every entity and every relation from the input overview is represented.
     You may use the "data_object_lookup" tool to get a reference to some models.
     You can and should adapt the output of the tool to fit your requirements. 
@@ -75,6 +89,7 @@ routes_json_task:
   description: >
     Last result: {routes_json}
     Defects detected by verification_agent: {defects}
+
     Produce `routes.json` - a JSON object matching the Pydantic `RoutesPlan` schema:
 
       • `topic`     : string - the same domain/topic name.  
@@ -82,14 +97,15 @@ routes_json_task:
           - `path`       : Flask-style URL (e.g. `/frames`, `/frames/<int:id>`)
           - `methods`    : list of HTTP verbs (e.g. `["GET","POST"]`)
           - `model`      : associated model name (e.g. `"Frame"`)
-          - `get_List`   : (optional) if GET method returns a list of objects
+          - `get_List`   : if GET method returns a list of objects
           - `json_body`  : (optional) object listing required keys for POST/PUT, else `null`
           - `description`: (optional) short human explanation
     The full set of endpoints **must enable every feature** in the checklist.
     Do not split different methods with the same path into separate entries.
-    It is extremly important that you :
-    1) Nested Resource? e.g.: /model1/<int:id>/model2
-    2) Search Endpoint? e.g.: /model1/search/<string:name>
+    Only use '_' to seperate a path.
+    It is extremly important that you structure:
+    1) Nested Resource like this: /model1/<int:id>/model2
+    2) Search Endpoint like this: /model1/<string:name>
 
   expected_output: >
     Pure JSON only. One JSON object conforming exactly to the `RoutesPlan` schema.

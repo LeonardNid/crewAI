@@ -11,7 +11,7 @@ JsonBranchUpdateTool - fixed-path variant (Pydantic v2)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This lightweight tool **exclusively** replaces the code strings inside
 `branches` entries (e.g. `endpoints[2].branches.GET`) of the single file
-``Output/backendCrew/routes_Enriched.json``.
+``Output/backendCrew/routes.json``.
 
 * It **cannot** add or remove endpoints - only update existing branch code.
 * The file path is hard-wired; the agent supplies **only** the edits.
@@ -24,7 +24,7 @@ Updated to **Pydantic v2**: `@validator` ➔ `@field_validator`.
 #  Constants
 # ────────────────────────────────────────────────────────────────────────────────
 
-_FILE_PATH = "Output/backendCrew/routes_Enriched.json"
+_FILE_PATH = "Output/backendCrew/routes.json"
 
 # ────────────────────────────────────────────────────────────────────────────────
 #  Pydantic input schema
@@ -38,6 +38,7 @@ class BranchEdit(BaseModel):
         description=(
             "Path in the form `endpoints[<index>].branches.<METHOD>`, e.g. "
             "`endpoints[3].branches.PUT`. <METHOD> must be uppercase."
+            "The first enpoint index is 0."
         ),
     )
     new_code: str = Field(
@@ -68,12 +69,12 @@ class JsonBranchUpdateInput(BaseModel):
 # ────────────────────────────────────────────────────────────────────────────────
 
 class JsonBranchUpdateTool(BaseTool):
-    """Replace branch code in routes_Enriched.json with minimal overhead."""
+    """Replace branch code in routes.json with minimal overhead."""
 
     name: str = "json_branch_update"
     description: str = (
         "Replace the code inside existing GET/POST/PUT/DELETE branches in the fixed "
-        "file 'Output/backendCrew/routes_Enriched.json'. The tool takes a list of "
+        "file 'Output/backendCrew/routes.json'. The tool takes a list of "
         "{path, new_code} edit objects and performs all replacements in a single call."
     )
     args_schema: Type[BaseModel] = JsonBranchUpdateInput
@@ -110,7 +111,7 @@ class JsonBranchUpdateTool(BaseTool):
     # ────────────────────────────────────────────────────────────────────────────
 
     def _run(self, edits: List[Dict[str, str]]):  # noqa: N802 - BaseTool API expects snake case
-        print("Using Tool: json_branch_update (fixed path, pydantic v2)")
+        print("Using Tool: json_branch_update")
         input_obj = JsonBranchUpdateInput(edits=edits)
 
         try:

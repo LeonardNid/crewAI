@@ -4,7 +4,7 @@
 
 branch_verification_task:
   description: >
-    This is the routes_Enriched.json file:
+    This is the routes.json file:
     {routes_json}
 
     1. For every element in the "endpoints" array:
@@ -32,6 +32,9 @@ branch_verification_task:
     3. When you finish, output a concise Markdown summary:
          - Bullet-list each endpoint you modified with a short note of what
            changed.  If no changes were needed, state that explicitly.
+    
+    **Never** give the edited JSON file as your final answer.
+    It must be overwritten by the **json_branch_update** tool call.
 
   expected_output: >
     A Markdown file summarising the fixes you applied (or confirming that no

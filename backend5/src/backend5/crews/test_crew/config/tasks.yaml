@@ -2,13 +2,13 @@
 
 backend_endpoint_summary_task:
   description: >
-    Here is the app.py file with all the routes that were implemented:
-    """{app_py}"""
+    Here is the models.json file with all the models that should be available:
+    """{models_json}"""
 
-    Here is the app_JSON.json file with all the routes that should be available:
+    Here is the routes.json file with all the routes that should be available:
     """{routes_json}"""
 
-    Summarize all the Flask routes by scanning each @app.route(...).
+    Summarize all the Flask routes by scanning each endpoint.
     1) List every route's URL pattern (e.g., /teams, /teams/<id>) 
        and each HTTP method it handles (GET, POST, PUT, DELETE, etc.).
     2) For each POST or PUT route, specify which JSON fields it expects. Use the JSON schema 
@@ -17,7 +17,10 @@ backend_endpoint_summary_task:
        All POST routes for each Model first, then GET, then PUT, then DELETE.
        It is extremely important to follow this order and do the POST methods first and the
        Delete Methods last.
-    4) Do not write code, only produce a textual or Markdown list. 
+    4) For DELETE routes, determine the correct order of execution by analyzing the dependencies between models in the models.json file. 
+       Ensure that no DELETE route is executed before its dependent resources are deleted. 
+       For example, if a "Team" has "Players", delete all "Players" associated with the "Team" before deleting the "Team" itself.
+       This ensures no 404 or dependency-related errors occur during testing.
   expected_output: >
     Your final answer must be a numbered summary of each route, including:
       - The HTTP method(s)
@@ -28,7 +31,7 @@ backend_endpoint_summary_task:
       "1. POST /teams -> Needs { name: string, city: string, country: string, stadium: string } 
        Returns the newly created team data."
   agent: code_tester
-  output_file: 'Output/endpoint_summary.md'
+  output_file: 'Output/test_crew/endpoint_summary.md'
 
 backend_test_task:
   description: >
@@ -70,4 +73,4 @@ backend_test_task:
     only if the tool didn't return a validation error.
   agent: code_tester
   context: [backend_endpoint_summary_task]
-  output_file: 'Output/test_report.md'
+  output_file: 'Output/test_crew/test_report.md'
