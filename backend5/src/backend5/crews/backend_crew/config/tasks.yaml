@@ -14,8 +14,8 @@ features_extraction_task:
     A *valid* feature must correspond to **exactly one HTTP endpoint** (for
     example “list all teams”, “add a player”).
     Do **NOT** list vague analytical items such as  
-    “View statistics for a player” or “Show team history” - they require
-    extra business logic.
+    “View statistics for a player” or “Show team history” or - “Get team roster”
+    they require extra business logic.
 
     1. Identify every explicit or implied CRUD, search, filter or nested-resource
        operation that can be satisfied by a single endpoint.
@@ -105,7 +105,7 @@ routes_json_task:
     Only use '_' to seperate a path.
     It is extremly important that you structure:
     1) Nested Resource like this: /model1/<int:id>/model2
-    2) Search Endpoint like this: /model1/<string:name>
+    2) Search Endpoint like this: /model1/name/<string:name>
 
   expected_output: >
     Pure JSON only. One JSON object conforming exactly to the `RoutesPlan` schema.

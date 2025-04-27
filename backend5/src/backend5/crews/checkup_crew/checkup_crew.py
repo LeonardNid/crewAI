@@ -32,7 +32,7 @@ class CheckupCrew:
     def branch_verification_task(self) -> Task:
         return Task(
             config=self.tasks_config["branch_verification_task"],
-            tools=[JsonBranchUpdateTool()],
+            tools=[JsonBranchUpdateTool(result_as_answer=True)],
         )
     
     # ──────────────────────────────────────────────────────────────────────────────

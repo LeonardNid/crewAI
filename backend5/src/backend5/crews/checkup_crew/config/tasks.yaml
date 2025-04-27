@@ -7,42 +7,46 @@ branch_verification_task:
     This is the routes.json file:
     {routes_json}
 
+    Your mission is to **carefully verify the behavior** of each endpoint branch in the API specification.
+
     1. For every element in the "endpoints" array:
+         • Read the `description` and understand the expected behavior.
+         • Validate the **body code** inside each branch (ignore function headers).
 
-         • Read `description` and compare it with the behavioural intent
-           of each branch in `ep.branches`.
-         • Ignore the function header that will be added later; focus only
-           on the **body code** contained in each branch string.
+    2. If you find ANY mismatch between description and branch code:
+         • You MUST invoke the tool **json_branch_update** during task execution (not in your text output).
+         • You MUST build the correct "Action Input" payload and actually CALL the tool, not describe it.
 
-         Example check-list:
-           - Does a GET branch that says "list players" actually query for
-             a collection (e.g., `.query.all()` or a proper filter)?
-           - Does a POST branch that says "add player to team" inject the
-             team_id into the payload before creating the object?
-           - Do PUT / DELETE branches fetch by the correct primary key and
-             commit changes or removals?
-           - Are dictionary keys properly quoted (`{"country": val}`)?
+    3. Tool Call Requirements:
+         - All detected issues must be bundled into a single json_branch_update call.
+         - Example payload structure:
+         ```
+         {
+           "edits": [
+             {
+               "path": "/players/team/<int:team_id>",
+               "method": "GET",
+               "reason": "Mismatch between description and code behavior",
+               "new_code": "Correct replacement code here"
+             }
+           ]
+         }
+         ```
+         - Calling json_branch_update is mandatory if any fixes are needed.
+         - If no fixes are needed, you do NOT call any tools.
 
-    2. If ANY mismatch is found, call **json_branch_update** tool once and only once:
-         • Provide the path and the corresponding new code for each endpoint that
-           should be changed.
-         • Ensure you fix every incorrect branch code so it truly matches
-           the description.
-
-    3. When you finish, output a concise Markdown summary:
-         - Bullet-list each endpoint you modified with a short note of what
-           changed.  If no changes were needed, state that explicitly.
-    
-    **Never** give the edited JSON file as your final answer.
-    It must be overwritten by the **json_branch_update** tool call.
+    **CRITICAL RULES**:
+      - Simply mentioning the json_branch_update tool is not enough: you MUST truly execute it.
+      - Failure to actually call the tool properly = mission failure.
 
   expected_output: >
-    A Markdown file summarising the fixes you applied (or confirming that no
-    fixes were necessary).  The JSON file itself must be overwritten by the
-    **json_branch_update** tool call if any edits were required.
+    - If corrections were needed: json_branch_update was invoked properly, and a Markdown summary was provided.
+    - If no corrections were needed: no tool call, and a Markdown summary confirming no issues found.
 
   agent: branch_verifier
-  output_file: Output/checkupCrew/refinement_Summary.md
+  output_file: Output/checkupCrew/refinement_Summary.json
+
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  VERIFICATION AGENT TASK

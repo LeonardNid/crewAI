@@ -57,23 +57,30 @@ def _make_branch(method: str, ep: dict) -> str:
                 return jsonify(new_obj.to_dict()), 201
             """
 
-    # 2) Search-Endpoint  …/players/search/<string:name>
-    elif "search" in segments and method == "GET":
-        field = segments[-2]
-        code = f"""
-            objs = {mdl}.query.filter_by(**{{"{field}": {params}}}).all()
-            if not objs:
-                return jsonify({{"message": "{mdl} not found"}}), 404
-            return jsonify([o.to_dict() for o in objs])
-        """
+    # 2) Search / Filter-ähnlicher Endpoint
+    #    Beispiel: /players/name/<string:name>
+    #              /players/country/<string:country>
+    elif (
+        len(segments) >= 3                       # genug Segmente
+        and segments[-1].startswith('<')         # Platzhalter ganz hinten
+        and not segments[-2].startswith('<')     # davor echtes Feld
+    ):
+        field = segments[-2]                     # z. B. 'name' oder 'country'
 
-    # 3) Filter-Endpoint  …/players/filter/country/<string:country>
-    elif "filter" in segments and method == "GET":
-        field = segments[-2]
-        code = f"""
-            objs = {mdl}.query.filter_by(**{{"{field}": {params}}}).all()
-            return jsonify([o.to_dict() for o in objs])
-        """
+        if ep.get("get_List"):                   # Liste zurückgeben
+            code = f"""
+                objs = {mdl}.query.filter_by(**{{"{field}": {params}}}).all()
+                if not objs:
+                    return jsonify({{"message": "{mdl} not found"}}), 404
+                return jsonify([o.to_dict() for o in objs])
+            """
+        else:                                    # Einzel-Objekt
+            code = f"""
+                obj = {mdl}.query.filter_by(**{{"{field}": {params}}}).first()
+                if not obj:
+                    return jsonify({{"message": "{mdl} not found"}}), 404
+                return jsonify(obj.to_dict())
+            """
 
     # 4) Standard CRUD
     else:
@@ -135,12 +142,13 @@ def _relationship_line(model_name: str, rel: Dict[str, Any]) -> str:
 
     if rel_type == "one_to_many":
         attr_name = f"{target.lower()}s"
+        cascade = "" if cascade is None else f"cascade=\"{cascade}\""
         code = f"""
             {attr_name} = db.relationship(
-                '{target}',
-                back_populates='{model_name.lower()}',
-                lazy=True,
-                cascade="{cascade}"
+            '{target}',
+            back_populates='{model_name.lower()}',
+            lazy=True,
+            {cascade}
             )
         """
 

@@ -121,7 +121,7 @@ class FlaskTestClientTool(BaseTool):
                     "method": method,
                     "route": req.route,
                     "json_data": req.json_data,
-                    "status_code": resp.status_code,
+                    "status_code": 500,
                     "error":  traceback.format_exc()
                 })
 

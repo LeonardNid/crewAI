@@ -2,36 +2,56 @@
 
 backend_endpoint_summary_task:
   description: >
-    Here is the models.json file with all the models that should be available:
+    Here is the models.json file containing all backend models:
     """{models_json}"""
 
-    Here is the routes.json file with all the routes that should be available:
+    Here is the routes.json file containing all API routes:
     """{routes_json}"""
 
-    Summarize all the Flask routes by scanning each endpoint.
-    1) List every route's URL pattern (e.g., /teams, /teams/<id>) 
-       and each HTTP method it handles (GET, POST, PUT, DELETE, etc.).
-    2) For each POST or PUT route, specify which JSON fields it expects. Use the JSON schema 
-       to determine the required fields and their types.
-    3) Present them in the order they should be tested:
-       All POST routes for each Model first, then GET, then PUT, then DELETE.
-       It is extremely important to follow this order and do the POST methods first and the
-       Delete Methods last.
-    4) For DELETE routes, determine the correct order of execution by analyzing the dependencies between models in the models.json file. 
-       Ensure that no DELETE route is executed before its dependent resources are deleted. 
-       For example, if a "Team" has "Players", delete all "Players" associated with the "Team" before deleting the "Team" itself.
-       This ensures no 404 or dependency-related errors occur during testing.
+    Your mission is to create a strict execution plan for API endpoint testing.
+
+    1. List every route's URL (e.g., /teams, /teams/<id>) and HTTP method(s) (GET, POST, PUT, DELETE).
+    
+    2. For every POST and PUT method:
+         - List the required JSON fields and their types based on the model schema.
+         - Example: "POST /teams -> Needs { name: string, city: string }"
+
+    3. **VERY IMPORTANT**:
+         - You MUST strictly order routes for each model as follows:
+           1. All POST methods first
+           2. Then all GET methods
+           3. Then all PUT methods
+           4. Finally all DELETE methods
+         - **Under no circumstances should a DELETE method appear before any GET or PUT.**
+
+    4. Special rule for DELETE methods:
+         - Analyze the `models.json` file to find dependency relationships (e.g., a Team has Players).
+         - DELETE routes must be ordered so that child resources are deleted BEFORE their parents.
+         - Example: DELETE all /players before DELETE /teams.
+         - Failing to respect this dependency is considered a task failure.
+
+    5. The final output must be a numbered list that follows this exact order.
+         - No section headers, no unordered lists.
+         - Strictly numeric and sequential (1., 2., 3., etc.)
+
+    **CRITICAL NOTES**:
+      - Breaking the POST→GET→PUT→DELETE sequence is a critical mission failure.
+      - Breaking dependency order in DELETE methods is a critical mission failure.
+      - Re-read your answer to verify the correct order BEFORE submitting.
+
   expected_output: >
-    Your final answer must be a numbered summary of each route, including:
-      - The HTTP method(s)
-      - The path (with path parameters if any)
-      - The required JSON fields for POST/PUT
-      - Any response details you can infer.
+    A strictly numbered Markdown list of routes, including:
+      - HTTP method
+      - Path (with path parameters)
+      - Expected JSON fields for POST/PUT
+      - Any important response details you can infer.
+
     Example:
-      "1. POST /teams -> Needs { name: string, city: string, country: string, stadium: string } 
-       Returns the newly created team data."
+      "1. POST /teams -> Needs { name: string, city: string, country: string, stadium: string }
+       Returns: newly created team data."
   agent: code_tester
   output_file: 'Output/test_crew/endpoint_summary.md'
+
 
 backend_test_task:
   description: >

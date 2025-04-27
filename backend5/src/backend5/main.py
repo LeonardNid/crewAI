@@ -125,8 +125,8 @@ class BackendFlow(Flow[BackendState]):
         renderTemplate("app.j2", "Output/backendCrew/routes.json", "Output/app.py")
 
         print("Backend crew attempts: ", self.state.backend_crew_count)
-        # if (input("py's erstellt | 'n' to break the Flow: ") == "n"): # user input to break the flow
-        #     self.state.breakFlow = True
+        if (input("py's erstellt | 'n' to break the Flow: ") == "n"): # user input to break the flow
+            self.state.breakFlow = True
         return "firstTest"
 
     @listen(or_("firstTest", "fix_bug"))
