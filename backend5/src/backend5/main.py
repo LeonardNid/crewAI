@@ -16,7 +16,8 @@ from backend5.Utils import read_file, renderTemplate, enrich_Endpoints, enrich_M
 
 import weave
 
-SCENARIO_KEY = "football"
+SCENARIO_KEY = "david"
+BACKEND_MAX_RETRY = 3
 
 class BackendCrewState(BaseModel):
     feature_checklist: str = ""
@@ -41,6 +42,9 @@ class BackendFlow(Flow[BackendState]):
 
     @start()
     def clean_directories(self):
+        # self.state.backend_crew_state.models_json = read_file("Output/backendCrew/models.json")
+        # self.state.backend_crew_state.routes_json = read_file("Output/backendCrew/routes.json")
+        # return
         """
         Cleans the Output and instance directories before running the crews.
         """
@@ -62,6 +66,7 @@ class BackendFlow(Flow[BackendState]):
 
     @listen(or_(clean_directories, "retryBackendCrew"))
     def generate_Backend(self):
+        # return
         # inputs vorbereiten
         with open("src/backend5/prompts.yaml", "r", encoding="utf-8") as f:
             scenarios = yaml.safe_load(f)
@@ -93,6 +98,7 @@ class BackendFlow(Flow[BackendState]):
         
     @router(generate_Backend)
     def checkup_backend(self):
+        # return "renderTemplate"
         if self.state.breakFlow: # break the flow 
             return "breakFlow"
         
@@ -117,19 +123,23 @@ class BackendFlow(Flow[BackendState]):
         if (verification_Json["retry"]):
             self.state.backend_crew_defects = verification_Json["defects"]
             print("verification_Json: ", verification_Json)
-            # if not (input("retryBackendCrew | 'n' to skip retry: ") == "n"): # user input to stop retry of BackendCrew
-            #     return "retryBackendCrew"
+            if self.state.backend_crew_count >= BACKEND_MAX_RETRY:
+                if not (input("retryBackendCrew | 'n' to skip retry: ") == "n"): # user input to stop retry of BackendCrew
+                    return "retryBackendCrew"
             
-        
+        return "renderTemplate"
+    
+    @listen(or_("renderTemplate", "fix_bug"))
+    def renderTemplates(self):
         renderTemplate("models.j2", "Output/backendCrew/models.json", "Output/models.py")
         renderTemplate("app.j2", "Output/backendCrew/routes.json", "Output/app.py")
 
         print("Backend crew attempts: ", self.state.backend_crew_count)
         if (input("py's erstellt | 'n' to break the Flow: ") == "n"): # user input to break the flow
             self.state.breakFlow = True
-        return "firstTest"
 
-    @listen(or_("firstTest", "fix_bug"))
+    
+    @listen(renderTemplates)
     def test_Backend(self):
         if self.state.breakFlow: # break the flow 
             return "breakFlow"
@@ -158,7 +168,6 @@ class BackendFlow(Flow[BackendState]):
         """
         if self.state.breakFlow: # break the flow 
             return "breakFlow"
-
 
         try:
             first_line = self.state.test_result.strip().splitlines()[0]
@@ -193,6 +202,8 @@ class BackendFlow(Flow[BackendState]):
             "test_result": self.state.test_result,
             "app_py": app_py,
             "models_py": models_py,
+            "routes_json": self.state.backend_crew_state.routes_json,
+            "models_json": self.state.backend_crew_state.models_json,
         }
         result = (
             BugFixCrew()

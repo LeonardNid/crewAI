@@ -117,12 +117,14 @@ class FlaskTestClientTool(BaseTool):
                 time.sleep(0.2)
 
             except Exception as e:
+                short_err = traceback.format_exception_only(type(e), e)[-1].strip()
+
                 results.append({
                     "method": method,
                     "route": req.route,
                     "json_data": req.json_data,
                     "status_code": 500,
-                    "error":  traceback.format_exc()
+                    "error":  short_err
                 })
 
         return json.dumps(results, indent=2)

@@ -135,7 +135,7 @@ def _make_branch(method: str, ep: dict) -> str:
 def _relationship_line(model_name: str, rel: Dict[str, Any]) -> str:
     """Erzeugt eine vollständige db.relationship-Zeile - gleicher Stil wie _make_branch."""
     target   = rel["target_model"]
-    rel_type = rel["rel_type"]
+    rel_type = rel["rel_type"].replace("-", "_")
     cascade  = rel["cascade"]
 
     code = ""
@@ -188,7 +188,9 @@ def enrich_Endpoints(context: dict):
     if "endpoints" not in context:
         return context
 
-    context["models_import"] = ", ".join({ep["model"] for ep in context["endpoints"]})
+    with open("Output/backendCrew/models.json", "r", encoding="utf-8") as f:
+        models_data = json.load(f)
+    context["models_import"] = ", ".join(mdl["name"] for mdl in models_data["models"])
 
     for ep in context["endpoints"]:
         ep["handler_name"] = _handler_name(ep["path"])

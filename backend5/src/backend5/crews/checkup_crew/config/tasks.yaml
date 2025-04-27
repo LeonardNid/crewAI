@@ -83,6 +83,8 @@ verification_task:
       4. Check if the API includes **all CRUD endpoints** for each model:
          - POST, GET (list), GET (by ID), PUT, DELETE.
          - Include special endpoints too, e.g., "GET /players/country/<country>"
+      
+      Return retry: true if you find any issues, and retry: false if everything is fine.
   expected_output: >
     Return a valid JSON object matching the `Verification` schema:
     {

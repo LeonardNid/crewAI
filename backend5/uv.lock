@@ -210,6 +210,7 @@ dependencies = [
     { name = "flask" },
     { name = "flask-sqlalchemy" },
     { name = "jinja2" },
+    { name = "jsonpatch" },
     { name = "weave" },
 ]
 
@@ -219,6 +220,7 @@ requires-dist = [
     { name = "flask", specifier = ">=3.1.0" },
     { name = "flask-sqlalchemy", specifier = ">=3.1.1" },
     { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "jsonpatch", specifier = ">=1.33" },
     { name = "weave", specifier = ">=0.51.42" },
 ]
 

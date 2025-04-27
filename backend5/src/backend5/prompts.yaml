@@ -26,3 +26,40 @@ bicycle:
     And overall, I want, for example, to be able to select a frame and then see the possible choices of compatible components. You should also be able 
     to specify exactly which components should be listed if, for instance, only one part is broken. But in theory, it would also be nice if you could configure 
     a whole bike, so you can see what fits together.
+
+david:
+  topic: Movies
+  customer: |
+    I want to store all my seen films with some additional data. Films should have of the following attributes 
+    Title: Title of the film
+    Rating: A number between 1-5 
+    Date: Release date of the film
+    Seen Date: Date when i watched the film
+    Description: Description of the film
+    Black Ratio: Ratio how many black people play in the film
+    Actors: All Actors playing in the film
+    Besides that Actors also should have some attributes:
+    Skin Color: Either black or white
+    Age: Age
+    Film: Films the actors plays in
+
+alexey:
+  movies:
+  topic: Movie collection
+  customer: |
+    I want to store my movie collection in an online data base. 
+    The movies should be labelled with the main actor(s), the    
+    release year, title, my rating for the movie, if its a dvd or blu-ray and 
+    finally it should store a binary that          
+    determines whether i own the movie or only watched it.
+
+alexey2:
+  topic: training statistics
+  customer: |
+    I want to store information about how long my training session was 
+    and the body part that was focused. Additionally to   
+    that I want to store the exact exercises I did and how many reps 
+    with the exact weight I used. Moreover I want a         
+    Field, that shows the increase (or decrease in %) of weight and increase 
+    (or decrease in %) of reps with all exercises  
+    mentioned to when they were mentioned first. 
