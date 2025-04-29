@@ -5,61 +5,65 @@ football:
     Every team has a name, a city, a country, and a stadium.
     Every player has a name, a position, a team, and a country.
 
-bicycle:
-  topic: Bicycle Workshop
-  customer: |
-    I want to store the inventory of my bicycle workshop with the various parts and their compatibility.
-    There are many different parts: 
-    Frames: Measurements, brand, material, maximum tire width, compatible brakes, compatible bicycle gears, type of compatible drivetrain (hub, chain), 
-    type of frame (gravel, road bike, touring bike, city bike, etc.), each frame type also has specific properties (for example, gravel frames might have 
-    mounting points for attaching bags, road bike frames might have aerodynamic optimization, etc.), price, name (to uniquely identify the frame), weight, 
-    geometry, compatible handlebars, how much weight the frame can carry, compatible seatposts, type of cable routing (external, internal).
-    Rims: Tire width, compatible tire types (tubeless, with tube, etc.), rim height, weight, price, required valve length, material, compatible frames, brand.
-    Brakes (sometimes brakes and bicycle gears come as one inseparable unit, e.g. on road and gravel bikes): Type (hydraulic, mechanical), compatible frames, 
-    weight, price, brand, compatible bicycle gears.
-    Bicycle gears (sometimes brakes and bicycle gears come as one inseparable unit, e.g. on road and gravel bikes): Type (electronic, mechanical), compatible 
-    frames, weight, price, brand, compatible brakes.
-    Handlebars: Type (flat, road, gravel, mountain bike), material, weight, brand, compatible frames, compatible brakes, compatible bicycle gears, price.
-    Saddles: Type (padding, etc.), shape, compatible seatposts, brand, price, weight.
-    Seatposts: Material, compatible frames, compatible seatposts, brand, price, weight.
-    Brake pads: Brake type, compatible Brakes, brand, Price.
-    And overall, I want, for example, to be able to select a frame and then see the possible choices of compatible components. You should also be able 
-    to specify exactly which components should be listed if, for instance, only one part is broken. But in theory, it would also be nice if you could configure 
-    a whole bike, so you can see what fits together.
+library:
+topic: Library
+customer: |
+  I want to manage a small public library.
+  Books have a title, author, ISBN, genre, publication year and a flag whether they are currently borrowed.
+  Members have a name, e-mail address, membership number, and a date when their membership expires.
+  Each loan should track the book, the member, a checkout date and a due date.
+  I'd like endpoints to:
+    - add / edit / delete books and members
+    - borrow and return a book
+    - list overdue loans
+    - search books by title or author
 
-david:
-  topic: Movies
+car_rental:
+  topic: Car Rental Service
   customer: |
-    I want to store all my seen films with some additional data. Films should have of the following attributes 
-    Title: Title of the film
-    Rating: A number between 1-5 
-    Date: Release date of the film
-    Seen Date: Date when i watched the film
-    Description: Description of the film
-    Black Ratio: Ratio how many black people play in the film
-    Actors: All Actors playing in the film
-    Besides that Actors also should have some attributes:
-    Skin Color: Either black or white
-    Age: Age
-    Film: Films the actors plays in
+    I need a backend for managing a multi-branch car-rental company.
 
-alexey:
-  movies:
-  topic: Movie collection
-  customer: |
-    I want to store my movie collection in an online data base. 
-    The movies should be labelled with the main actor(s), the    
-    release year, title, my rating for the movie, if its a dvd or blu-ray and 
-    finally it should store a binary that          
-    determines whether i own the movie or only watched it.
+    ►  Core entities
+      • Car        : plate_no, brand, model, year, category (compact, SUV, van ...),
+                     seats, transmission (auto/manual), fuel_type, daily_rate,
+                     current_odometer, status (available, rented, service), location_id
+      • Location   : name, address, city, country, phone
+      • Customer   : customer_id, name, email, phone, driver_license_no,
+                     license_expiry, vip (bool)
+      • Rental     : rental_id, car_plate_no, customer_id,
+                     pickup_location_id, dropoff_location_id,
+                     pickup_date, dropoff_date, daily_rate_snapshot,
+                     total_price, status (active, closed, cancelled)
+      • Payment    : payment_id, rental_id, amount, method (card, cash),
+                     paid_at, refunded (bool)
+      • Service    : service_id, car_plate_no, service_type (oil, tires, repair),
+                     start_date, end_date, cost, notes
 
-alexey2:
-  topic: training statistics
+    ►  Must-have features
+      1. CRUD for all entities above.
+      2. **Book a rental**:
+         - choose car by category, dates and pickup location
+         - lock car (status → “rented”), create Rental record with total_price.
+      3. **Return a car**:
+         - mark Rental as “closed”, update car status to “available”,
+           update odometer and current location.
+      4. **Cancel rental** (if it hasn't started) → refund payment.
+      5. **List cars** with filters:
+         - by location, category, seats, transmission, price range
+      6. **Service workflow**:
+         - move car to “service”, create Service entry,
+           car becomes bookable only after service “end_date”.
+      7. **Analytics endpoints**:
+         - revenue per month
+         - utilisation rate (% days rented) per car category
+      8. Search endpoints:
+         - `/customers/search/<string:name>`
+         - `/cars/search/<string:plate_or_model>`
+
+car_rental_short:
+  topic: Car Rental Service
   customer: |
-    I want to store information about how long my training session was 
-    and the body part that was focused. Additionally to   
-    that I want to store the exact exercises I did and how many reps 
-    with the exact weight I used. Moreover I want a         
-    Field, that shows the increase (or decrease in %) of weight and increase 
-    (or decrease in %) of reps with all exercises  
-    mentioned to when they were mentioned first. 
+    Build a backend for a car-rental business with several branches.
+    We need to store cars, customers, rentals, payments and service jobs.
+    Basic CRUD plus endpoints to book, return and cancel a rental.
+    Also some search and revenue stats would be nice.

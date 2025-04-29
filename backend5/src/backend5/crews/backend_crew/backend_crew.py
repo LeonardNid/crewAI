@@ -63,26 +63,26 @@ class BackendCrew:
         """Creates the Research Crew"""
 
         # manager agent (NOT part of the agents list)
-        manager = Agent(
-            role="Backend Manager",
-            goal=(
-                "Efficiently manage the crew and ensure high-quality task completion."
-                "The Verification Agent has to confirm the models and routes JSON files"
-                "and don't detect any defects."
-            ),
-            backstory=(
-                "You're an experienced project manager, skilled in overseeing complex projects and guiding teams to success. Your role is to coordinate the efforts of the crew members, ensuring that each task is completed on time and to the highest standard."
-                "You coordinate the pipeline until the verification agent "
-                "confirms full coverage."
-            ),
-            allow_delegation=True,
-        )
+        # manager = Agent(
+        #     role="Backend Manager",
+        #     goal=(
+        #         "Efficiently manage the crew and ensure high-quality task completion."
+        #         "The Verification Agent has to confirm the models and routes JSON files"
+        #         "and don't detect any defects."
+        #     ),
+        #     backstory=(
+        #         "You're an experienced project manager, skilled in overseeing complex projects and guiding teams to success. Your role is to coordinate the efforts of the crew members, ensuring that each task is completed on time and to the highest standard."
+        #         "You coordinate the pipeline until the verification agent "
+        #         "confirms full coverage."
+        #     ),
+        #     allow_delegation=True,
+        # )
 
 
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
-            manager_agent=manager,
+            # manager_agent=manager,
             verbose=True,
         )

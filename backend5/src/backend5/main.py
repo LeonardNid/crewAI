@@ -16,7 +16,7 @@ from backend5.Utils import read_file, renderTemplate, enrich_Endpoints, enrich_M
 
 import weave
 
-SCENARIO_KEY = "david"
+SCENARIO_KEY = "football"
 BACKEND_MAX_RETRY = 3
 
 class BackendCrewState(BaseModel):
@@ -122,9 +122,10 @@ class BackendFlow(Flow[BackendState]):
         verification_Json = result.tasks_output[1].to_dict()
         if (verification_Json["retry"]):
             self.state.backend_crew_defects = verification_Json["defects"]
+            print("attempts: ", self.state.backend_crew_count)
             print("verification_Json: ", verification_Json)
-            if self.state.backend_crew_count >= BACKEND_MAX_RETRY:
-                if not (input("retryBackendCrew | 'n' to skip retry: ") == "n"): # user input to stop retry of BackendCrew
+            if not (input("retryBackendCrew | 'n' to skip retry: ") == "n"): # user input to stop retry of BackendCrew
+                if self.state.backend_crew_count < BACKEND_MAX_RETRY:
                     return "retryBackendCrew"
             
         return "renderTemplate"

@@ -7,8 +7,6 @@ import jsonpatch  # RFC-6902 engine
 from pydantic import BaseModel, Field, field_validator
 from crewai.tools import BaseTool
 
-from backend5.Utils import renderTemplate
-
 """JsonPatchTool - strict RFC 6902 editor (file path passed per call)
 
 Applies an **RFC 6902 JSON Patch** to an arbitrary JSON file. The *agent* must
@@ -54,21 +52,21 @@ class Operation(BaseModel):
             raise ValueError("'from' only allowed for op move|copy")
         return v
 
-class PatchRequest(BaseModel):
+class JsonPatchToolInput(BaseModel):
     file_path: str = Field(..., description="Target JSON file path ending with .json")
     patch: List[Operation] = Field(..., description="List of RFC 6902 operations (see docstring table)." 
             "Operation:" 
-            f"""    op: Literal["add", "remove", "replace", "move", "copy", "test"]
-            path: str = Field(..., description="JSON Pointer to target location")
-            value: Optional[Any] = Field(
-                None,
-                description="The value to add / replace / test against (required for certain ops)",
-            )
-            from_path: Optional[str] = Field(
-                None,
-                alias="from",
-                description="Source path for move / copy operations",
-            )""",
+            "op: Literal[\"add\", \"remove\", \"replace\", \"move\", \"copy\", \"test\"]"
+            "path: str = Field(..., description=\"JSON Pointer to target location\")"
+            "value: Optional[Any] = Field("
+            "    None,"
+            "    description=\"The value to add / replace / test against (required for certain ops)\","
+            ")"
+            "from_path: Optional[str] = Field("
+            "    None,"
+            "    alias=\"from\","
+            "    description=\"Source path for move / copy operations\","
+            ")"
     )
 
     @field_validator("file_path")
@@ -89,18 +87,16 @@ class JsonPatchTool(BaseTool):
         "Modify any JSON file by passing `file_path` and a RFC-6902 `patch` array. "
         "`file_path` must end with '.json'."
     )
-    args_schema: Type[BaseModel] = PatchRequest
+    args_schema: Type[BaseModel] = JsonPatchToolInput
 
     # helpers ---------------------------------------------------------------
-    @staticmethod
-    def _load_doc(path: str) -> Dict[str, Any]:
+    def _load_doc(self, path: str) -> Dict[str, Any]:
         if not os.path.exists(path):
             raise FileNotFoundError(path)
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    @staticmethod
-    def _save_doc(path: str, doc: Dict[str, Any]):
+    def _save_doc(self, path: str, doc: Dict[str, Any]):
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(doc, f, indent=4, ensure_ascii=False)

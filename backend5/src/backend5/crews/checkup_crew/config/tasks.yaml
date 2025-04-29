@@ -12,39 +12,43 @@ branch_verification_task:
     1. For every element in the "endpoints" array:
          • Read the `description` and understand the expected behavior.
          • Validate the **body code** inside each branch (ignore function headers).
+           This step is crucial for the correctness of the API and the satisfaction of the customer.
+           Be very thorough and precise in your analysis.
 
     2. If you find ANY mismatch between description and branch code:
-         • You MUST invoke the tool **json_branch_update** during task execution (not in your text output).
+         • You MUST invoke the tool **json_patch_update** during task execution (not in your text output).
          • You MUST build the correct "Action Input" payload and actually CALL the tool, not describe it.
 
     3. Tool Call Requirements:
-         - All detected issues must be bundled into a single json_branch_update call.
+         - All detected issues must be bundled into a single json_patch_update call.
          - Example payload structure:
          ```
          {
-           "edits": [
-             {
-               "path": "/players/team/<int:team_id>",
-               "method": "GET",
-               "reason": "Mismatch between description and code behavior",
-               "new_code": "Correct replacement code here"
-             }
+          "file_path": "Output/backendCrew/routes.json",
+          "patch": [
+            { 
+             "op": "replace",
+             "path": "/topic",
+             "value": "Soccer" 
+             } 
            ]
          }
          ```
-         - Calling json_branch_update is mandatory if any fixes are needed.
-         - If no fixes are needed, you do NOT call any tools.
+         - Calling json_patch_update is mandatory if any fixes are needed.
+         - the file_path must be "Output/backendCrew/routes.json".
 
     **CRITICAL RULES**:
-      - Simply mentioning the json_branch_update tool is not enough: you MUST truly execute it.
-      - Failure to actually call the tool properly = mission failure.
+    - You MUST not only describe the patch but truly EXECUTE the json_patch_update tool.
+    - Merely writing out the JSON does NOT count.
+    - DON'T wrap the calling of the tool in ```Action:json_patch_update``` or any other quotes.
 
   expected_output: >
-    - If corrections were needed: json_branch_update was invoked properly, and a Markdown summary was provided.
-    - If no corrections were needed: no tool call, and a Markdown summary confirming no issues found.
+    - NEVER give the input of the json_patch_update tool as your final answere.
+    - If corrections were needed: Summarize the changes.
+    - If no corrections were needed: Explicitly state that no changes were needed.
 
   agent: branch_verifier
-  output_file: Output/checkupCrew/refinement_Summary.json
+  # output_file: Output/checkupCrew/refinement_Summary.md
 
 
 
@@ -63,27 +67,37 @@ verification_task:
     routes.json file:
     {routes_json}
 
+    You must output:
+      {
+        "retry": <true/false>,
+        "defects": [
+          // ONLY defects that satisfy ALL rules below
+        ]
+      }
 
-    Your job is to verify the functionality of the generated JSON-Files by comparing
-    the feature checklist against the two JSON outputs:
-      - models.json (the data models),
-      - routes.json (the defined endpoints and HTTP methods).
-    But don't make up any new requirements the customer didn't mention.
-    Focus on the **features** and **endpoints** the customer asked for.
-    You don't need to check for safety features, security, or performance.
-    Just check for completeness.
+    **DEFECT RULES - read carefully**
+      1. A feature counts as implemented if at least one endpoint
+         satisfies the semantics below -
+         • "Retrieve list": GET /<plural> with get_List = true
+         • "Retrieve details": GET /<plural>/<id>
+         • "Create": POST on the plural path
+         • "Update": PUT on the id path
+         • "Delete": DELETE on the id path
+         • "Filter": any GET containing '/filter/' OR a path segment
+           representing the filter field (e.g., /players/country/<val>)
+      2. Ignore wording-variations in descriptions.
+      3. json_body evaluation
+         • Inspect json_body **only for POST & PUT**.
+         • Never demand json_body for GET or DELETE routes.
+         • A json_body is valid if it contains all required fields coresponding
+           to the model in the models.json file.
+      4. Every reported defect MUST include:
+           - the feature number from feature_checklist.md
+           - the exact endpoint path(s) inspected
+           - a one-line justification
+         Otherwise discard it.
+      5. Do not invent additional requirements, max defects == feature count.
 
-    You must:
-      1. Check whether **all required features** mentioned by the customer are
-         actually supported by the models and endpoints.
-      2. Ensure that each model includes **all necessary fields** and that
-         the data types are correct (e.g., db.String for text, db.Integer for IDs).
-      3. Check if the **relationships** between models (e.g. Team ↔ Player)
-         are properly represented (e.g., foreign keys and backrefs).
-      4. Check if the API includes **all CRUD endpoints** for each model:
-         - POST, GET (list), GET (by ID), PUT, DELETE.
-         - Include special endpoints too, e.g., "GET /players/country/<country>"
-      
       Return retry: true if you find any issues, and retry: false if everything is fine.
   expected_output: >
     Return a valid JSON object matching the `Verification` schema:

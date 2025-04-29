@@ -1,6 +1,8 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+
 from backend5.tools.Json_Branch_Update_Tool import JsonBranchUpdateTool
+from backend5.tools.json_patch_tool import JsonPatchTool
 from backend5.crews.checkup_crew.JsonSchema import Verification
 
 @CrewBase
@@ -32,7 +34,8 @@ class CheckupCrew:
     def branch_verification_task(self) -> Task:
         return Task(
             config=self.tasks_config["branch_verification_task"],
-            tools=[JsonBranchUpdateTool(result_as_answer=True)],
+            tools=[JsonPatchTool()],
+            # tools=[JsonBranchUpdateTool()],
         )
     
     # ──────────────────────────────────────────────────────────────────────────────

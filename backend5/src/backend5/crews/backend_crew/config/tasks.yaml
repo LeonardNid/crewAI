@@ -14,10 +14,9 @@ features_extraction_task:
     A *valid* feature must correspond to **exactly one HTTP endpoint** (for
     example “list all teams”, “add a player”).
     Do **NOT** list vague analytical items such as  
-    “View statistics for a player” or “Show team history” or - “Get team roster”
-    they require extra business logic.
+    “View statistics for a player” or “Show team history” or - “Get team roster”.
 
-    1. Identify every explicit or implied CRUD, search, filter or nested-resource
+    1. Identify every explicit or implied CRUD, filter or nested-resource
        operation that can be satisfied by a single endpoint.
     2. Write a numbered Markdown checklist - one line per feature, phrased as an
        endpoint operation (e.g. “List all teams”, “Filter players by country”).

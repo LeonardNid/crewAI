@@ -6,6 +6,8 @@ from typing import Any, Dict, List, Type, ClassVar, Set
 from pydantic import BaseModel, Field, field_validator
 from crewai.tools import BaseTool
 
+# Depricated
+
 """JsonBranchUpdateTool v4 — *clean* route-only API
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Updates branch code in **Output/backendCrew/routes.json**.
@@ -71,7 +73,7 @@ class JsonBranchUpdateTool(BaseTool):
     name: str = "json_branch_update"
     description: str = (
         "Replace code inside existing GET/POST/PUT/DELETE branches in the fixed."
-        "file 'Output/backendCrew/routes.json'." \
+        "file 'Output/backendCrew/routes.json'."
         "BranchEdit:"
         "path: str = Field(..., description=\"Exact route path from routes.json\")"
         "method: str = Field(..., description=\"HTTP method, e.g. GET, POST … (uppercase)\")"

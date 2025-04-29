@@ -168,10 +168,20 @@ def _relationship_line(model_name: str, rel: Dict[str, Any]) -> str:
         br            = f"{model_name.lower()}s"
         code = f"""
             {attr_name} = db.relationship(
-                '{target}',
-                secondary='{assoc_table}',
-                backref='{br}',
-                lazy='dynamic'
+            '{target}',
+            secondary='{assoc_table}',
+            backref='{br}',
+            lazy='dynamic'
+            )
+        """
+    elif rel_type == "one_to_one":
+        attr_name = target.lower()
+        code = f"""
+            {attr_name} = db.relationship(
+            '{target}',
+            uselist=False,
+            back_populates='{model_name.lower()}',
+            lazy=True
             )
         """
     else:
