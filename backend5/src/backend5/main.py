@@ -41,7 +41,7 @@ class BackendFlow(Flow[BackendState]):
     weave.init(project_name="backend5")
 
     @start()
-    def clean_directories(self):
+    def start(self):
         # self.state.backend_crew_state.models_json = read_file("Output/backendCrew/models.json")
         # self.state.backend_crew_state.routes_json = read_file("Output/backendCrew/routes.json")
         # return
@@ -64,7 +64,7 @@ class BackendFlow(Flow[BackendState]):
                 dir_path.mkdir(parents=True, exist_ok=True)
             print(f"✅ Cleared folder: {folder}")
 
-    @listen(or_(clean_directories, "retryBackendCrew"))
+    @listen(or_(start, "retryBackendCrew"))
     def generate_Backend(self):
         # return
         # inputs vorbereiten
@@ -214,7 +214,7 @@ class BackendFlow(Flow[BackendState]):
         print("Bug fix crew finished")
         
     @listen(or_("success", "breakFlow"))
-    def final(self):
+    def finish(self):
         if self.state.breakFlow:
             print("Flow stopped due to user input.")
         else:

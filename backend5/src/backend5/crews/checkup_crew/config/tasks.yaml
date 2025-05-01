@@ -21,29 +21,32 @@ branch_verification_task:
 
     3. Tool Call Requirements:
          - All detected issues must be bundled into a single json_patch_update call.
-         - Example payload structure:
-         ```
-         {
+         - Action Input example:
+        Action Input: {
           "file_path": "Output/backendCrew/routes.json",
           "patch": [
             { 
-             "op": "replace",
-             "path": "/topic",
-             "value": "Soccer" 
-             } 
-           ]
-         }
-         ```
+              "op": "replace",
+              "path": "/topic",
+              "value": "Soccer" 
+            },
+            { 
+              "op": "replace",
+              "path": "/topic",
+              "value": "Soccer" 
+            } 
+          ]
+        }
+         
          - Calling json_patch_update is mandatory if any fixes are needed.
          - the file_path must be "Output/backendCrew/routes.json".
 
     **CRITICAL RULES**:
     - You MUST not only describe the patch but truly EXECUTE the json_patch_update tool.
     - Merely writing out the JSON does NOT count.
-    - DON'T wrap the calling of the tool in ```Action:json_patch_update``` or any other quotes.
 
   expected_output: >
-    - NEVER give the input of the json_patch_update tool as your final answere.
+    - NEVER give a JSON as output.
     - If corrections were needed: Summarize the changes.
     - If no corrections were needed: Explicitly state that no changes were needed.
 

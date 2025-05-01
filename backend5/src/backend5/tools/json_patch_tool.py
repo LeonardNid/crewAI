@@ -34,46 +34,33 @@ class Operation(BaseModel):
     value: Optional[Any] = Field(None)
     from_path: Optional[str] = Field(None, alias="from")
 
-    @field_validator("value", mode="after")
-    def _validate_value(cls, v, info):
-        op = info.data["op"]
-        if op in {"add", "replace", "test"} and v is None:
-            raise ValueError("'value' required for op add|replace|test")
-        if op in {"remove", "move", "copy"} and v is not None:
-            raise ValueError("'value' not allowed for op remove|move|copy")
-        return v
+    # @field_validator("value", mode="after")
+    # def _validate_value(cls, v, info):
+    #     op = info.data["op"]
+    #     if op in {"add", "replace", "test"} and v is None:
+    #         raise ValueError("'value' required for op add|replace|test")
+    #     if op in {"remove", "move", "copy"} and v is not None:
+    #         raise ValueError("'value' not allowed for op remove|move|copy")
+    #     return v
 
-    @field_validator("from_path", mode="after")
-    def _validate_from(cls, v, info):
-        op = info.data["op"]
-        if op in {"move", "copy"} and v is None:
-            raise ValueError("'from' required for op move|copy")
-        if op not in {"move", "copy"} and v is not None:
-            raise ValueError("'from' only allowed for op move|copy")
-        return v
+    # @field_validator("from_path", mode="after")
+    # def _validate_from(cls, v, info):
+    #     op = info.data["op"]
+    #     if op in {"move", "copy"} and v is None:
+    #         raise ValueError("'from' required for op move|copy")
+    #     if op not in {"move", "copy"} and v is not None:
+    #         raise ValueError("'from' only allowed for op move|copy")
+    #     return v
 
 class JsonPatchToolInput(BaseModel):
     file_path: str = Field(..., description="Target JSON file path ending with .json")
-    patch: List[Operation] = Field(..., description="List of RFC 6902 operations (see docstring table)." 
-            "Operation:" 
-            "op: Literal[\"add\", \"remove\", \"replace\", \"move\", \"copy\", \"test\"]"
-            "path: str = Field(..., description=\"JSON Pointer to target location\")"
-            "value: Optional[Any] = Field("
-            "    None,"
-            "    description=\"The value to add / replace / test against (required for certain ops)\","
-            ")"
-            "from_path: Optional[str] = Field("
-            "    None,"
-            "    alias=\"from\","
-            "    description=\"Source path for move / copy operations\","
-            ")"
-    )
+    patch: List[Operation] = Field(..., description="List of RFC 6902 operations (see docstring table)." )
 
-    @field_validator("file_path")
-    def _must_be_json(cls, v: str):
-        if not v.lower().endswith(".json"):
-            raise ValueError("file_path must point to a .json file")
-        return v
+    # @field_validator("file_path")
+    # def _must_be_json(cls, v: str):
+    #     if not v.lower().endswith(".json"):
+    #         raise ValueError("file_path must point to a .json file")
+    #     return v
 
 # ---------------------------------------------------------------------------
 #  Tool implementation
@@ -83,10 +70,7 @@ class JsonPatchTool(BaseTool):
     """Apply an RFC-6902 patch to a JSON file specified in the call."""
 
     name: str = "json_patch_update"
-    description: str = (
-        "Modify any JSON file by passing `file_path` and a RFC-6902 `patch` array. "
-        "`file_path` must end with '.json'."
-    )
+    description: str = ("Modify any JSON file by passing `file_path` and a RFC-6902 `patch` array. `file_path` must end with '.json'.")
     args_schema: Type[BaseModel] = JsonPatchToolInput
 
     # helpers ---------------------------------------------------------------
