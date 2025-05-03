@@ -45,9 +45,6 @@ class BackendFlow(Flow[BackendState]):
 
     @start()
     def start(self):
-        self.state.bL.models_json = read_file("Output/backendCrew/models.json")
-        self.state.bL.routes_json = read_file("Output/backendCrew/routes.json")
-        return
         """
         Cleans the Output and instance directories before running the crews.
         """
@@ -69,7 +66,6 @@ class BackendFlow(Flow[BackendState]):
 
     @listen(or_(start, "retryBackendCrew"))
     def generate_Backend(self):
-        return
         # inputs vorbereiten
         with open("src/backend5/prompts.yaml", "r", encoding="utf-8") as f:
             scenarios = yaml.safe_load(f)
@@ -101,7 +97,6 @@ class BackendFlow(Flow[BackendState]):
         
     @listen(generate_Backend)
     def enrich_JSON(self):
-        return
         self.state.bL.routes_json = enrich_Endpoints(self.state.bL.routes_json)
         self.state.bL.models_json = enrich_Models(self.state.bL.models_json)
 
@@ -110,7 +105,6 @@ class BackendFlow(Flow[BackendState]):
 
     @listen(enrich_JSON)
     def checkup_backend(self):
-        return
         if self.state.breakFlow: # break the flow 
             return "breakFlow"
 
@@ -133,7 +127,6 @@ class BackendFlow(Flow[BackendState]):
     
     @router(checkup_backend)
     def check_Backend_Results(self):
-        return "renderTemplate"
         if (self.state.bL.retry):
             print("attempts: ", self.state.bL.count)
             print("verification_Json: ", self.state.bL.defects)
@@ -144,7 +137,6 @@ class BackendFlow(Flow[BackendState]):
     
     @listen(or_("renderTemplate", "fix_bug"))
     def render_Templates(self):
-        return
         renderTemplate("models.j2", "Output/backendCrew/models.json", "Output/models.py")
         renderTemplate("app.j2", "Output/backendCrew/routes.json", "Output/app.py")
 
@@ -155,7 +147,6 @@ class BackendFlow(Flow[BackendState]):
     
     @listen(render_Templates)
     def test_Backend(self):
-        return
         if self.state.breakFlow: # break the flow 
             return "breakFlow"
 
@@ -177,7 +168,6 @@ class BackendFlow(Flow[BackendState]):
 
     @router(test_Backend)
     def check_test_results(self):
-        return "failed"
         """
         Parses the JSON test_result to check for any failed requests.
         Returns 'failed' if any request has a status code >= 400.
