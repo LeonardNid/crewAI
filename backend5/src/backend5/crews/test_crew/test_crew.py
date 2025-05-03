@@ -1,3 +1,4 @@
+from typing import Any, Tuple, Union
 from crewai import Agent, Crew, Process, Task, TaskOutput
 from crewai.project import CrewBase, agent, crew, task
 
@@ -24,12 +25,21 @@ class TestCrew:
             config=self.tasks_config["backend_endpoint_summary_task"],
         )
     
-    def callback_function(self, output: TaskOutput):
+    # def callback_function(self, output: TaskOutput):
+    #     if not output.json_dict:
+    #         print("Output JSON is empty. Skipping tool execution.")
+    #         return
+    #     result = FlaskTestClientTool().run(**output.json_dict)
+    #     print(result)
+
+    def guardrail_function(self, output: TaskOutput) -> Tuple[bool, Any]:
+        """Validate that the output is valid JSON."""
         if not output.json_dict:
-            print("Output JSON is empty. Skipping tool execution.")
-            return
+            print("Output JSON is empty. Retry the task.")
+            return (False, "Output JSON is empty. Retry the task.")
         result = FlaskTestClientTool().run(**output.json_dict)
         print(result)
+        return (True, result)
     
     @task
     def backend_test_task(self) -> Task:
@@ -37,7 +47,8 @@ class TestCrew:
             config=self.tasks_config["backend_test_task"],
             # tools=[FlaskTestClientTool(result_as_answer=True)],
             output_json=BulkTestClientInput,
-            callback=self.callback_function,
+            # callback=self.callback_function,
+            guardrail=self.guardrail_function,
         )
     
     @crew

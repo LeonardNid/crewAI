@@ -202,7 +202,8 @@ def enrich_Endpoints(context: dict):
         models_data = json.load(f)
     context["models_import"] = ", ".join(mdl["name"] for mdl in models_data["models"])
 
-    for ep in context["endpoints"]:
+    for idx, ep in enumerate(context["endpoints"]):
+        ep["idx"]           = idx
         ep["handler_name"] = _handler_name(ep["path"])
         ep["params"]       = _extract_params(ep["path"])
         ep["branches"]     = {m: _make_branch(m, ep) for m in ep["methods"]}

@@ -13,6 +13,7 @@ branch_verification_task:
        - Read the `description` (expected behaviour).
        - Inspect the *branch code* for every HTTP verb (ignore wrapper code).
        - Detect mismatches (wrong query, missing commit, no 404-check, etc.).
+       - Use the idx value to identify the endpoint (e.g., `/endpoints/2`).
 
     2. If at least ONE mismatch exists, build **one** RFC-6902 patch object
        compliant with *JsonPatchToolInput*:

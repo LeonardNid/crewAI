@@ -197,6 +197,11 @@ class BackendFlow(Flow[BackendState]):
         
     @listen("failed")
     def fix_bug(self):
+        if (input("fix_bug, continue? (y/n): ") == "n"):
+            self.state.breakFlow = True
+            return
+
+
         if self.state.breakFlow: # break the flow 
             return "breakFlow"
         
