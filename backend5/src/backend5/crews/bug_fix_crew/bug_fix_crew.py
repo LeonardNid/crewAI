@@ -1,7 +1,8 @@
-from crewai import Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task, TaskOutput
 from crewai.project import CrewBase, agent, crew, task
 
-from backend5.tools.json_patch_tool import JsonPatchTool
+from backend5.crews.bug_fix_crew.JsonSchema import fix_code_task_output
+from backend5.tools.json_patch_tool import JsonPatchTool, JsonPatchToolInput
 
 @CrewBase
 class BugFixCrew:
@@ -24,12 +25,30 @@ class BugFixCrew:
         return Task(
             config=self.tasks_config["analyze_python_code_task"],
         )
+    
+
+    def callback_function(self, output: TaskOutput):
+        if not output.json_dict:
+            print("Output JSON is empty. Skipping tool execution.")
+            return
+        
+        if output.json_dict.get("models"):
+            print("Processing models...")
+            result_models = JsonPatchTool().run(**output.json_dict["models"])
+            print("Models result:", result_models)
+        
+        if output.json_dict.get("routes"):
+            print("Processing routes...")
+            result_routes = JsonPatchTool().run(**output.json_dict["routes"])
+            print("Routes result:", result_routes)
 
     @task
     def fix_code_task(self) -> Task:
         return Task(
             config=self.tasks_config["fix_code_task"],
-            tools=[JsonPatchTool()],
+            # tools=[JsonPatchTool()],
+            output_json=fix_code_task_output,
+            callback=self.callback_function,
         )
     
     
