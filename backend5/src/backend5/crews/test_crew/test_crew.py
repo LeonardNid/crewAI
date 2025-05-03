@@ -1,7 +1,7 @@
 from crewai import Agent, Crew, Process, Task, TaskOutput
 from crewai.project import CrewBase, agent, crew, task
 
-from backend5.tools.test_tool import FlaskTestClientTool
+from backend5.tools.test_tool import FlaskTestClientTool, BulkTestClientInput
 
 @CrewBase
 class TestCrew:
@@ -28,14 +28,16 @@ class TestCrew:
         if not output.json_dict:
             print("Output JSON is empty. Skipping tool execution.")
             return
-        result = JsonPatchTool().run(**output.json_dict)
+        result = FlaskTestClientTool().run(**output.json_dict)
         print(result)
     
     @task
     def backend_test_task(self) -> Task:
         return Task(
             config=self.tasks_config["backend_test_task"],
-            tools=[FlaskTestClientTool(result_as_answer=True)],
+            # tools=[FlaskTestClientTool(result_as_answer=True)],
+            output_json=BulkTestClientInput,
+            callback=self.callback_function,
         )
     
     @crew
