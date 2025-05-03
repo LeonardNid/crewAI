@@ -1,4 +1,4 @@
-from crewai import Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task, TaskOutput
 from crewai.project import CrewBase, agent, crew, task
 
 from backend5.tools.test_tool import FlaskTestClientTool
@@ -23,6 +23,13 @@ class TestCrew:
         return Task(
             config=self.tasks_config["backend_endpoint_summary_task"],
         )
+    
+    def callback_function(self, output: TaskOutput):
+        if not output.json_dict:
+            print("Output JSON is empty. Skipping tool execution.")
+            return
+        result = JsonPatchTool().run(**output.json_dict)
+        print(result)
     
     @task
     def backend_test_task(self) -> Task:

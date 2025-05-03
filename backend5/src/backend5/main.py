@@ -19,21 +19,24 @@ import weave
 SCENARIO_KEY = "football"
 BACKEND_MAX_RETRY = 3
 
-class BackendCrewState(BaseModel):
+class BackendLoop(BaseModel):
+    count: int = 0
     feature_checklist: str = ""
     entity_overview: str = ""
+    retry: bool = False
+    defects: List[str] = Field(default_factory=list)
     models_json: Dict[str, Any] = Field(default_factory=dict)
     routes_json: Dict[str, Any] = Field(default_factory=dict)
 
+class TestLoop(BaseModel):
+    count: int = 0
+    result: str = ""
+    result_type: str = ""
 
 class BackendState(BaseModel):
     breakFlow: bool = False
-    backend_crew_count: int = 0
-    backend_crew_defects: List[str] = Field(default_factory=list)
-    backend_crew_state: BackendCrewState = BackendCrewState()
-    test_count: int = 0
-    test_result: str = ""
-    test_result_type: str = ""
+    bL: BackendLoop = BackendLoop()
+    tL: TestLoop = TestLoop()
 
 
 class BackendFlow(Flow[BackendState]):
@@ -72,11 +75,11 @@ class BackendFlow(Flow[BackendState]):
             scenarios = yaml.safe_load(f)
 
         inputs = scenarios[SCENARIO_KEY] | {
-            "defects": self.state.backend_crew_defects,
-            "feature_checklist": self.state.backend_crew_state.feature_checklist,
-            "entity_overview": self.state.backend_crew_state.entity_overview,
-            "models_json": self.state.backend_crew_state.models_json,
-            "routes_json": self.state.backend_crew_state.routes_json,
+            "defects": self.state.bL.defects,
+            "feature_checklist": self.state.bL.feature_checklist,
+            "entity_overview": self.state.bL.entity_overview,
+            "models_json": self.state.bL.models_json,
+            "routes_json": self.state.bL.routes_json,
         }
 
         print("Backend crew started")
@@ -87,28 +90,33 @@ class BackendFlow(Flow[BackendState]):
         )
         print("Backend crew finished")
 
-        self.state.backend_crew_count += 1
-        self.state.backend_crew_state.feature_checklist = result.tasks_output[0].raw
-        self.state.backend_crew_state.entity_overview = result.tasks_output[1].raw
-        self.state.backend_crew_state.models_json = result.tasks_output[2].to_dict()
-        self.state.backend_crew_state.routes_json = result.tasks_output[3].to_dict()
+        self.state.bL.count += 1
+        self.state.bL.feature_checklist = result.tasks_output[0].raw
+        self.state.bL.entity_overview = result.tasks_output[1].raw
+        self.state.bL.models_json = result.tasks_output[2].to_dict()
+        self.state.bL.routes_json = result.tasks_output[3].to_dict()
 
         # if (input("End of 'generate_Backend' | 'n' to break the Flow: ") == "n"): # user input to break the flow
         #     self.state.breakFlow = True
         
-    @router(generate_Backend)
+    @listen(generate_Backend)
+    def enrich_JSON(self):
+        self.state.bL.routes_json = enrich_Endpoints(self.state.bL.routes_json)
+        self.state.bL.models_json = enrich_Models(self.state.bL.models_json)
+
+        # if (input("JSON Enriched | 'n' to break the Flow: ") == "n"): # user input to break the flow
+        #     self.state.breakFlow = True
+
+    @listen(enrich_JSON)
     def checkup_backend(self):
         # return "renderTemplate"
         if self.state.breakFlow: # break the flow 
             return "breakFlow"
-        
-        self.state.backend_crew_state.routes_json = enrich_Endpoints(self.state.backend_crew_state.routes_json)
-        self.state.backend_crew_state.models_json = enrich_Models(self.state.backend_crew_state.models_json)
 
         inputs = {
-            "feature_checklist": self.state.backend_crew_state.feature_checklist,
-            "models_json": self.state.backend_crew_state.models_json,
-            "routes_json": self.state.backend_crew_state.routes_json,
+            "feature_checklist": self.state.bL.feature_checklist,
+            "models_json": self.state.bL.models_json,
+            "routes_json": self.state.bL.routes_json,
         }
 
         print("Checkup crew started")
@@ -119,50 +127,52 @@ class BackendFlow(Flow[BackendState]):
         )
         print("Checkup crew finished")
 
-        verification_Json = result.tasks_output[1].to_dict()
-        if (verification_Json["retry"]):
-            self.state.backend_crew_defects = verification_Json["defects"]
-            print("attempts: ", self.state.backend_crew_count)
-            print("verification_Json: ", verification_Json)
+        self.state.bL.retry = result.tasks_output[1].json_dict["retry"]
+        self.state.bL.defects = result.tasks_output[1].json_dict["defects"]
+    
+    @router(checkup_backend)
+    def check_Backend_Results(self):
+        if (self.state.bL.retry):
+            print("attempts: ", self.state.bL.count)
+            print("verification_Json: ", self.state.bL.defects)
             if not (input("retryBackendCrew | 'n' to skip retry: ") == "n"): # user input to stop retry of BackendCrew
-                if self.state.backend_crew_count < BACKEND_MAX_RETRY:
+                if self.state.bL.count < BACKEND_MAX_RETRY:
                     return "retryBackendCrew"
-            
         return "renderTemplate"
     
     @listen(or_("renderTemplate", "fix_bug"))
-    def renderTemplates(self):
+    def render_Templates(self):
         renderTemplate("models.j2", "Output/backendCrew/models.json", "Output/models.py")
         renderTemplate("app.j2", "Output/backendCrew/routes.json", "Output/app.py")
 
-        print("Backend crew attempts: ", self.state.backend_crew_count)
+        print("Backend crew attempts: ", self.state.bL.count)
         if (input("py's erstellt | 'n' to break the Flow: ") == "n"): # user input to break the flow
             self.state.breakFlow = True
 
     
-    @listen(renderTemplates)
+    @listen(render_Templates)
     def test_Backend(self):
         if self.state.breakFlow: # break the flow 
             return "breakFlow"
 
         print("Test crew started")
         inputs = {
-            "models_json": self.state.backend_crew_state.models_json,
-            "routes_json": self.state.backend_crew_state.routes_json,
+            "models_json": self.state.bL.models_json,
+            "routes_json": self.state.bL.routes_json,
         }
         result = (
             TestCrew()
             .crew()
             .kickoff(inputs=inputs)
         )
-        self.state.test_count += 1
-        self.state.test_result = result.raw
+        self.state.tL.count += 1
+        self.state.tL.result = result.raw
         print("Test crew finished")
         if (input("after TestCrew, continue? (y/n): ") == "n"):
             self.state.breakFlow = True
 
     @router(test_Backend)
-    def check_results(self):
+    def check_test_results(self):
         """
         Parses the JSON test_result to check for any failed requests.
         Returns 'failed' if any request has a status code >= 400.
@@ -171,16 +181,16 @@ class BackendFlow(Flow[BackendState]):
             return "breakFlow"
 
         try:
-            first_line = self.state.test_result.strip().splitlines()[0]
+            first_line = self.state.tL.result.strip().splitlines()[0]
             if first_line.startswith("Python code is not executable!"):
-                self.state.test_result_type = "startup_failure"
+                self.state.tL.result_type = "startup_failure"
                 return "failed"
 
-            results = json.loads(self.state.test_result)
+            results = json.loads(self.state.tL.result)
             for entry in results:
                 code = entry.get("status_code", "")
                 if code >= 400:
-                    self.state.test_result_type = "requests_failure"
+                    self.state.tL.result_type = "requests_failure"
                     return "failed"
 
             print("Test passed ✅")
@@ -199,12 +209,12 @@ class BackendFlow(Flow[BackendState]):
         app_py = read_file("Output/app.py")
         models_py = read_file("Output/models.py")
         inputs = {
-            "test_result_type": self.state.test_result_type,
-            "test_result": self.state.test_result,
+            "test_result_type": self.state.tL.result_type,
+            "test_result": self.state.tL.result,
             "app_py": app_py,
             "models_py": models_py,
-            "routes_json": self.state.backend_crew_state.routes_json,
-            "models_json": self.state.backend_crew_state.models_json,
+            "routes_json": self.state.bL.routes_json,
+            "models_json": self.state.bL.models_json,
         }
         result = (
             BugFixCrew()
@@ -219,8 +229,8 @@ class BackendFlow(Flow[BackendState]):
             print("Flow stopped due to user input.")
         else:
             print("All tests passed successfully!")
-        print("Test attempts:", self.state.test_count)
-        print("Backend crew attempts:", self.state.backend_crew_count)
+        print("Test attempts:", self.state.tL.count)
+        print("Backend crew attempts:", self.state.bL.count)
 
 def kickoff():
     backendFlow = BackendFlow()

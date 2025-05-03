@@ -4,54 +4,44 @@
 
 branch_verification_task:
   description: >
-    This is the routes.json file:
-    {routes_json}
+    **Input :**
+      routes.json → {routes_json}
 
-    Your mission is to **carefully verify the behavior** of each endpoint branch in the API specification.
+    **Goal :** Ensure every endpoint branch behaves exactly as its `description` promises.
 
-    1. For every element in the "endpoints" array:
-         • Read the `description` and understand the expected behavior.
-         • Validate the **body code** inside each branch (ignore function headers).
-           This step is crucial for the correctness of the API and the satisfaction of the customer.
-           Be very thorough and precise in your analysis.
+    1. Iterate over each object in `endpoints`.
+       - Read the `description` (expected behaviour).
+       - Inspect the *branch code* for every HTTP verb (ignore wrapper code).
+       - Detect mismatches (wrong query, missing commit, no 404-check, etc.).
 
-    2. If you find ANY mismatch between description and branch code:
-         • You MUST invoke the tool **json_patch_update** during task execution (not in your text output).
-         • You MUST build the correct "Action Input" payload and actually CALL the tool, not describe it.
+    2. If at least ONE mismatch exists, build **one** RFC-6902 patch object
+       compliant with *JsonPatchToolInput*:
 
-    3. Tool Call Requirements:
-         - All detected issues must be bundled into a single json_patch_update call.
-         - Action Input example:
-        Action Input: {
-          "file_path": "Output/backendCrew/routes.json",
-          "patch": [
-            { 
-              "op": "replace",
-              "path": "/topic",
-              "value": "Soccer" 
-            },
-            { 
-              "op": "replace",
-              "path": "/topic",
-              "value": "Soccer" 
-            } 
-          ]
-        }
-         
-         - Calling json_patch_update is mandatory if any fixes are needed.
-         - the file_path must be "Output/backendCrew/routes.json".
+       ```jsonc
+       {
+         "file_path": "Output/backendCrew/routes.json",
+         "patch": [
+           { "op": "replace", "path": "/endpoints/2/branches/GET", "value": "<fixed code>" },
+           { "op": "add",     "path": "/endpoints/5/methods/-",   "value": "POST" }
+         ]
+       }
+       ```
 
-    **CRITICAL RULES**:
-    - You MUST not only describe the patch but truly EXECUTE the json_patch_update tool.
-    - Merely writing out the JSON does NOT count.
+       - **file_path must be exactly** `Output/backendCrew/routes.json`.
+       - Bundle **all** fixes into the single `patch` array.
+
+    3. If no mismatches are found, output an object with an **empty** patch
+       array.
 
   expected_output: >
-    - NEVER give a JSON as output.
-    - If corrections were needed: Summarize the changes.
-    - If no corrections were needed: Explicitly state that no changes were needed.
-
+    Pure JSON only, conforming to `JsonPatchToolInput`:
+    {
+      "file_path": "Output/backendCrew/routes.json",
+      "patch": [ ... ]      // can be [] when nothing to fix
+    }
   agent: branch_verifier
-  # output_file: Output/checkupCrew/refinement_Summary.md
+  output_file: Output/checkupCrew/refinement_Summary.json
+
 
 
 
