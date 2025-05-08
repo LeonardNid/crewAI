@@ -32,7 +32,7 @@ analyze_python_code_task:
     A Markdown document that becomes the *context* for the next task.
     It includes the cause of the failures, the location in the code, and a suggested fix.
   agent: bug_analyzer
-  output_file: Output/bug_Fix_crew/bug_detection.md
+  output_file: Output/bug_Fix_crew/Python_Issue_Report.md
 
 fix_code_task:
   description: >
@@ -49,36 +49,29 @@ fix_code_task:
 
       {models_json}
 
-    You MUST patch the files with the tool **json_patch_update**
+    **Goal :** Every failed test must be fixed after this task.
+      Produce a single JSON payload (schema = BulkTestClientInput)
+      that the system will pass to the *JsonPatchTool* tool via callback.
 
-    Steps:
-      1. For every required change create an RFC-6902 operation
-          {
-            "file_path": "Output/backendCrew/routes.json",
-            "patch": [ { "op": "replace", "path": "/topic", "value": "Soccer" } ]
-          }
-        Do NOT mix patches from different files in the same call.
-      2. Call json_patch_update **once per file** and pass:
-         {
-           "file_path": "<one of the two JSON files>",
-           "patch": [ { ... }, { ... } ] 
-         }
-      3. After the Tool calls you have to summaries the changes in a Markdown file.
-         - Include which JSON file(s) were patched.
-         - Include the JSON-Pointer paths you changed (e.g. "/endpoints/2/methods/1").
-         - Include what excactly was changed.
-
-    Your work is only finished if all the following conditions are met:
-      - You have called the tool **json_patch_update** at least once.
-      - You have provided a Markdown summary of the changes made.
-      - The JSON files are valid after your changes.
-      - Most importantly, ALL tests pass after your changes.
+    For every required change create an RFC-6902 operation
+      {
+        "file_path": "Output/backendCrew/routes.json",
+        "patch": [ { "op": "replace", "path": "/topic", "value": "Soccer" } ]
+      }
+    Do NOT mix patches from different files in the same object.
 
   expected_output: >
-    Your final answer must confirm:
-      - Which JSON file(s) were patched
-      - The JSON-Pointer paths you changed (e.g. "/endpoints/2/methods/1")
-      - The success message(s) from json_patch_update
+    Return a valid JSON object matching the `Verification` schema:
+    {
+      models: { // can be 'null' when nothing to fix
+        "file_path": "Output/backendCrew/models.json",
+        "patch": [ { "op": "replace", "path": "/topic", "value": "Soccer" } ] 
+      },
+      routes: { // can be 'null' when nothing to fix
+        "file_path": "Output/backendCrew/routes.json",
+        "patch": [ { "op": "replace", "path": "/topic", "value": "Soccer" } ] 
+      }
+    }
 
   agent: bug_analyzer
   output_file: Output/bug_Fix_crew/fix_summary.md

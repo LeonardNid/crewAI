@@ -56,7 +56,7 @@ backend_endpoint_summary_task:
 backend_test_task:
   description: >
     **Goal:** Produce a single JSON payload (schema = BulkTestClientInput)
-    that the system will pass to the *flask_test_client* tool via callback.
+    that the system will pass to the *flask_test_client* tool via guardrail.
 
     Steps to follow:
       1. Parse the summary and build a list `requests` where each element is

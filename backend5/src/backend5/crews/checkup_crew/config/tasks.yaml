@@ -11,6 +11,8 @@ branch_verification_task:
 
     **Goal :** Ensure every endpoint branch behaves exactly as its `description` promises. 
       You should take the feature checklist into account.
+      Produce a single JSON payload (schema = BulkTestClientInput)
+      that the system will pass to the *JsonPatchTool* tool via guardrail.
 
     1. Iterate over each object in `endpoints`.
        - Read the `description` (expected behaviour).
@@ -39,9 +41,9 @@ branch_verification_task:
 
   expected_output: >
     Pure JSON only, conforming to `JsonPatchToolInput`:
-    {
+    { // can be 'null' when nothing to fix
       "file_path": "Output/backendCrew/routes.json",
-      "patch": [ ... ]      // can be [] when nothing to fix
+      "patch": [ ... ] 
     }
   agent: branch_verifier
   output_file: Output/checkupCrew/refinement_Summary.json
