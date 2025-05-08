@@ -41,7 +41,7 @@ entities_extraction_task:
          - brief description
          - obvious attributes mentioned
          - tentative relations (e.g. “Team 1-n Player”).
-    3. Use Markdown; no code.
+    3. Use Markdown, no code.
   expected_output: >
     A Markdown file named "entity_overview.md" with the catalogue.
   agent: requirements_analyst
@@ -80,7 +80,7 @@ models_json_task:
   expected_output: >
     Pure JSON (no Markdown, no code), conforming exactly to the `ModelsPlan` schema.
   agent: api_planner
-  context: [features_extraction_task, entities_extraction_task]
+  context: [entities_extraction_task]
   output_file: Output/backendCrew/models.json
 
 
@@ -109,6 +109,5 @@ routes_json_task:
   expected_output: >
     Pure JSON only. One JSON object conforming exactly to the `RoutesPlan` schema.
   agent: api_planner
-  context: [features_extraction_task, entities_extraction_task,
-            models_json_task]
+  context: [features_extraction_task, models_json_task]
   output_file: Output/backendCrew/routes.json

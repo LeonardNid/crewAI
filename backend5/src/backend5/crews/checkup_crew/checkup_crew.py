@@ -1,3 +1,5 @@
+import json
+from typing import Any, Tuple
 from crewai import Agent, Crew, Process, Task, TaskOutput
 from crewai.project import CrewBase, agent, crew, task
 
@@ -29,13 +31,24 @@ class CheckupCrew:
     #  BRANCH VERIFIER TASK
     # ──────────────────────────────────────────────────────────────────────────────
 
-    def callback_function(self, output: TaskOutput):
+    # def callback_function(self, output: TaskOutput):
+    #     if not output.json_dict:
+    #         print("Output JSON is empty. Skipping tool execution.")
+    #         return
+    #     result = JsonPatchTool().run(**output.json_dict)
+    #     print(result)
+
+    def guardrail_function(self, output: TaskOutput) -> Tuple[bool, Any]:
         if not output.json_dict:
-            print("Output JSON is empty. Skipping tool execution.")
-            return
-        result = JsonPatchTool().run(**output.json_dict)
-        print(result)
-    
+            print("Output JSON is empty. Skipping tool execution, no changes needed")
+        else:
+            result = JsonPatchTool().run(**output.json_dict)
+            print(result)
+        with open("Output/backendCrew/routes.json", "r") as file:
+            routes_json = json.load(file)
+            routes_json = json.dumps(routes_json, indent=2)
+            return (True, routes_json)
+
     @task
     def branch_verification_task(self) -> Task:
         return Task(
@@ -43,7 +56,7 @@ class CheckupCrew:
             # tools=[JsonPatchTool()],
             # tools=[JsonBranchUpdateTool()],
             output_json=JsonPatchToolInput,
-            callback=self.callback_function,
+            guardrail=self.guardrail_function,
         )
     
     # ──────────────────────────────────────────────────────────────────────────────

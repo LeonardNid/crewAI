@@ -6,8 +6,11 @@ branch_verification_task:
   description: >
     **Input :**
       routes.json → {routes_json}
+      Feature checklist → {feature_checklist}
+    
 
-    **Goal :** Ensure every endpoint branch behaves exactly as its `description` promises.
+    **Goal :** Ensure every endpoint branch behaves exactly as its `description` promises. 
+      You should take the feature checklist into account.
 
     1. Iterate over each object in `endpoints`.
        - Read the `description` (expected behaviour).
@@ -59,7 +62,7 @@ verification_task:
     {models_json}
 
     routes.json file:
-    {routes_json}
+    Is provided via your context.
 
     You must output:
       {
@@ -100,4 +103,5 @@ verification_task:
       "defects": [<list of strings, or empty>]
     }
   agent: verification_agent
+  # context: [branch_verification_task]
   output_file: Output/checkupCrew/verification_result.json
