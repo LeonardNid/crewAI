@@ -8,9 +8,9 @@ from typing import Dict, Any, List
 
 from jinja2 import Environment, FileSystemLoader
 
-def read_file(path: str) -> str:
+def read_file(path: str, as_json: bool = False) -> Any:
     with open(path, "r", encoding="utf-8") as f:
-        return f.read()
+        return json.load(f) if as_json else f.read()
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  ROUTE-HILFSFUNKTIONEN
@@ -232,13 +232,8 @@ def enrich_Models(context: Dict[str, Any]):
 # ──────────────────────────────────────────────────────────────────────────────
 #  TEMPLATE-RENDERING
 # ──────────────────────────────────────────────────────────────────────────────
-def renderTemplate(template: str, context_file: str | dict, output_file: str):
-    """Rendert eine Jinja-Vorlage mit kontext (Datei- oder Dict-Input)."""
-    context = (
-        json.load(open(context_file, encoding="utf-8"))
-        if isinstance(context_file, str) else context_file
-    )
-
+def renderTemplate(template: str, context: dict, output_file: str):
+    """Rendert eine Jinja-Vorlage mit kontext."""
     env = Environment(
         loader=FileSystemLoader("files/templates"),
         trim_blocks=True,
@@ -250,18 +245,3 @@ def renderTemplate(template: str, context_file: str | dict, output_file: str):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(rendered)
-
-
-# Temp Main for testing
-if __name__ == '__main__':
-    print("Render templates")
-    # --- READ JSON FILES -----------------------------------
-    with open("Output/backendCrew/models.json", "r", encoding="utf-8") as f:
-        models = json.load(f)
-    
-    with open("Output/backendCrew/routes.json", "r", encoding="utf-8") as f:
-        routes = json.load(f)
-
-    # --- RENDER TEMPLATES ----------------------------------
-    renderTemplate("models.j2", models, "Output/models.py")
-    renderTemplate("app.j2", routes, "Output/app.py")

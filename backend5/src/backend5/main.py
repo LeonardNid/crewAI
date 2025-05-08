@@ -123,6 +123,9 @@ class BackendFlow(Flow[BackendState]):
         )
         print("Checkup crew finished")
 
+        # Aktualisiere die routes_json im State
+        self.state.bL.routes_json = read_file("Output/backendCrew/routes.json", as_json=True)
+
         self.state.bL.retry = result.tasks_output[1].json_dict["retry"]
         self.state.bL.defects = result.tasks_output[1].json_dict["defects"]
     
@@ -138,8 +141,8 @@ class BackendFlow(Flow[BackendState]):
     
     @listen(or_("renderTemplate", "fix_bug"))
     def render_Templates(self):
-        renderTemplate("models.j2", "Output/backendCrew/models.json", "Output/models.py")
-        renderTemplate("app.j2", "Output/backendCrew/routes.json", "Output/app.py")
+        renderTemplate("models.j2", self.state.bL.models_json, "Output/models.py")
+        renderTemplate("app.j2", self.state.bL.routes_json, "Output/app.py")
 
         print("Backend crew attempts: ", self.state.bL.count)
         if (input("py's erstellt | 'n' to break the Flow: ") == "n"): # user input to break the flow
@@ -225,6 +228,9 @@ class BackendFlow(Flow[BackendState]):
             .crew()
             .kickoff(inputs=inputs)
         )
+        # JSON aktualisieren
+        self.state.bL.models_json = read_file("Output/backendCrew/models.json", as_json=True)
+        self.state.bL.routes_json = read_file("Output/backendCrew/routes.json", as_json=True)
         print("Bug fix crew finished")
         
     @listen(or_("success", "breakFlow"))
