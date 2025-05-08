@@ -185,7 +185,7 @@ def _relationship_line(model_name: str, rel: Dict[str, Any]) -> str:
             )
         """
     else:
-        raise ValueError(f"Unsupported rel_type: {rel_type}")
+        code = "ERROR: Unsupported rel_type: {rel_type}"
 
     return textwrap.dedent(code).strip()
 

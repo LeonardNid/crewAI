@@ -85,6 +85,8 @@ verification_task:
       2. Ignore wording-variations in descriptions.
       3. json_body evaluation
          • Inspect json_body **only for POST & PUT**.
+         • A json_body will be the same for POST and PUT routes. Don't
+           expect different json_bodies for the same route.
          • Never demand json_body for GET or DELETE routes.
          • A json_body is valid if it contains all required fields coresponding
            to the model in the models.json file.

@@ -67,3 +67,66 @@ car_rental_short:
     We need to store cars, customers, rentals, payments and service jobs.
     Basic CRUD plus endpoints to book, return and cancel a rental.
     Also some search and revenue stats would be nice.
+
+hinderks:
+  topic: Thesis Management Application
+  customer: |
+    Overview
+    A comprehensive web application designed for professors to manage, track, and document various types of academic theses including seminar, bachelor, master, and PhD theses. The application focuses on efficient thesis supervision, meeting management, and deadline tracking.
+
+    Core Features:
+
+    1. Thesis Record Management
+    Each thesis record contains the following information:
+    Thesis Type: Seminar, Bachelor, Master, or PhD
+    Title: Thesis title
+    Description: Detailed description of the thesis
+    Student Information:
+    - Student Name
+    Supervision Details:
+    - Supervisors (multiple users can be assigned)
+    - Start of Supervision Date
+    - Official Registration Date
+    - Submission Date
+    - Colloquium Date
+    - Custom Deadline Date
+    - Grade
+    - Second Examiner
+
+    2. Meeting Notes System
+    Each thesis includes a dedicated meeting notes section:
+    Meeting Note Fields:
+    - Date
+    - Summary/Description
+    Functionality:
+    - Create new meeting notes
+    - Edit existing notes
+    - Delete notes
+    - View notes within thesis detail view
+
+    3. Deadline Management
+    Custom deadline setting per thesis
+    Automated notification system:
+    - In-app notifications
+    - Email notifications (optional)
+    - Configurable reminder periods (e.g., 7 days before deadline)
+
+    4. User Interface
+    Dashboard:
+    Comprehensive thesis listing
+    Advanced filtering options:
+    - Thesis type
+    - Status
+    - Supervisor
+    - Deadline proximity
+    Sorting capabilities
+    Visual status indicators
+    Thesis Detail View:
+    - Complete thesis information
+    - Associated meeting notes
+    - Deadline tracking
+    - Supervisor management
+
+    5. Authentication
+    Email-based registration and login
+    Secure authentication system

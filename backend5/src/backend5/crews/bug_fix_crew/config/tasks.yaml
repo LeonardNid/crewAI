@@ -18,7 +18,9 @@ analyze_python_code_task:
          where each failure originates (line numbers or function/class names).
       2. Classify every root cause (missing field, wrong relationship, faulty
          route logic, etc.).
-      3. Produce a structured **Markdown report** titled "Python Issue Report"
+      3. For each failure, suggest a fix (e.g. add a field, change a relationship,
+         modify a route, etc.).
+      4. Produce a structured **Markdown report** titled "Python Issue Report"
          with a table:
 
          | # | File & location | Failing request | Root cause | Suggested fix |
@@ -30,6 +32,7 @@ analyze_python_code_task:
     A Markdown document that becomes the *context* for the next task.
     It includes the cause of the failures, the location in the code, and a suggested fix.
   agent: bug_analyzer
+  output_file: Output/bug_Fix_crew/bug_detection.md
 
 fix_code_task:
   description: >

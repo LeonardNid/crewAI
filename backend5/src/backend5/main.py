@@ -17,7 +17,8 @@ from backend5.Utils import read_file, renderTemplate, enrich_Endpoints, enrich_M
 import weave
 
 SCENARIO_KEY = "football"
-BACKEND_MAX_RETRY = 3
+BACKEND_MAX_RETRY = 5
+TEST_MAX_RETRY = 10
 
 class BackendLoop(BaseModel):
     count: int = 0
@@ -130,9 +131,9 @@ class BackendFlow(Flow[BackendState]):
         if (self.state.bL.retry):
             print("attempts: ", self.state.bL.count)
             print("verification_Json: ", self.state.bL.defects)
-            if not (input("retryBackendCrew | 'n' to skip retry: ") == "n"): # user input to stop retry of BackendCrew
-                if self.state.bL.count < BACKEND_MAX_RETRY:
-                    return "retryBackendCrew"
+            # if not (input("retryBackendCrew | 'n' to skip retry: ") == "n"): # user input to stop retry of BackendCrew
+            if self.state.bL.count < BACKEND_MAX_RETRY:
+                return "retryBackendCrew"
         return "renderTemplate"
     
     @listen(or_("renderTemplate", "fix_bug"))
@@ -164,8 +165,8 @@ class BackendFlow(Flow[BackendState]):
         self.state.tL.result = result.raw
 
         print("Test crew finished")
-        if (input("after TestCrew, continue? (y/n): ") == "n"):
-            self.state.breakFlow = True
+        # if (input("after TestCrew, continue? (y/n): ") == "n"):
+        #     self.state.breakFlow = True
 
     @router(test_Backend)
     def check_test_results(self):
@@ -174,6 +175,8 @@ class BackendFlow(Flow[BackendState]):
         Returns 'failed' if any request has a status code >= 400.
         """
         if self.state.breakFlow: # break the flow 
+            return "breakFlow"
+        if self.state.tL.count >= TEST_MAX_RETRY:
             return "breakFlow"
 
         try:
@@ -198,9 +201,9 @@ class BackendFlow(Flow[BackendState]):
         
     @listen("failed")
     def fix_bug(self):
-        if (input("fix_bug, continue? (y/n): ") == "n"):
-            self.state.breakFlow = True
-            return
+        # if (input("fix_bug, continue? (y/n): ") == "n"):
+        #     self.state.breakFlow = True
+        #     return
 
 
         if self.state.breakFlow: # break the flow 
@@ -227,7 +230,7 @@ class BackendFlow(Flow[BackendState]):
     @listen(or_("success", "breakFlow"))
     def finish(self):
         if self.state.breakFlow:
-            print("Flow stopped due to user input.")
+            print("Flow stopped due to \"breakFlow\".")
         else:
             print("All tests passed successfully!")
         print("Test attempts:", self.state.tL.count)

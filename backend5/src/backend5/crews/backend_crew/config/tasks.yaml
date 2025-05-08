@@ -68,6 +68,7 @@ models_json_task:
                                  (e.g. `"db.Integer, db.String(NUMBER),
                                   primary_key=True, autoincrement=True,
                                   db.ForeignKey('TABLENAME.ID')"`)
+                                  Never forget the `db.` prefix.
               * `description`  : (optional) human-readable note
           - `relationships`: (optional) array of objects with:
               * `target_model` : related model name (e.g. "Brake")
