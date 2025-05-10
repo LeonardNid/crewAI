@@ -2,16 +2,14 @@
 
 analyze_python_code_task:
   description: >
-    **Failed tests / traces:** (it's a {test_result_type})
-      {test_result}
+    **Input :**
+      Failed type: {test_result_type}
+      Failed tests: {test_result}
 
-    Here are the backend source files you must inspect:
+      Here are the backend source files you must inspect:
 
-    **models.py**
-    """{models_py}"""
-
-    **app.py**
-    """{app_py}"""
+      **models.py:** """{models_py}"""
+      **app.py:** """{app_py}"""
 
     Your mission:
       1. Using the failed test information, pinpoint in *models.py* or *app.py*
@@ -29,18 +27,20 @@ analyze_python_code_task:
     Do **not** propose JSON patches here.
 
   expected_output: >
-    A Markdown document that becomes the *context* for the next task.
+    A Table that becomes the *context* for the next task.
     It includes the cause of the failures, the location in the code, and a suggested fix.
+    The more detailed the better.
   agent: bug_analyzer
   output_file: Output/bug_Fix_crew/Python_Issue_Report.md
 
 fix_code_task:
   description: >
-    **Failed tests / traces:** (it's a {test_result_type})
-      {test_result}
+    **Input :**
+      Failed type: {test_result_type}
+      Failed tests: {test_result}
 
     Use the context from the previous task to identify
-    which of these JSON specs require changes:
+    which of these JSON-Artefacts require changes:
       • Output/backendCrew/routes.json
 
       {routes_json}
@@ -50,8 +50,9 @@ fix_code_task:
       {models_json}
 
     **Goal :** Every failed test must be fixed after this task.
-      Produce a single JSON payload (schema = BulkTestClientInput)
-      that the system will pass to the *JsonPatchTool* tool via callback.
+
+    Produce a single JSON payload (schema = BulkTestClientInput)
+    that the system will pass to the *JsonPatchTool* tool via callback.
 
     For every required change create an RFC-6902 operation
       {
@@ -61,7 +62,7 @@ fix_code_task:
     Do NOT mix patches from different files in the same object.
 
   expected_output: >
-    Return a valid JSON object matching the `Verification` schema:
+    Return a valid JSON object matching the `fix_code_task_output` schema:
     {
       models: { // can be 'null' when nothing to fix
         "file_path": "Output/backendCrew/models.json",
@@ -74,4 +75,5 @@ fix_code_task:
     }
 
   agent: bug_analyzer
+  context: [analyze_python_code_task]
   output_file: Output/bug_Fix_crew/fix_summary.md

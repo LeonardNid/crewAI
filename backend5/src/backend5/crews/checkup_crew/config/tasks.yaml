@@ -5,22 +5,24 @@
 branch_verification_task:
   description: >
     **Input :**
-      routes.json → {routes_json}
-      Feature checklist → {feature_checklist}
+      Here is the routes.json file containing all API routes:
+      """{routes_json}"""
+      Feature checklist: {feature_checklist}
     
 
-    **Goal :** Ensure every endpoint branch behaves exactly as its `description` promises. 
+    Mission: Ensure every endpoint branch behaves exactly as its `description` promises. 
       You should take the feature checklist into account.
       Produce a single JSON payload (schema = BulkTestClientInput)
       that the system will pass to the *JsonPatchTool* tool via guardrail.
 
+    Steps:
     1. Iterate over each object in `endpoints`.
        - Read the `description` (expected behaviour).
        - Inspect the *branch code* for every HTTP verb (ignore wrapper code).
        - Detect mismatches (wrong query, missing commit, no 404-check, etc.).
        - Use the idx value to identify the endpoint (e.g., `/endpoints/2`).
 
-    2. If at least ONE mismatch exists, build **one** RFC-6902 patch object
+    2. If at least ONE mismatch exists, build a RFC-6902 patch object
        compliant with *JsonPatchToolInput*:
 
        ```jsonc
@@ -36,11 +38,8 @@ branch_verification_task:
        - **file_path must be exactly** `Output/backendCrew/routes.json`.
        - Bundle **all** fixes into the single `patch` array.
 
-    3. If no mismatches are found, output an object with an **empty** patch
-       array.
-
   expected_output: >
-    Pure JSON only, conforming to `JsonPatchToolInput`:
+    Pure JSON only. One JSON object conforming exactly to the `JsonPatchToolInput` schema.
     { // can be 'null' when nothing to fix
       "file_path": "Output/backendCrew/routes.json",
       "patch": [ ... ] 
@@ -49,30 +48,17 @@ branch_verification_task:
   output_file: Output/checkupCrew/refinement_Summary.json
 
 
-
-
 # ──────────────────────────────────────────────────────────────────────────────
 #  VERIFICATION AGENT TASK
 # ──────────────────────────────────────────────────────────────────────────────
 
 verification_task:
   description: >
-    Feature checklist for the customer:
-    {feature_checklist}
-
-    models.json file:
-    {models_json}
-
-    routes.json file:
-    Is provided via your context.
-
-    You must output:
-      {
-        "retry": <true/false>,
-        "defects": [
-          // ONLY defects that satisfy ALL rules below
-        ]
-      }
+    **Input :**
+      Feature checklist for the customer: {feature_checklist}
+      Here is the models.json file containing all backend models:
+      """{models_json}"""
+      routes.json file: Is provided via your context.
 
     **DEFECT RULES - read carefully**
       1. A feature counts as implemented if at least one endpoint
@@ -92,20 +78,26 @@ verification_task:
          • Never demand json_body for GET or DELETE routes.
          • A json_body is valid if it contains all required fields coresponding
            to the model in the models.json file.
-      4. Every reported defect MUST include:
+      4. Model relationships validation
+         • For each model, check all relationships.
+         • Ensure that the relationship_lines are correct.
+         • Report a defect if any relationship is not correctly implemented.
+      5. Every reported defect MUST include:
            - the feature number from feature_checklist.md
            - the exact endpoint path(s) inspected
            - a one-line justification
          Otherwise discard it.
-      5. Do not invent additional requirements, max defects == feature count.
+      6. Do not invent additional requirements, max defects == feature count.
 
       Return retry: true if you find any issues, and retry: false if everything is fine.
+
   expected_output: >
-    Return a valid JSON object matching the `Verification` schema:
+    Pure JSON only. One JSON object conforming exactly to the `Verification` schema.
     {
       "retry": <true/false>,
       "defects": [<list of strings, or empty>]
     }
   agent: verification_agent
-  # context: [branch_verification_task]
+  context: [branch_verification_task]
   output_file: Output/checkupCrew/verification_result.json
+

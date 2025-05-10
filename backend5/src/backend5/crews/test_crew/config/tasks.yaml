@@ -2,11 +2,11 @@
 
 backend_endpoint_summary_task:
   description: >
-    Here is the models.json file containing all backend models:
-    """{models_json}"""
-
-    Here is the routes.json file containing all API routes:
-    """{routes_json}"""
+    **Input :**
+      Here is the models.json file containing all backend models:
+      """{models_json}"""
+      Here is the routes.json file containing all API routes:
+      """{routes_json}"""
 
     Your mission is to create a strict execution plan for API endpoint testing.
 
@@ -40,7 +40,7 @@ backend_endpoint_summary_task:
       - Re-read your answer to verify the correct order BEFORE submitting.
 
   expected_output: >
-    A strictly numbered Markdown list of routes, including:
+    A strictly ordered Markdown list of routes, including:
       - HTTP method
       - Path (with path parameters)
       - Expected JSON fields for POST/PUT
@@ -49,6 +49,8 @@ backend_endpoint_summary_task:
     Example:
       "1. POST /teams -> Needs { name: string, city: string, country: string, stadium: string }
        Returns: newly created team data."
+    
+    This will become the context for the next task.
   agent: code_tester
   output_file: 'Output/test_crew/endpoint_summary.md'
 
@@ -61,7 +63,7 @@ backend_test_task:
     Steps to follow:
       1. Parse the summary and build a list `requests` where each element is
          an object with keys `method`, `route`, `json_data`.
-
+         • Fill `json_data` with dummy data based on the model schema.
          • Use **real JSON objects** - no stringified JSON.
          • For path parameters like `<int:id>` use the value **1**.
          • For POST/PUT routes include a plausible `json_data` based on the
@@ -85,7 +87,7 @@ backend_test_task:
         ```
 
   expected_output: >
-    Pure JSON only, matching `BulkTestClientInput`.
+    Pure JSON only. One JSON object conforming exactly to the `BulkTestClientInput` schema.
   agent: code_tester
   context: [backend_endpoint_summary_task]
   output_file: 'Output/test_crew/test_report.md'

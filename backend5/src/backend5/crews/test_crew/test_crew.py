@@ -1,6 +1,7 @@
 from typing import Any, Tuple, Union
 from crewai import Agent, Crew, Process, Task, TaskOutput
 from crewai.project import CrewBase, agent, crew, task
+from pydantic import ValidationError
 
 from backend5.tools.test_tool import FlaskTestClientTool, BulkTestClientInput
 
@@ -32,14 +33,15 @@ class TestCrew:
     #     result = FlaskTestClientTool().run(**output.json_dict)
     #     print(result)
 
-    def guardrail_function(self, output: TaskOutput) -> Tuple[bool, Any]:
-        """Validate that the output is valid JSON."""
-        if not output.json_dict:
-            print("Output JSON is empty. Retry the task.")
-            return (False, "Output JSON is empty. Retry the task.")
-        result = FlaskTestClientTool().run(**output.json_dict)
-        print(result)
-        return (True, result)
+    def guardrail_function(self, output: TaskOutput) -> tuple[bool, str]:
+        try:
+            BulkTestClientInput(**(payload := output.json_dict))
+            res = FlaskTestClientTool().run(**payload)
+            if isinstance(res, str) and res.startswith("Validation failed"):
+                raise ValueError(res)
+            return True, res
+        except (AttributeError, ValidationError, ValueError) as err:
+            return False, str(err)
     
     @task
     def backend_test_task(self) -> Task:

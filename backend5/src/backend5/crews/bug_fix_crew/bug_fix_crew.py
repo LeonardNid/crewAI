@@ -1,3 +1,4 @@
+from typing import Any, Tuple
 from crewai import Agent, Crew, Process, Task, TaskOutput
 from crewai.project import CrewBase, agent, crew, task
 
@@ -27,20 +28,18 @@ class BugFixCrew:
         )
     
 
-    def callback_function(self, output: TaskOutput):
-        if not output.json_dict:
-            print("Output JSON is empty. Skipping tool execution.")
-            return
-        
-        if output.json_dict.get("models"):
-            print("Processing models...")
-            result_models = JsonPatchTool().run(**output.json_dict["models"])
-            print("Models result:", result_models)
-        
-        if output.json_dict.get("routes"):
-            print("Processing routes...")
-            result_routes = JsonPatchTool().run(**output.json_dict["routes"])
-            print("Routes result:", result_routes)
+    def guardrail_function(self, output: TaskOutput) -> tuple[bool, str]:
+        try:
+            for section in ("models", "routes"):
+                payload = output.json_dict.get(section)
+                if payload:                           # nur wenn der Agent etwas liefert
+                    res = JsonPatchTool().run(**payload)
+                    print(f"{section} → {res}")
+            return True, output.json_dict
+        except Exception as err:
+            print(f"Patch failed: {err}")
+            return False, str(err)
+
 
     @task
     def fix_code_task(self) -> Task:
@@ -48,7 +47,7 @@ class BugFixCrew:
             config=self.tasks_config["fix_code_task"],
             # tools=[JsonPatchTool()],
             output_json=fix_code_task_output,
-            callback=self.callback_function,
+            guardrail=self.guardrail_function,
         )
     
     

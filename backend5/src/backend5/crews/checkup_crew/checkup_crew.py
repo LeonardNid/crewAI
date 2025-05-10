@@ -39,15 +39,16 @@ class CheckupCrew:
     #     print(result)
 
     def guardrail_function(self, output: TaskOutput) -> Tuple[bool, Any]:
-        if not output.json_dict:
-            print("Output JSON is empty. Skipping tool execution, no changes needed")
-        else:
-            result = JsonPatchTool().run(**output.json_dict)
-            print(result)
-        with open("Output/backendCrew/routes.json", "r") as file:
-            routes_json = json.load(file)
-            routes_json = json.dumps(routes_json, indent=2)
-            return (True, routes_json)
+        try:
+            if output.json_dict:
+                print(JsonPatchTool().run(**output.json_dict))
+            else:
+                print("Output JSON is empty. Skipping tool execution, no changes needed")
+            with open("Output/backendCrew/routes.json", "r") as file:
+                return (True, json.dumps(json.load(file), indent=2))
+        except Exception as err:
+            print(f"Patch failed: {err}")
+            return False, str(err)
 
     @task
     def branch_verification_task(self) -> Task:

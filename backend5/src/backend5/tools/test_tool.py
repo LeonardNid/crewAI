@@ -5,18 +5,25 @@ import json
 import time
 import traceback
 from typing import Type, List, Optional, Dict, Any
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 from crewai.tools import BaseTool
 
 
+# -------------------- Pydantic request schemas --------------------
+
 class SingleRequest(BaseModel):
-    route: str
-    method: str
-    json_data: Optional[Dict[str, Any]] = None
+    route: str = Field(..., description="Full URL path to call, e.g. '/teams' or '/players/1'.")
+    method: str = Field(..., description="HTTP verb for this call (GET, POST, PUT, DELETE …).")
+    json_data: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Optional JSON payload to send with POST/PUT; "
+                    "omit or use `null` for GET/DELETE."
+    )
 
 
 class BulkTestClientInput(BaseModel):
-    requests: List[SingleRequest]
+    requests: List[SingleRequest] = Field(..., description="Ordered list of SingleRequest objects to execute.")
+
 
 
 class FlaskTestClientTool(BaseTool):
@@ -39,9 +46,6 @@ class FlaskTestClientTool(BaseTool):
         try:
             spec.loader.exec_module(app_module)
         except SyntaxError as e:
-                # Wichtig: hier keine excpetion raisen, da sonst der agent denkt, dass das tool fehlgeschlagen ist
-                # aber ich will, dass der "BugFixer" anspringt und versucht das Problem zu lösen
-                # warum die .py dateien nicht ausführbar sind.
                 error_type = type(e).__name__
                 error_msg = str(e)
                 return (

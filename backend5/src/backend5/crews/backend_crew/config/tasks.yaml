@@ -4,9 +4,10 @@
 
 features_extraction_task:
   description: >
-    Last result: {feature_checklist}
-    Defects detected by verification_agent: {defects}
-    Customer thoughts: {customer}
+    **Input :**
+      Last result: {feature_checklist}
+      Defects detected by verification_agent: {defects}
+      Customer thoughts: {customer}
 
     **IMPORTANT - ONLY INCLUDE ENDPOINT-LEVEL FEATURES**
 
@@ -31,20 +32,22 @@ features_extraction_task:
 
 entities_extraction_task:
   description: >
-    Last result: {entity_overview}
-    Defects detected by verification_agent: {defects}
+    **Input :**
+      Last result: {entity_overview}
+      Defects detected by verification_agent: {defects}
+      Customer thoughts: {customer}
 
-    Customer thoughts: {customer}
 
-    1. List **all entities (domain objects)** the product must store.
+    1. List **all entities (domain objects)** the application must handle.
     2. For each entity add a bullet with:
          - brief description
          - obvious attributes mentioned
-         - tentative relations (e.g. “Team 1-n Player”).
+         - relations (e.g. “Team 1-n Player”).
     3. Use Markdown, no code.
   expected_output: >
     A Markdown file named "entity_overview.md" with the catalogue.
   agent: requirements_analyst
+  context: [features_extraction_task]
   output_file: Output/backendCrew/entity_overview.md
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -53,10 +56,11 @@ entities_extraction_task:
 
 models_json_task:
   description: >
-    Last result: {models_json}
-    Defects detected by verification_agent: {defects}
+    **Input :**
+      Last result: {models_json}
+      Defects detected by verification_agent: {defects}
 
-    Produce `models_JSON.json` - a JSON object matching the Pydantic `ModelsPlan` schema:
+    Produce `models.json` - a JSON object matching the Pydantic `ModelsPlan` schema:
 
       • `topic`        : string - the domain/topic name (e.g. "Bicycle Workshop").  
       • `models`       : array of model definitions, each with:
@@ -79,7 +83,7 @@ models_json_task:
     You may use the "data_object_lookup" tool to get a reference to some models.
     You can and should adapt the output of the tool to fit your requirements. 
   expected_output: >
-    Pure JSON (no Markdown, no code), conforming exactly to the `ModelsPlan` schema.
+    Pure JSON only. One JSON object conforming exactly to the `ModelsPlan` schema.
   agent: api_planner
   context: [entities_extraction_task]
   output_file: Output/backendCrew/models.json
@@ -87,8 +91,9 @@ models_json_task:
 
 routes_json_task:
   description: >
-    Last result: {routes_json}
-    Defects detected by verification_agent: {defects}
+    **Input :**
+      Last result: {routes_json}
+      Defects detected by verification_agent: {defects}
 
     Produce `routes.json` - a JSON object matching the Pydantic `RoutesPlan` schema:
 
@@ -100,6 +105,7 @@ routes_json_task:
           - `get_List`   : if GET method returns a list of objects
           - `json_body`  : (optional) object listing required keys for POST/PUT, else `null`
           - `description`: (optional) short human explanation
+          
     The full set of endpoints **must enable every feature** in the checklist.
     Do not split different methods with the same path into separate entries.
     Only use '_' to seperate a path.

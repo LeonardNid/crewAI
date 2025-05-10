@@ -3,6 +3,8 @@ from crewai.tools import BaseTool
 from typing import Type
 from pydantic import BaseModel, Field
 
+# Not used anymore, replaced with smart inputs and flow
+
 class FileWriterToolInput(BaseModel):
     filename: str = Field(..., description="Name of the file to write, including path if needed.")
     content: str = Field(..., description="Full content of the file as a string.")

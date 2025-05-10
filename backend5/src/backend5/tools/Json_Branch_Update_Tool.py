@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Type, ClassVar, Set
 from pydantic import BaseModel, Field, field_validator
 from crewai.tools import BaseTool
 
-# Depricated
+# Not used anymore, replaced with json_patch_tool
 
 """JsonBranchUpdateTool v4 — *clean* route-only API
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

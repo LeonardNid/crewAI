@@ -5,6 +5,9 @@ from typing import Type, List, Dict, Any
 from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
 
+# Global constant for the similarity threshold
+SIMILARITY_THRESHOLD = 0.7
+
 class DataObjectLookupInput(BaseModel):
     query: str = Field(..., description="Keyword or phrase to look up (e.g., 'home', 'residence', 'contact', 'role').")
 
@@ -45,7 +48,6 @@ class DataObjectLookupTool(BaseTool):
 
         # 2) Search in Data for fuzzy match
         query_lower = query.lower()
-        threshold = 0.7
 
         matches = []
         for obj in data:
@@ -62,9 +64,8 @@ class DataObjectLookupTool(BaseTool):
                     best_syn_score = syn_score
 
             # If either 'name' or any 'synonym' crosses the threshold, consider it a match
-            if name_score >= threshold or best_syn_score >= threshold:
+            if name_score >= SIMILARITY_THRESHOLD or best_syn_score >= SIMILARITY_THRESHOLD:
                 matches.append(obj)
-
 
         # 3) Result
         if matches:

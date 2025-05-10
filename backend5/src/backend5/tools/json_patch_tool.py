@@ -69,7 +69,7 @@ class JsonPatchToolInput(BaseModel):
 class JsonPatchTool(BaseTool):
     """Apply an RFC-6902 patch to a JSON file specified in the call."""
 
-    name: str = "json_patch_update"
+    name: str = "json_patch"
     description: str = ("Modify any JSON file by passing `file_path` and a RFC-6902 `patch` array. `file_path` must end with '.json'.")
     args_schema: Type[BaseModel] = JsonPatchToolInput
 

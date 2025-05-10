@@ -18,7 +18,7 @@ verification_agent:
     Solution Verification Engineer
   goal: >
     Review the JSON artefacts and confirm that **every** feature
-    on the checklist is implementable with the planned models
+    on the checklist is correctly implementable with the planned models
     and routes.
   backstory: >
     You are a QA architect.  
