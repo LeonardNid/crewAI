@@ -68,7 +68,7 @@ car_rental_short:
     Basic CRUD plus endpoints to book, return and cancel a rental.
     Also some search and revenue stats would be nice.
 
-hinderks:
+thesis:
   topic: Thesis Management Application
   customer: |
     Overview
