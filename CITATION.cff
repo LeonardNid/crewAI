@@ -1,0 +1,28 @@
+# Pflichtfelder
+cff-version: 1.2.0                 # aktuelle Spec-Version
+message: "Bitte zitieren Sie diese Software wie unten angegeben."
+title: "Automatische Backend-Generierung mit Multi-Agents"
+version: "v1.0"
+date-released: 2025-05-11
+
+authors:
+  - family-names: Niedens
+    given-names: Leonard
+    affiliation: Hochschule Hannover University of Science and Arts, Fakultät 4
+
+# Sehr empfehlenswert
+doi: 10.5281/zenodo.15383118        # Zenodo/Software Heritage DOI
+license: MIT
+repository-code: "https://github.com/LeonardNid/crewAI"
+commit: "abcdef7"                  # Hash des Release-Tags
+url: "https://github.com/LeonardNid/crewAI"
+
+# Optionales Nice-to-have
+keywords:
+  - backend
+  - multi-agent-systems
+  - code-generation
+abstract: >
+  Diese Software generiert CRUD-Backends automatisiert mittels
+  Multi-Agent-Architektur. Sie entstand im Rahmen der Bachelorarbeit
+  an der FH Musterstadt.
