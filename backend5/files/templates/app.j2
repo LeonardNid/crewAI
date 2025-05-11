@@ -15,11 +15,11 @@ def home():
 @app.route('{{ ep.path }}', methods={{ ep.methods }})
 def {{ ep.handler_name }}({{ ep.params }}):
 {%- if ep.methods | length > 1 %} 
-{% for m in ep.methods %}
-{% if loop.first %}    if request.method == '{{ m }}':
-        {{ ep.branches[m] | indent(8) }}
-{% else %}    elif request.method == '{{ m }}':
-        {{ ep.branches[m] | indent(8)}}
+{% for method in ep.methods %}
+{% if loop.first %}    if request.method == '{{ method }}':
+        {{ ep.branches[method] | indent(8) }}
+{% else %}    elif request.method == '{{ method }}':
+        {{ ep.branches[method] | indent(8)}}
 {% endif %}
 {% endfor %}
 {% else %}

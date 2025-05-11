@@ -1,0 +1,204 @@
+{
+    "topic": "Small Public Library Management",
+    "endpoints": [
+        {
+            "path": "/books",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Book",
+            "get_List": true,
+            "json_body": {
+                "title": "string",
+                "author": "string",
+                "isbn": "string",
+                "genre": "string",
+                "publication_year": "integer",
+                "borrowed_flag": "boolean"
+            },
+            "description": "List all books or add a new book",
+            "idx": 0,
+            "handler_name": "books",
+            "params": "",
+            "branches": {
+                "GET": "objs = Book.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = Book(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/books/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Book",
+            "get_List": false,
+            "json_body": {
+                "title": "string",
+                "author": "string",
+                "isbn": "string",
+                "genre": "string",
+                "publication_year": "integer",
+                "borrowed_flag": "boolean"
+            },
+            "description": "Retrieve, update or delete a specific book by id",
+            "idx": 1,
+            "handler_name": "books_int_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = Book.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Book not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Book.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Book not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Book.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Book not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Book deleted\"})"
+            }
+        },
+        {
+            "path": "/books/title/<string:title>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Book",
+            "get_List": true,
+            "json_body": null,
+            "description": "Search books by title",
+            "idx": 2,
+            "handler_name": "books_title_string_title",
+            "params": "title",
+            "branches": {
+                "GET": "objs = Book.query.filter_by(**{\"title\": title}).all()\nif not objs or len(objs) == 0:\n    return jsonify({\"message\": \"Book not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/books/author/<string:author>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Book",
+            "get_List": true,
+            "json_body": null,
+            "description": "Search books by author",
+            "idx": 3,
+            "handler_name": "books_author_string_author",
+            "params": "author",
+            "branches": {
+                "GET": "objs = Book.query.filter_by(**{\"author\": author}).all()\nif not objs or len(objs) == 0:\n    return jsonify({\"message\": \"Book not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/members",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Member",
+            "get_List": true,
+            "json_body": {
+                "name": "string",
+                "email_address": "string",
+                "membership_number": "string",
+                "membership_expiry_date": "string"
+            },
+            "description": "List all members or add a new member",
+            "idx": 4,
+            "handler_name": "members",
+            "params": "",
+            "branches": {
+                "GET": "objs = Member.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "from datetime import date\n\ndata = request.get_json()\nif 'membership_expiry_date' in data:\n    data['membership_expiry_date'] = date.fromisoformat(data['membership_expiry_date'])\nnew_obj = Member(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/members/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Member",
+            "get_List": false,
+            "json_body": {
+                "name": "string",
+                "email_address": "string",
+                "membership_number": "string",
+                "membership_expiry_date": "string"
+            },
+            "description": "Retrieve, update or delete a specific member by id",
+            "idx": 5,
+            "handler_name": "members_int_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = Member.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Member not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "from datetime import date\nobj = Member.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Member not found\"}), 404\ndata = request.get_json()\nif 'membership_expiry_date' in data:\n    data['membership_expiry_date'] = date.fromisoformat(data['membership_expiry_date'])\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Member.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Member not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Member deleted\"})"
+            }
+        },
+        {
+            "path": "/loans",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Loan",
+            "get_List": true,
+            "json_body": {
+                "book_id": "integer",
+                "member_id": "integer",
+                "checkout_date": "string",
+                "due_date": "string",
+                "returned_flag": "boolean"
+            },
+            "description": "List all loans or create a new loan (borrow a book)",
+            "idx": 6,
+            "handler_name": "loans",
+            "params": "",
+            "branches": {
+                "GET": "objs = Loan.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "from datetime import date\n\ndata = request.get_json()\nif 'checkout_date' in data:\n    data['checkout_date'] = date.fromisoformat(data['checkout_date'])\nif 'due_date' in data:\n    data['due_date'] = date.fromisoformat(data['due_date'])\nnew_obj = Loan(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/loans/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Loan",
+            "get_List": false,
+            "json_body": {
+                "book_id": "integer",
+                "member_id": "integer",
+                "checkout_date": "string",
+                "due_date": "string",
+                "returned_flag": "boolean"
+            },
+            "description": "Retrieve, update (return book) or delete a specific loan by id",
+            "idx": 7,
+            "handler_name": "loans_int_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = Loan.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Loan not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "from datetime import date\nobj = Loan.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Loan not found\"}), 404\ndata = request.get_json()\nif 'checkout_date' in data:\n    data['checkout_date'] = date.fromisoformat(data['checkout_date'])\nif 'due_date' in data:\n    data['due_date'] = date.fromisoformat(data['due_date'])\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Loan.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Loan not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Loan deleted\"})"
+            }
+        },
+        {
+            "path": "/loans/overdue",
+            "methods": [
+                "GET"
+            ],
+            "model": "Loan",
+            "get_List": true,
+            "json_body": null,
+            "description": "List all overdue loans",
+            "idx": 8,
+            "handler_name": "loans_overdue",
+            "params": "",
+            "branches": {
+                "GET": "from datetime import date\nobjs = Loan.query.filter(Loan.due_date < date.today(), Loan.returned_flag == False).all()\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        }
+    ],
+    "models_import": "Book, Member, Loan"
+}

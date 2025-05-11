@@ -1,0 +1,107 @@
+{
+  "file_path": "api_spec.json",
+  "patch": [
+    {
+      "op": "add",
+      "path": "/endpoints/0/branches/POST",
+      "value": "data = request.get_json()\nnew_obj = Book(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/1/branches/GET",
+      "value": "obj = Book.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Book not found\"}), 404\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/1/branches/PUT",
+      "value": "obj = Book.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Book not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/1/branches/DELETE",
+      "value": "obj = Book.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Book not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Book deleted\"})",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/2/branches/GET",
+      "value": "objs = Book.query.filter_by(**{\"title\": title}).all()\nif not objs or len(objs) == 0:\n    return jsonify({\"message\": \"Book not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/3/branches/GET",
+      "value": "objs = Book.query.filter_by(**{\"author\": author}).all()\nif not objs or len(objs) == 0:\n    return jsonify({\"message\": \"Book not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/4/branches/GET",
+      "value": "objs = Member.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/4/branches/POST",
+      "value": "data = request.get_json()\nnew_obj = Member(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/5/branches/GET",
+      "value": "obj = Member.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Member not found\"}), 404\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/5/branches/PUT",
+      "value": "obj = Member.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Member not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/5/branches/DELETE",
+      "value": "obj = Member.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Member not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Member deleted\"})",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/6/branches/GET",
+      "value": "objs = Loan.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/6/branches/POST",
+      "value": "data = request.get_json()\nnew_obj = Loan(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/7/branches/GET",
+      "value": "obj = Loan.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Loan not found\"}), 404\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/7/branches/PUT",
+      "value": "obj = Loan.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Loan not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/7/branches/DELETE",
+      "value": "obj = Loan.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Loan not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Loan deleted\"})",
+      "from_path": null
+    },
+    {
+      "op": "add",
+      "path": "/endpoints/8/branches/GET",
+      "value": "from datetime import date\nobjs = Loan.query.filter(Loan.due_date < date.today(), Loan.returned_flag == False).all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    }
+  ]
+}

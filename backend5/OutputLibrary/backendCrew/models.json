@@ -1,0 +1,149 @@
+{
+    "topic": "Small Public Library Management",
+    "models": [
+        {
+            "name": "Book",
+            "table": "books",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "title",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Title of the book"
+                },
+                {
+                    "name": "author",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Author of the book"
+                },
+                {
+                    "name": "isbn",
+                    "type": "db.String(20), unique=True, nullable=False",
+                    "description": "Unique ISBN identifier"
+                },
+                {
+                    "name": "genre",
+                    "type": "db.String(100), nullable=True",
+                    "description": "Genre of the book"
+                },
+                {
+                    "name": "publication_year",
+                    "type": "db.Integer, nullable=True",
+                    "description": "Year of publication"
+                },
+                {
+                    "name": "borrowed_flag",
+                    "type": "db.Boolean, nullable=False, default=False",
+                    "description": "Indicates if the book is currently borrowed"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Loan",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "loans = db.relationship(\n'Loan',\nback_populates='book',\nlazy=True,\ncascade=\"all, delete-orphan\"\n)"
+            ]
+        },
+        {
+            "name": "Member",
+            "table": "members",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Member full name"
+                },
+                {
+                    "name": "email_address",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Email address of member"
+                },
+                {
+                    "name": "membership_number",
+                    "type": "db.String(50), unique=True, nullable=False",
+                    "description": "Unique membership number"
+                },
+                {
+                    "name": "membership_expiry_date",
+                    "type": "db.Date, nullable=False",
+                    "description": "Date when membership expires"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Loan",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "loans = db.relationship(\n'Loan',\nback_populates='member',\nlazy=True,\ncascade=\"all, delete-orphan\"\n)"
+            ]
+        },
+        {
+            "name": "Loan",
+            "table": "loans",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "book_id",
+                    "type": "db.Integer, db.ForeignKey('books.id'), nullable=False",
+                    "description": "Referenced book"
+                },
+                {
+                    "name": "member_id",
+                    "type": "db.Integer, db.ForeignKey('members.id'), nullable=False",
+                    "description": "Referenced member"
+                },
+                {
+                    "name": "checkout_date",
+                    "type": "db.Date, nullable=False",
+                    "description": "Date when book was checked out"
+                },
+                {
+                    "name": "due_date",
+                    "type": "db.Date, nullable=False",
+                    "description": "Due date for returning book"
+                },
+                {
+                    "name": "returned_flag",
+                    "type": "db.Boolean, nullable=False, default=False",
+                    "description": "Indicates if the book has been returned"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Book",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "Member",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                }
+            ],
+            "relationship_lines": [
+                "book = db.relationship(\n    'Book',\n    back_populates='loans',\n    lazy=True\n)",
+                "member = db.relationship(\n    'Member',\n    back_populates='loans',\n    lazy=True\n)"
+            ]
+        }
+    ]
+}

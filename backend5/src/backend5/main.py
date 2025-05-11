@@ -16,7 +16,7 @@ from backend5.Utils import read_file, renderTemplate, enrich_Endpoints, enrich_M
 
 import weave
 
-SCENARIO_KEY = "football"
+SCENARIO_KEY = "library"
 BACKEND_MAX_RETRY = 5
 TEST_MAX_RETRY = 10
 
@@ -144,9 +144,9 @@ class BackendFlow(Flow[BackendState]):
         renderTemplate("models.j2", self.state.bL.models_json, "Output/models.py")
         renderTemplate("app.j2", self.state.bL.routes_json, "Output/app.py")
 
-        print("Backend crew attempts: ", self.state.bL.count)
-        if (input("py's erstellt | 'n' to break the Flow: ") == "n"): # user input to break the flow
-            self.state.breakFlow = True
+        # print("Backend crew attempts: ", self.state.bL.count)
+        # if (input("py's erstellt | 'n' to break the Flow: ") == "n"): # user input to break the flow
+        #     self.state.breakFlow = True
 
     
     @listen(render_Templates)
