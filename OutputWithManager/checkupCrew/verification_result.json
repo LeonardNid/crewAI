@@ -1,0 +1,8 @@
+{
+  "retry": true,
+  "defects": [
+    "11 - /loans_borrow - No handling or check for changing the Book's 'is_borrowed' status when borrowing",
+    "12 - /loans_return - The Loan model JSON and code reference a 'return_date' field, but this field is absent from the Loan model definition in models.json",
+    "12 - /loans_return - No update shown to the Book's 'is_borrowed' status to false when returning the book as per model expectations"
+  ]
+}

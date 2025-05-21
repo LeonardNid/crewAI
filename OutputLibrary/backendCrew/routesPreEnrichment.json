@@ -1,0 +1,113 @@
+{
+  "topic": "Small Public Library Management",
+  "endpoints": [
+    {
+      "path": "/books",
+      "methods": ["GET", "POST"],
+      "model": "Book",
+      "get_List": true,
+      "json_body": {
+        "title": "string",
+        "author": "string",
+        "isbn": "string",
+        "genre": "string",
+        "publication_year": "integer",
+        "borrowed_flag": "boolean"
+      },
+      "description": "List all books or add a new book"
+    },
+    {
+      "path": "/books/<int:id>",
+      "methods": ["GET", "PUT", "DELETE"],
+      "model": "Book",
+      "get_List": false,
+      "json_body": {
+        "title": "string",
+        "author": "string",
+        "isbn": "string",
+        "genre": "string",
+        "publication_year": "integer",
+        "borrowed_flag": "boolean"
+      },
+      "description": "Retrieve, update or delete a specific book by id"
+    },
+    {
+      "path": "/books/title/<string:title>",
+      "methods": ["GET"],
+      "model": "Book",
+      "get_List": true,
+      "json_body": null,
+      "description": "Search books by title"
+    },
+    {
+      "path": "/books/author/<string:author>",
+      "methods": ["GET"],
+      "model": "Book",
+      "get_List": true,
+      "json_body": null,
+      "description": "Search books by author"
+    },
+    {
+      "path": "/members",
+      "methods": ["GET", "POST"],
+      "model": "Member",
+      "get_List": true,
+      "json_body": {
+        "name": "string",
+        "email_address": "string",
+        "membership_number": "string",
+        "membership_expiry_date": "string"
+      },
+      "description": "List all members or add a new member"
+    },
+    {
+      "path": "/members/<int:id>",
+      "methods": ["GET", "PUT", "DELETE"],
+      "model": "Member",
+      "get_List": false,
+      "json_body": {
+        "name": "string",
+        "email_address": "string",
+        "membership_number": "string",
+        "membership_expiry_date": "string"
+      },
+      "description": "Retrieve, update or delete a specific member by id"
+    },
+    {
+      "path": "/loans",
+      "methods": ["GET", "POST"],
+      "model": "Loan",
+      "get_List": true,
+      "json_body": {
+        "book_id": "integer",
+        "member_id": "integer",
+        "checkout_date": "string",
+        "due_date": "string",
+        "returned_flag": "boolean"
+      },
+      "description": "List all loans or create a new loan (borrow a book)"
+    },
+    {
+      "path": "/loans/<int:id>",
+      "methods": ["GET", "PUT", "DELETE"],
+      "model": "Loan",
+      "get_List": false,
+      "json_body": {
+        "book_id": "integer",
+        "member_id": "integer",
+        "checkout_date": "string",
+        "due_date": "string",
+        "returned_flag": "boolean"
+      },
+      "description": "Retrieve, update (return book) or delete a specific loan by id"
+    },
+    {
+      "path": "/loans/overdue",
+      "methods": ["GET"],
+      "model": "Loan",
+      "get_List": true,
+      "json_body": null,
+      "description": "List all overdue loans"
+    }
+  ]
+}

@@ -2,10 +2,10 @@
 name = "backendGenerierung"
 version = "0.1.0"
 description = "backendGenerierung using crewAI"
-authors = [{ name = "Your Name", email = "you@example.com" }]
+authors = [{ name = "Leonard Niedens", email = "niedens03@gmail.com" }]
 requires-python = ">=3.10,<3.13"
 dependencies = [
-    "crewai[tools]>=0.108.0,<1.0.0",
+    "crewai>=0.114.0",
     "flask>=3.1.0",
     "flask-sqlalchemy>=3.1.1",
     "jinja2>=3.1.6",

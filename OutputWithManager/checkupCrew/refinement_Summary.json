@@ -1,0 +1,26 @@
+{
+  "file_path": "api_endpoints.json",
+  "patch": [
+    {
+      "op": "add",
+      "path": "/endpoints/8",
+      "value": {
+        "path": "/books_genre_<string:genre>",
+        "methods": [
+          "GET"
+        ],
+        "model": "Book",
+        "get_List": true,
+        "json_body": null,
+        "description": "List books by genre",
+        "idx": 8,
+        "handler_name": "books_genre",
+        "params": "genre",
+        "branches": {
+          "GET": "objs = Book.query.filter_by(genre=genre).all()\nreturn jsonify([o.to_dict() for o in objs])"
+        }
+      },
+      "from_path": null
+    }
+  ]
+}

@@ -16,9 +16,9 @@ from backendGenerierung.Utils import read_file, renderTemplate, enrich_Endpoints
 
 import weave
 
-SCENARIO_KEY = "library"
+SCENARIO_KEY = "car_rental"
 BACKEND_MAX_RETRY = 5
-TEST_MAX_RETRY = 10
+TEST_MAX_RETRY = 15
 
 class BackendLoop(BaseModel):
     count: int = 0
