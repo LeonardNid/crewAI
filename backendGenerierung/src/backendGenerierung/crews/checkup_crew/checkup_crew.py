@@ -5,6 +5,7 @@ from crewai.project import CrewBase, agent, crew, task
 
 from backendGenerierung.tools.json_patch_tool import JsonPatchTool, JsonPatchToolInput
 from backendGenerierung.crews.checkup_crew.JsonSchema import Verification
+import os
 
 @CrewBase
 class CheckupCrew:
@@ -40,6 +41,9 @@ class CheckupCrew:
 
     def guardrail_function(self, output: TaskOutput) -> Tuple[bool, Any]:
         try:
+            os.makedirs("Output/checkupCrew", exist_ok=True)
+            with open("Output/checkupCrew/old_changes.json", "w") as f:
+                json.dump(output.json_dict, f, indent=2)
             if output.json_dict:
                 print(JsonPatchTool().run(**output.json_dict))
             else:
