@@ -1,0 +1,401 @@
+{
+    "topic": "Multi-Branch Car Rental",
+    "endpoints": [
+        {
+            "path": "/cars",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Car",
+            "get_List": true,
+            "json_body": {
+                "plate_no": "string",
+                "brand": "string",
+                "model": "string",
+                "year": "integer",
+                "category": "string",
+                "seats": "integer",
+                "transmission": "string",
+                "fuel_type": "string",
+                "daily_rate": "number",
+                "current_odometer": "integer",
+                "status": "string",
+                "location_id": "integer"
+            },
+            "description": "List all cars with optional filters (location, category, seats, transmission, price range) or create a new car",
+            "idx": 0,
+            "handler_name": "cars",
+            "params": "",
+            "branches": {
+                "GET": "objs = Car.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = Car(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/cars_plate_no/<string:plate_no>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Car",
+            "get_List": false,
+            "json_body": {
+                "brand": "string",
+                "model": "string",
+                "year": "integer",
+                "category": "string",
+                "seats": "integer",
+                "transmission": "string",
+                "fuel_type": "string",
+                "daily_rate": "number",
+                "current_odometer": "integer",
+                "status": "string",
+                "location_id": "integer"
+            },
+            "description": "Retrieve, update or delete a specific car by plate number",
+            "idx": 1,
+            "handler_name": "cars_plate_no_string_plate_no",
+            "params": "plate_no",
+            "branches": {
+                "GET": "obj = Car.query.get(plate_no)\nif not obj:\n    return jsonify({\"message\": \"Car not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Car.query.get(plate_no)\nif not obj:\n    return jsonify({\"message\": \"Car not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Car.query.get(plate_no)\nif not obj:\n    return jsonify({\"message\": \"Car not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Car deleted\"})"
+            }
+        },
+        {
+            "path": "/cars_name/<string:search_str>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Car",
+            "get_List": true,
+            "json_body": null,
+            "description": "Search cars by partial or full match on plate number or model",
+            "idx": 2,
+            "handler_name": "cars_name_string_search_str",
+            "params": "search_str",
+            "branches": {
+                "GET": "query = Car.query\nargs = request.args\nfilters = []\nsearch_str_lower = search_str.lower()\nobjs = query.filter((Car.plate_no.ilike(f'%{search_str_lower}%')) | (Car.model.ilike(f'%{search_str_lower}%'))).all()\nif not objs:\n    return jsonify({\"message\": \"Car not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/cars_available",
+            "methods": [
+                "GET"
+            ],
+            "model": "Car",
+            "get_List": true,
+            "json_body": null,
+            "description": "List cars available for rental filtered by category, date range, and pickup location to support booking workflow",
+            "idx": 3,
+            "handler_name": "cars_available",
+            "params": "",
+            "branches": {
+                "GET": "# This endpoint should filter available cars by category, pickup location and date range\n# but current code returns all cars without filtering\nquery = Car.query\nargs = request.args\n# Extract filters from args\ncategory = args.get('category')\npickup_location = args.get('pickup_location')\ndate_start = args.get('start_date')\ndate_end = args.get('end_date')\nq = query\nif category:\n    q = q.filter(Car.category == category)\nif pickup_location:\n    q = q.filter(Car.location_id == pickup_location)\n# Filtering by availability requires joining Rental and checking no overlapping bookings\n# For simplicity we consider cars with status 'available'\nq = q.filter(Car.status == 'available')\nobjs = q.all()\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/locations",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Location",
+            "get_List": true,
+            "json_body": {
+                "name": "string",
+                "street": "string",
+                "city": "string",
+                "state": "string",
+                "postal_code": "string",
+                "country": "string",
+                "phone": "string"
+            },
+            "description": "List all locations or create a new location",
+            "idx": 4,
+            "handler_name": "locations",
+            "params": "",
+            "branches": {
+                "GET": "objs = Location.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = Location(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/locations/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Location",
+            "get_List": false,
+            "json_body": {
+                "name": "string",
+                "street": "string",
+                "city": "string",
+                "state": "string",
+                "postal_code": "string",
+                "country": "string",
+                "phone": "string"
+            },
+            "description": "Retrieve, update or delete a specific location by ID",
+            "idx": 5,
+            "handler_name": "locations_int_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = Location.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Location not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Location.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Location not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Location.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Location not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Location deleted\"})"
+            }
+        },
+        {
+            "path": "/customers",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Customer",
+            "get_List": true,
+            "json_body": {
+                "name": "string",
+                "email": "string",
+                "phone": "string",
+                "driver_license_no": "string",
+                "license_expiry": "string",
+                "vip": "boolean"
+            },
+            "description": "List all customers or create a new customer",
+            "idx": 6,
+            "handler_name": "customers",
+            "params": "",
+            "branches": {
+                "GET": "objs = Customer.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = Customer(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/customers/<int:customer_id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Customer",
+            "get_List": false,
+            "json_body": {
+                "name": "string",
+                "email": "string",
+                "phone": "string",
+                "driver_license_no": "string",
+                "license_expiry": "string",
+                "vip": "boolean"
+            },
+            "description": "Retrieve, update or delete a customer by customer ID",
+            "idx": 7,
+            "handler_name": "customers_int_customer_id",
+            "params": "customer_id",
+            "branches": {
+                "GET": "obj = Customer.query.get(customer_id)\nif not obj:\n    return jsonify({\"message\": \"Customer not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Customer.query.get(customer_id)\nif not obj:\n    return jsonify({\"message\": \"Customer not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Customer.query.get(customer_id)\nif not obj:\n    return jsonify({\"message\": \"Customer not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Customer deleted\"})"
+            }
+        },
+        {
+            "path": "/customers_name/<string:name>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Customer",
+            "get_List": true,
+            "json_body": null,
+            "description": "Search customers by partial or full name match",
+            "idx": 8,
+            "handler_name": "customers_name_string_name",
+            "params": "name",
+            "branches": {
+                "GET": "query = Customer.query\nargs = request.args\nfilters = []\nname_lower = name.lower()\nobjs = query.filter(Customer.name.ilike(f'%{name_lower}%')).all()\nif not objs:\n    return jsonify({\"message\": \"Customer not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/rentals",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Rental",
+            "get_List": true,
+            "json_body": {
+                "car_plate_no": "string",
+                "customer_id": "integer",
+                "pickup_location_id": "integer",
+                "dropoff_location_id": "integer",
+                "pickup_date": "string",
+                "dropoff_date": "string",
+                "daily_rate_snapshot": "number",
+                "total_price": "number",
+                "status": "string"
+            },
+            "description": "List rentals with optional filters (status, customer, date range) or book a new rental with car status locking and pricing snapshot",
+            "idx": 9,
+            "handler_name": "rentals",
+            "params": "",
+            "branches": {
+                "GET": "objs = Rental.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = Rental(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/rentals/<int:rental_id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Rental",
+            "get_List": false,
+            "json_body": {
+                "car_plate_no": "string",
+                "customer_id": "integer",
+                "pickup_location_id": "integer",
+                "dropoff_location_id": "integer",
+                "pickup_date": "string",
+                "dropoff_date": "string",
+                "daily_rate_snapshot": "number",
+                "total_price": "number",
+                "status": "string"
+            },
+            "description": "Retrieve, update or cancel a rental by rental ID; deletion only allowed if rental start date in future, trigger payment refund",
+            "idx": 10,
+            "handler_name": "rentals_int_rental_id",
+            "params": "rental_id",
+            "branches": {
+                "GET": "obj = Rental.query.get(rental_id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Rental.query.get(rental_id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Rental.query.get(rental_id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\nfrom datetime import datetime\nimport dateutil.parser\nstart_date = dateutil.parser.parse(obj.pickup_date)\nnow = datetime.utcnow()\nif start_date <= now:\n    return jsonify({\"message\": \"Cannot delete a rental that has already started or in progress\"}), 400\n# Trigger payment refund logic here - omitted, just comment\n# refund_payment(obj.id)\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Rental deleted\"})"
+            }
+        },
+        {
+            "path": "/rentals/<int:rental_id>/return",
+            "methods": [
+                "POST"
+            ],
+            "model": "Rental",
+            "get_List": false,
+            "json_body": {
+                "status": "string",
+                "current_odometer": "integer",
+                "location_id": "integer"
+            },
+            "description": "Mark rental as returned; update rental status to 'closed', update car status to 'available', odometer, and location",
+            "idx": 11,
+            "handler_name": "rentals_int_rental_id_return",
+            "params": "rental_id",
+            "branches": {
+                "POST": "obj = Rental.query.get(rental_id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\n# get request data\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\nobj.status = 'closed'\ncar = Car.query.filter_by(plate_no=obj.car_plate_no).first()\nif car:\n    car.status = 'available'\n    if 'current_odometer' in data:\n        car.current_odometer = data['current_odometer']\n    if 'location_id' in data:\n        car.location_id = data['location_id']\ndb.session.commit()\nreturn jsonify(obj.to_dict())"
+            }
+        },
+        {
+            "path": "/payments",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Payment",
+            "get_List": true,
+            "json_body": {
+                "rental_id": "integer",
+                "amount": "number",
+                "method": "string",
+                "paid_at": "string",
+                "refunded": "boolean"
+            },
+            "description": "List payments with optional filters (rental ID, date range) or create a new payment",
+            "idx": 12,
+            "handler_name": "payments",
+            "params": "",
+            "branches": {
+                "GET": "objs = Payment.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = Payment(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/payments/<int:payment_id>",
+            "methods": [
+                "GET",
+                "PUT"
+            ],
+            "model": "Payment",
+            "get_List": false,
+            "json_body": {
+                "rental_id": "integer",
+                "amount": "number",
+                "method": "string",
+                "paid_at": "string",
+                "refunded": "boolean"
+            },
+            "description": "Retrieve or update a payment record by payment ID (e.g., mark as refunded)",
+            "idx": 13,
+            "handler_name": "payments_int_payment_id",
+            "params": "payment_id",
+            "branches": {
+                "GET": "obj = Payment.query.get(payment_id)\nif not obj:\n    return jsonify({\"message\": \"Payment not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Payment.query.get(payment_id)\nif not obj:\n    return jsonify({\"message\": \"Payment not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())"
+            }
+        },
+        {
+            "path": "/services",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Service",
+            "get_List": true,
+            "json_body": {
+                "car_plate_no": "string",
+                "service_type": "string",
+                "start_date": "string",
+                "end_date": "string",
+                "cost": "number",
+                "notes": "string"
+            },
+            "description": "List service records with optional filters (car plate_no, service_type, active status) or create a new service record",
+            "idx": 14,
+            "handler_name": "services",
+            "params": "",
+            "branches": {
+                "GET": "objs = Service.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = Service(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/services/<int:service_id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Service",
+            "get_List": false,
+            "json_body": {
+                "car_plate_no": "string",
+                "service_type": "string",
+                "start_date": "string",
+                "end_date": "string",
+                "cost": "number",
+                "notes": "string"
+            },
+            "description": "Retrieve, update or delete a service record by service ID",
+            "idx": 15,
+            "handler_name": "services_int_service_id",
+            "params": "service_id",
+            "branches": {
+                "GET": "obj = Service.query.get(service_id)\nif not obj:\n    return jsonify({\"message\": \"Service not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Service.query.get(service_id)\nif not obj:\n    return jsonify({\"message\": \"Service not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Service.query.get(service_id)\nif not obj:\n    return jsonify({\"message\": \"Service not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Service deleted\"})"
+            }
+        }
+    ],
+    "models_import": "Car, Location, Customer, Rental, Payment, Service"
+}

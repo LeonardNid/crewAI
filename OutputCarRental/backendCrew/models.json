@@ -1,0 +1,438 @@
+{
+    "topic": "Multi-Branch Car Rental",
+    "models": [
+        {
+            "name": "Car",
+            "table": "cars",
+            "columns": [
+                {
+                    "name": "plate_no",
+                    "type": "db.String(20), primary_key=True",
+                    "description": "Unique identifier: vehicle plate number"
+                },
+                {
+                    "name": "brand",
+                    "type": "db.String(50)",
+                    "description": "Car brand or manufacturer"
+                },
+                {
+                    "name": "model",
+                    "type": "db.String(50)",
+                    "description": "Car model name"
+                },
+                {
+                    "name": "year",
+                    "type": "db.Integer",
+                    "description": "Year of manufacture"
+                },
+                {
+                    "name": "category",
+                    "type": "db.String(30)",
+                    "description": "Vehicle category like compact, SUV, van"
+                },
+                {
+                    "name": "seats",
+                    "type": "db.Integer",
+                    "description": "Number of seats in vehicle"
+                },
+                {
+                    "name": "transmission",
+                    "type": "db.String(15)",
+                    "description": "Transmission type (automatic/manual)"
+                },
+                {
+                    "name": "fuel_type",
+                    "type": "db.String(20)",
+                    "description": "Fuel type used by the vehicle"
+                },
+                {
+                    "name": "daily_rate",
+                    "type": "db.Numeric(10,2)",
+                    "description": "Daily rental rate"
+                },
+                {
+                    "name": "current_odometer",
+                    "type": "db.Integer",
+                    "description": "Current mileage reading"
+                },
+                {
+                    "name": "status",
+                    "type": "db.String(20)",
+                    "description": "Availability status: available, rented, service"
+                },
+                {
+                    "name": "location_id",
+                    "type": "db.Integer, db.ForeignKey('locations.id')",
+                    "description": "Foreign key - current Location ID"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Location",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "Rental",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "Service",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "location = db.relationship(\n    'Location',\n    back_populates='cars',\n    lazy=True\n)",
+                "rentals = db.relationship(\n'Rental',\nback_populates='car',\nlazy=True,\ncascade=\"all, delete-orphan\"\n)",
+                "services = db.relationship(\n'Service',\nback_populates='car',\nlazy=True,\ncascade=\"all, delete-orphan\"\n)"
+            ]
+        },
+        {
+            "name": "Location",
+            "table": "locations",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key - Location ID"
+                },
+                {
+                    "name": "name",
+                    "type": "db.String(100)",
+                    "description": "Location branch or office name"
+                },
+                {
+                    "name": "street",
+                    "type": "db.String(150)",
+                    "description": "Street address line"
+                },
+                {
+                    "name": "city",
+                    "type": "db.String(50)",
+                    "description": "City or town name"
+                },
+                {
+                    "name": "state",
+                    "type": "db.String(50)",
+                    "description": "State or province"
+                },
+                {
+                    "name": "postal_code",
+                    "type": "db.String(20)",
+                    "description": "Postal or ZIP code"
+                },
+                {
+                    "name": "country",
+                    "type": "db.String(50)",
+                    "description": "Country name"
+                },
+                {
+                    "name": "phone",
+                    "type": "db.String(30)",
+                    "description": "Contact phone number"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Car",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "Rental",
+                    "rel_type": "one_to_many",
+                    "cascade": null
+                }
+            ],
+            "relationship_lines": [
+                "cars = db.relationship(",
+                "    'Car',",
+                "    back_populates='location',",
+                "    lazy=True,",
+                "    cascade=\"all, delete-orphan\"",
+                ")",
+                "pickup_rentals = db.relationship(",
+                "    'Rental',",
+                "    back_populates='pickup_location',",
+                "    foreign_keys='Rental.pickup_location_id',",
+                "    lazy=True",
+                ")",
+                "dropoff_rentals = db.relationship(",
+                "    'Rental',",
+                "    back_populates='dropoff_location',",
+                "    foreign_keys='Rental.dropoff_location_id',",
+                "    lazy=True",
+                ")",
+                "rentals = db.relationship(\n    'Rental',\n    primaryjoin=\"or_(Location.id==Rental.pickup_location_id, Location.id==Rental.dropoff_location_id)\",\n    foreign_keys=[Rental.pickup_location_id, Rental.dropoff_location_id],\n    lazy=True\n)"
+            ]
+        },
+        {
+            "name": "Customer",
+            "table": "customers",
+            "columns": [
+                {
+                    "name": "customer_id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for customer"
+                },
+                {
+                    "name": "name",
+                    "type": "db.String(100)",
+                    "description": "Customer full name"
+                },
+                {
+                    "name": "email",
+                    "type": "db.String(150)",
+                    "description": "Customer email address"
+                },
+                {
+                    "name": "phone",
+                    "type": "db.String(30)",
+                    "description": "Customer contact phone"
+                },
+                {
+                    "name": "driver_license_no",
+                    "type": "db.String(50)",
+                    "description": "Driver's license number"
+                },
+                {
+                    "name": "license_expiry",
+                    "type": "db.Date",
+                    "description": "Driver's license expiry date"
+                },
+                {
+                    "name": "vip",
+                    "type": "db.Boolean",
+                    "description": "Premium customer flag"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Rental",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "rentals = db.relationship(\n'Rental',\nback_populates='customer',\nlazy=True,\ncascade=\"all, delete-orphan\"\n)"
+            ]
+        },
+        {
+            "name": "Rental",
+            "table": "rentals",
+            "columns": [
+                {
+                    "name": "rental_id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique rental booking identifier"
+                },
+                {
+                    "name": "car_plate_no",
+                    "type": "db.String(20), db.ForeignKey('cars.plate_no')",
+                    "description": "Foreign key to Car's plate number"
+                },
+                {
+                    "name": "customer_id",
+                    "type": "db.Integer, db.ForeignKey('customers.customer_id')",
+                    "description": "Foreign key to Customer"
+                },
+                {
+                    "name": "pickup_location_id",
+                    "type": "db.Integer, db.ForeignKey('locations.id')",
+                    "description": "Pickup Location foreign key"
+                },
+                {
+                    "name": "dropoff_location_id",
+                    "type": "db.Integer, db.ForeignKey('locations.id')",
+                    "description": "Dropoff Location foreign key"
+                },
+                {
+                    "name": "pickup_date",
+                    "type": "db.DateTime",
+                    "description": "Rental pickup date and time"
+                },
+                {
+                    "name": "dropoff_date",
+                    "type": "db.DateTime",
+                    "description": "Rental dropoff date and time"
+                },
+                {
+                    "name": "daily_rate_snapshot",
+                    "type": "db.Numeric(10,2)",
+                    "description": "Daily rate at time of rental"
+                },
+                {
+                    "name": "total_price",
+                    "type": "db.Numeric(10,2)",
+                    "description": "Total price of rental"
+                },
+                {
+                    "name": "status",
+                    "type": "db.String(20)",
+                    "description": "Rental status: active, closed, cancelled"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Car",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "Customer",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "Location",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "Payment",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "Location",
+                    "rel_type": "many_to_one",
+                    "cascade": ""
+                },
+                {
+                    "target_model": "Location",
+                    "rel_type": "many_to_one",
+                    "cascade": ""
+                }
+            ],
+            "relationship_lines": [
+                "car = db.relationship(",
+                "    'Car',",
+                "    back_populates='rentals',",
+                "    lazy=True",
+                ")",
+                "customer = db.relationship(",
+                "    'Customer',",
+                "    back_populates='rentals',",
+                "    lazy=True",
+                ")",
+                "pickup_location = db.relationship(",
+                "    'Location',",
+                "    back_populates='pickup_rentals',",
+                "    foreign_keys=[pickup_location_id],",
+                "    lazy=True",
+                ")",
+                "dropoff_location = db.relationship(",
+                "    'Location',",
+                "    back_populates='dropoff_rentals',",
+                "    foreign_keys=[dropoff_location_id],",
+                "    lazy=True",
+                ")",
+                "payments = db.relationship(",
+                "    'Payment',",
+                "    back_populates='rental',",
+                "    lazy=True,",
+                "    cascade=\"all, delete-orphan\"",
+                ")"
+            ]
+        },
+        {
+            "name": "Payment",
+            "table": "payments",
+            "columns": [
+                {
+                    "name": "payment_id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique payment transaction identifier"
+                },
+                {
+                    "name": "rental_id",
+                    "type": "db.Integer, db.ForeignKey('rentals.rental_id')",
+                    "description": "Foreign key to related Rental"
+                },
+                {
+                    "name": "amount",
+                    "type": "db.Numeric(10,2)",
+                    "description": "Payment amount"
+                },
+                {
+                    "name": "method",
+                    "type": "db.String(30)",
+                    "description": "Payment method like card or cash"
+                },
+                {
+                    "name": "paid_at",
+                    "type": "db.DateTime",
+                    "description": "Datetime payment was made"
+                },
+                {
+                    "name": "refunded",
+                    "type": "db.Boolean",
+                    "description": "Flag if payment was refunded"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Rental",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                }
+            ],
+            "relationship_lines": [
+                "rental = db.relationship(\n    'Rental',\n    back_populates='payments',\n    lazy=True\n)"
+            ]
+        },
+        {
+            "name": "Service",
+            "table": "services",
+            "columns": [
+                {
+                    "name": "service_id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique service record identifier"
+                },
+                {
+                    "name": "car_plate_no",
+                    "type": "db.String(20), db.ForeignKey('cars.plate_no')",
+                    "description": "Foreign key to Car"
+                },
+                {
+                    "name": "service_type",
+                    "type": "db.String(50)",
+                    "description": "Type of service e.g. oil change, repair"
+                },
+                {
+                    "name": "start_date",
+                    "type": "db.DateTime",
+                    "description": "Service start date and time"
+                },
+                {
+                    "name": "end_date",
+                    "type": "db.DateTime",
+                    "description": "Service end date and time"
+                },
+                {
+                    "name": "cost",
+                    "type": "db.Numeric(10,2)",
+                    "description": "Service cost"
+                },
+                {
+                    "name": "notes",
+                    "type": "db.Text",
+                    "description": "Additional information"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Car",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                }
+            ],
+            "relationship_lines": [
+                "car = db.relationship(\n    'Car',\n    back_populates='services',\n    lazy=True\n)"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,35 @@
+{
+  "file_path": "Output/backendCrew/routes.json",
+  "patch": [
+    {
+      "op": "replace",
+      "path": "/endpoints/11/branches/POST",
+      "value": "obj = Rental.query.get(rental_id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\n# get request data\n data = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\nobj.status = 'closed'\ncar = Car.query.filter_by(plate_no=obj.car_plate_no).first()\nif car:\n    car.status = 'available'\n    if 'current_odometer' in data:\n        car.current_odometer = data['current_odometer']\n    if 'location_id' in data:\n        car.location_id = data['location_id']\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/10/branches/DELETE",
+      "value": "obj = Rental.query.get(rental_id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\nfrom datetime import datetime\nimport dateutil.parser\nstart_date = dateutil.parser.parse(obj.pickup_date)\nnow = datetime.utcnow()\nif start_date <= now:\n    return jsonify({\"message\": \"Cannot delete a rental that has already started or in progress\"}), 400\n# Trigger payment refund logic here - omitted, just comment\n# refund_payment(obj.id)\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Rental deleted\"})",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/2/branches/GET",
+      "value": "query = Car.query\nargs = request.args\nfilters = []\nsearch_str_lower = search_str.lower()\nobjs = query.filter((Car.plate_no.ilike(f'%{search_str_lower}%')) | (Car.model.ilike(f'%{search_str_lower}%'))).all()\nif not objs:\n    return jsonify({\"message\": \"Car not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/8/branches/GET",
+      "value": "query = Customer.query\nargs = request.args\nfilters = []\nname_lower = name.lower()\nobjs = query.filter(Customer.name.ilike(f'%{name_lower}%')).all()\nif not objs:\n    return jsonify({\"message\": \"Customer not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/3/branches/GET",
+      "value": "# This endpoint should filter available cars by category, pickup location and date range\n# but current code returns all cars without filtering\nquery = Car.query\nargs = request.args\n# Extract filters from args\ncategory = args.get('category')\npickup_location = args.get('pickup_location')\ndate_start = args.get('start_date')\ndate_end = args.get('end_date')\nq = query\nif category:\n    q = q.filter(Car.category == category)\nif pickup_location:\n    q = q.filter(Car.location_id == pickup_location)\n# Filtering by availability requires joining Rental and checking no overlapping bookings\n# For simplicity we consider cars with status 'available'\nq = q.filter(Car.status == 'available')\nobjs = q.all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    }
+  ]
+}

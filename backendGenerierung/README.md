@@ -54,3 +54,10 @@ For support, questions, or feedback regarding the {{crew_name}} Crew or crewAI.
 - [Chat with our docs](https://chatg.pt/DWjSBZn)
 
 Let's create wonders together with the power and simplicity of crewAI.
+
+
+only write log: crewai run *> crewai-full.log
+
+create log and show in console: crewai run *>&1 | Tee-Object -FilePath crewai-full.log
+
+Show Log in console: Get-Content crewai-full.log | Write-Host

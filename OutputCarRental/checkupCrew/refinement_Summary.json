@@ -1,0 +1,11 @@
+{
+  "file_path": "api_spec.json",
+  "patch": [
+    {
+      "op": "replace",
+      "path": "/endpoints/3/branches/GET",
+      "value": "query = Car.query\nargs = request.args\ncategory = args.get('category')\npickup_location = args.get('pickup_location')\ndate_start = args.get('start_date')\ndate_end = args.get('end_date')\nq = query\nif category:\n    q = q.filter(Car.category == category)\nif pickup_location:\n    q = q.filter(Car.location_id == pickup_location)\n# Filtering by availability needs to check for overlapping rentals\n# Assume Rental model with car_plate_no and date ranges\nif date_start and date_end:\n    overlapping_rentals = Rental.query.filter(\n        Rental.car_plate_no == Car.plate_no,\n        Rental.status != 'closed',\n        Rental.pickup_date < date_end,\n        Rental.dropoff_date > date_start\n    ).subquery()\n    q = q.outerjoin(overlapping_rentals, Car.plate_no == overlapping_rentals.c.car_plate_no)\n    q = q.filter(overlapping_rentals.c.car_plate_no == None)  # No overlapping rentals\nq = q.filter(Car.status == 'available')\nobjs = q.all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    }
+  ]
+}
