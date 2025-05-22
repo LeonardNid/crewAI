@@ -37,7 +37,6 @@ class TestCrew:
         try:
             BulkTestClientInput(**(payload := output.json_dict))
             res = FlaskTestClientTool().run(**payload)
-            print(res)
             if isinstance(res, str) and res.startswith("Validation failed"):
                 raise ValueError(res)
             return True, res

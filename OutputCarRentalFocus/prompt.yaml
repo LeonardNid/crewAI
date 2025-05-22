@@ -1,0 +1,38 @@
+car_rental_focus:
+  topic: Car Rental Service
+  customer: |
+    CRUD Operations:
+      - Implement standard CRUD endpoints for:
+        - Car (id, brand, model, category, status, plate_no, location_id, price_per_day)
+        - Customer (id, name, email, phone)
+        - Rental (id, customer_id, car_id, start_date, end_date, total_price, status)
+        - Location (id, name, address)
+    Essential Business Logic:
+      - POST /rentals:
+          - Create new rental
+          - Automatically check and update car status to "rented"
+          - Calculate rental price (price_per_day * rental_days)
+          - Prevent booking if car is already rented during requested period (return HTTP 400)
+      - DELETE /rentals/<id>:
+          - Allow cancellation only if rental period has not yet started
+          - Automatically trigger refund process (mock implementation sufficient)
+      - POST /rentals/<id>/return:
+          - Mark rental as completed
+          - Automatically update car status to "available"
+      - GET /cars_available:
+          - Filter available cars by category, location, start_date, end_date
+    Optional Analytics (lower priority):
+      - GET /analytics/revenue: Monthly revenue summary
+      - GET /analytics/utilization: Utilization rate per car category
+
+    instructions:
+      - Prioritize CRUD endpoints and essential business logic
+      - Ensure endpoints return appropriate HTTP status codes
+      - Clearly separate business logic from CRUD logic
+      - Implement robust error handling (e.g., car availability checks)
+      - Mock complex operations clearly if not fully implemented (e.g., refund)
+
+    notes:
+      - Focus strictly on the described endpoints
+      - Maintain clear, modular code structure suitable for future extension
+      - Adhere to REST API best practices and Python PEP8 guidelines

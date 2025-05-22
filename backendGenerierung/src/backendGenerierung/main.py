@@ -16,7 +16,7 @@ from backendGenerierung.Utils import read_file, renderTemplate, enrich_Endpoints
 
 import weave
 
-SCENARIO_KEY = "car_rental"
+SCENARIO_KEY = "car_rental_fokus"
 BACKEND_MAX_RETRY = 15
 TEST_MAX_RETRY = 15
 
@@ -132,9 +132,9 @@ class BackendFlow(Flow[BackendState]):
     
     @router(checkup_backend)
     def check_Backend_Results(self):
+        print("attempts: ", self.state.bL.count)
+        print("verification_Json: ", self.state.bL.defects)
         if (self.state.bL.retry):
-            print("attempts: ", self.state.bL.count)
-            print("verification_Json: ", self.state.bL.defects)
             # if not (input("retryBackendCrew | 'n' to skip retry: ") == "n"): # user input to stop retry of BackendCrew
             if self.state.bL.count < BACKEND_MAX_RETRY:
                 return "retryBackendCrew"
@@ -142,6 +142,7 @@ class BackendFlow(Flow[BackendState]):
     
     @listen(or_("renderTemplate", "fix_bug"))
     def render_Templates(self):
+        print("attempts: ", self.state.tL.count)
         renderTemplate("models.j2", self.state.bL.models_json, "Output/models.py")
         renderTemplate("app.j2", self.state.bL.routes_json, "Output/app.py")
 

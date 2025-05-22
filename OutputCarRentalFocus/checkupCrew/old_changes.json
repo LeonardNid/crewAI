@@ -1,0 +1,47 @@
+{
+  "file_path": "Output/backendCrew/routes.json",
+  "patch": [
+    {
+      "op": "replace",
+      "path": "/endpoints/2/branches/GET",
+      "value": "category = request.args.get('category')\nlocation_id = request.args.get('location')\nstart_date = request.args.get('start_date')\nend_date = request.args.get('end_date')\n\nquery = Car.query.filter(Car.status == 'available')\nif category:\n    query = query.filter(Car.category == category)\nif location_id:\n    query = query.filter(Car.location_id == int(location_id))\n\nif start_date and end_date:\n    # Exclude cars that have rentals overlapping the requested period\n    subquery = db.session.query(Rental.car_id).filter(\n        Rental.status != 'completed',\n        Rental.start_date <= end_date,\n        Rental.end_date >= start_date\n    ).subquery()\n    query = query.filter(~Car.id.in_(subquery))\n\nobjs = query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/5/branches/POST",
+      "value": "data = request.get_json()\ncar = Car.query.get(data.get('car_id'))\nif not car:\n    return jsonify({\"message\": \"Car not found\"}), 404\n\n# Check car availability for requested dates\nstart_date = data.get('start_date')\nend_date = data.get('end_date')\n\nif not start_date or not end_date:\n    return jsonify({\"message\": \"Start and end dates required\"}), 400\n\n# Check overlapping rentals\noverlapping_rental = Rental.query.filter(\n    Rental.car_id == car.id,\n    Rental.status != 'completed',\n    Rental.start_date <= end_date,\n    Rental.end_date >= start_date\n).first()\nif overlapping_rental:\n    return jsonify({\"message\": \"Car is not available for the requested period\"}), 400\n\n# Calculate total_price\nfrom datetime import datetime\nstart_dt = datetime.strptime(start_date, '%Y-%m-%d')\nend_dt = datetime.strptime(end_date, '%Y-%m-%d')\nrental_days = (end_dt - start_dt).days + 1\nif rental_days <= 0:\n    return jsonify({\"message\": \"End date must be after start date\"}), 400\n\nprice_per_day = car.price_per_day\nif price_per_day is None:\n    return jsonify({\"message\": \"Car price not set\"}), 400\n\ntotal_price = price_per_day * rental_days\n\nnew_obj = Rental(\n    customer_id=data.get('customer_id'),\n    car_id=car.id,\n    start_date=start_date,\n    end_date=end_date,\n    status='rented',\n    total_price=total_price\n)\ndb.session.add(new_obj)\n# Update car status to rented\ncar.status = 'rented'\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/6/branches/PUT",
+      "value": "obj = Rental.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\n\n# Only allow update if rental period not started?\n# The description does not forbid update but cancellation is restricted.\n\n# Update fields\n data = request.get_json()\nif 'start_date' in data or 'end_date' in data:\n    # Validate dates\n    from datetime import datetime\n    start_date = data.get('start_date', obj.start_date)\n    end_date = data.get('end_date', obj.end_date)\n    start_dt = datetime.strptime(start_date, '%Y-%m-%d') if isinstance(start_date, str) else start_date\n    end_dt = datetime.strptime(end_date, '%Y-%m-%d') if isinstance(end_date, str) else end_date\n    if (end_dt - start_dt).days < 0:\n        return jsonify({\"message\": \"End date must be after start date\"}), 400\n\n# Update attributes\nfor k, v in data.items():\n    setattr(obj, k, v)\n\n# Recalculate total_price if dates or car_id changed\nif 'start_date' in data or 'end_date' in data or 'car_id' in data:\n    from datetime import datetime\n    start_date = obj.start_date\n    end_date = obj.end_date\n    start_dt = datetime.strptime(start_date, '%Y-%m-%d') if isinstance(start_date, str) else start_date\n    end_dt = datetime.strptime(end_date, '%Y-%m-%d') if isinstance(end_date, str) else end_date\n    rental_days = (end_dt - start_dt).days + 1\n    car = Car.query.get(obj.car_id)\n    if not car:\n        return jsonify({\"message\": \"Car not found\"}), 404\n    price_per_day = car.price_per_day\n    if price_per_day is None:\n        return jsonify({\"message\": \"Car price not set\"}), 400\n    obj.total_price = price_per_day * rental_days\n\n# Update car status if status changed\nif 'status' in data:\n    car = Car.query.get(obj.car_id)\n    if car:\n        if obj.status == 'rented':\n            car.status = 'rented'\n        elif obj.status == 'completed' or obj.status == 'cancelled':\n            car.status = 'available'\n\n\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/6/branches/DELETE",
+      "value": "obj = Rental.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\n\nfrom datetime import datetime\nnow = datetime.now().date()\nrental_start = datetime.strptime(obj.start_date, '%Y-%m-%d').date() if isinstance(obj.start_date, str) else obj.start_date\nif rental_start <= now:\n    return jsonify({\"message\": \"Cannot cancel rental after start date\"}), 400\n\n# Trigger a mock refund process (logging or placeholder)\n# e.g. print(\"Refund process triggered for rental\", id)\n\n# Proceed to delete\n\n# Update car status to available?\ncar = Car.query.get(obj.car_id)\nif car:\n    car.status = 'available'\n\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Rental deleted\"})",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/7/branches/POST",
+      "value": "obj = Rental.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\n# Mark rental as returned and completed\nobj.status = 'completed'\n# Update car status to available\ncar = Car.query.get(obj.car_id)\nif car:\n    car.status = 'available'\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/10/branches/GET",
+      "value": "from sqlalchemy import extract, func\nimport datetime\n\n# Generate monthly revenue summary\nresults = db.session.query(\n    extract('year', Rental.start_date).label('year'),\n    extract('month', Rental.start_date).label('month'),\n    func.sum(Rental.total_price).label('total_revenue')\n).group_by('year', 'month').all()\n\nresponse = []\nfor r in results:\n    response.append({\n        'year': int(r.year),\n        'month': int(r.month),\n        'total_revenue': float(r.total_revenue)\n    })\n\nreturn jsonify(response)",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/11/branches/GET",
+      "value": "from sqlalchemy import func\n\n# Retrieve utilization rate per car category\n\ncars = Car.query.all()\nrental_durations = {}\ncategory_counts = {}\n\nfor car in cars:\n    category = car.category\n    category_counts[category] = category_counts.get(category, 0) + 1\n\n    rentals = Rental.query.filter(Rental.car_id == car.id).all()\n    total_days = 0\n    for r in rentals:\n        from datetime import datetime\n        if r.start_date and r.end_date:\n            start_dt = datetime.strptime(r.start_date, '%Y-%m-%d') if isinstance(r.start_date, str) else r.start_date\n            end_dt = datetime.strptime(r.end_date, '%Y-%m-%d') if isinstance(r.end_date, str) else r.end_date\n            days = (end_dt - start_dt).days + 1\n            total_days += max(days, 0)\n\n    rental_durations[category] = rental_durations.get(category, 0) + total_days\n\n# Assuming utilization rate as total rental days / (number of cars in category * 30 days month as approximation)\nresponse = []\nfor category in category_counts:\n    cars_in_cat = category_counts[category]\n    total_rental_days = rental_durations.get(category, 0)\n    utilization_rate = total_rental_days / (cars_in_cat * 30) if cars_in_cat > 0 else 0\n    response.append({\n        'category': category,\n        'utilization_rate': round(utilization_rate, 4)\n    })\n\nreturn jsonify(response)",
+      "from_path": null
+    }
+  ]
+}

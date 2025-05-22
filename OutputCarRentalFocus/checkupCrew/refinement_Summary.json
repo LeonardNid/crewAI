@@ -1,0 +1,26 @@
+{
+  "file_path": "./api_description.json",
+  "patch": [
+    {
+      "op": "add",
+      "path": "/endpoints/-",
+      "value": {
+        "path": "/analytics_utilization_car_category",
+        "methods": [
+          "GET"
+        ],
+        "model": "Car",
+        "get_List": false,
+        "json_body": null,
+        "description": "Retrieve utilization rate per car category analytics",
+        "idx": 11,
+        "handler_name": "analytics_utilization_car_category",
+        "params": "",
+        "branches": {
+          "GET": "from sqlalchemy import func\n\n# Retrieve utilization rate per car category\n\ncars = Car.query.all()\nrental_durations = {}\ncategory_counts = {}\n\nfor car in cars:\n    category = car.category\n    category_counts[category] = category_counts.get(category, 0) + 1\n\n    rentals = Rental.query.filter(Rental.car_id == car.id).all()\n    total_days = 0\n    for r in rentals:\n        from datetime import datetime\n        if r.start_date and r.end_date:\n            start_dt = datetime.strptime(r.start_date, '%Y-%m-%d') if isinstance(r.start_date, str) else r.start_date\n            end_dt = datetime.strptime(r.end_date, '%Y-%m-%d') if isinstance(r.end_date, str) else r.end_date\n            days = (end_dt - start_dt).days + 1\n            total_days += max(days, 0)\n\n    rental_durations[category] = rental_durations.get(category, 0) + total_days\n\n# Assuming utilization rate as total rental days / (number of cars in category * 30 days month as approximation)\nresponse = []\nfor category in category_counts:\n    cars_in_cat = category_counts[category]\n    total_rental_days = rental_durations.get(category, 0)\n    utilization_rate = total_rental_days / (cars_in_cat * 30) if cars_in_cat > 0 else 0\n    response.append({\n        'category': category,\n        'utilization_rate': round(utilization_rate, 4)\n    })\n\nreturn jsonify(response)"
+        }
+      },
+      "from_path": null
+    }
+  ]
+}

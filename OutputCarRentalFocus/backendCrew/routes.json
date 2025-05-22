@@ -1,0 +1,266 @@
+{
+    "topic": "Car Rental Service",
+    "endpoints": [
+        {
+            "path": "/cars",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Car",
+            "get_List": true,
+            "json_body": {
+                "brand": "string",
+                "model": "string",
+                "category": "string",
+                "status": "string",
+                "plate_no": "string",
+                "location_id": "integer",
+                "price_per_day": "number"
+            },
+            "description": "List all cars or create a new car",
+            "idx": 0,
+            "handler_name": "cars",
+            "params": "",
+            "branches": {
+                "GET": "objs = Car.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = Car(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/cars/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Car",
+            "get_List": false,
+            "json_body": {
+                "brand": "string",
+                "model": "string",
+                "category": "string",
+                "status": "string",
+                "plate_no": "string",
+                "location_id": "integer",
+                "price_per_day": "number"
+            },
+            "description": "Retrieve, update, or delete a specific car by ID",
+            "idx": 1,
+            "handler_name": "cars_int_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = Car.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Car not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Car.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Car not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Car.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Car not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Car deleted\"})"
+            }
+        },
+        {
+            "path": "/cars_available",
+            "methods": [
+                "GET"
+            ],
+            "model": "Car",
+            "get_List": true,
+            "json_body": null,
+            "description": "List all available cars filtered by category, location, start_date, and end_date using query parameters",
+            "idx": 2,
+            "handler_name": "cars_available",
+            "params": "",
+            "branches": {
+                "GET": "from datetime import datetime\n\ncategory = request.args.get('category')\nlocation_id = request.args.get('location')\nstart_date = request.args.get('start_date')\nend_date = request.args.get('end_date')\n\nquery = Car.query.filter(Car.status == 'available')\nif category:\n    query = query.filter(Car.category == category)\nif location_id:\n    query = query.filter(Car.location_id == int(location_id))\n\nif start_date and end_date:\n    start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()\n    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()\n    # Exclude cars that have rentals overlapping the requested period\n    subquery = db.session.query(Rental.car_id).filter(\n        Rental.status != 'completed',\n        Rental.start_date <= end_date_obj,\n        Rental.end_date >= start_date_obj\n    ).subquery()\n    query = query.filter(~Car.id.in_(subquery))\n\nobjs = query.all()\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/customers",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Customer",
+            "get_List": true,
+            "json_body": {
+                "name": "string",
+                "email": "string",
+                "phone": "string"
+            },
+            "description": "List all customers or create a new customer",
+            "idx": 3,
+            "handler_name": "customers",
+            "params": "",
+            "branches": {
+                "GET": "objs = Customer.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = Customer(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/customers/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Customer",
+            "get_List": false,
+            "json_body": {
+                "name": "string",
+                "email": "string",
+                "phone": "string"
+            },
+            "description": "Retrieve, update, or delete a specific customer by ID",
+            "idx": 4,
+            "handler_name": "customers_int_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = Customer.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Customer not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Customer.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Customer not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Customer.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Customer not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Customer deleted\"})"
+            }
+        },
+        {
+            "path": "/rentals",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Rental",
+            "get_List": true,
+            "json_body": {
+                "customer_id": "integer",
+                "car_id": "integer",
+                "start_date": "string",
+                "end_date": "string",
+                "status": "string",
+                "total_price": "number"
+            },
+            "description": "List all rentals or create a new rental with availability check, total_price calculation (price_per_day * rental days), and car status update (to rented)",
+            "idx": 5,
+            "handler_name": "rentals",
+            "params": "",
+            "branches": {
+                "GET": "objs = Rental.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "from decimal import Decimal, ROUND_HALF_UP\nfrom datetime import datetime\n\ndata = request.get_json()\ncar = Car.query.get(data.get('car_id'))\nif not car:\n    return jsonify({\"message\": \"Car not found\"}), 404\n\nrequired_fields = ['customer_id', 'start_date', 'end_date']\nfor field in required_fields:\n    if not data.get(field):\n        return jsonify({\"message\": f\"{field} is required\"}), 400\n\nstart_date = data.get('start_date')\nend_date = data.get('end_date')\n\n# Robust date parsing\ntry:\n    if isinstance(start_date, str):\n        start_dt = datetime.strptime(start_date, '%Y-%m-%d').date()\n    elif isinstance(start_date, datetime.date):\n        start_dt = start_date\n    else:\n        return jsonify({\"message\": \"Invalid start_date format\"}), 400\n\n    if isinstance(end_date, str):\n        end_dt = datetime.strptime(end_date, '%Y-%m-%d').date()\n    elif isinstance(end_date, datetime.date):\n        end_dt = end_date\n    else:\n        return jsonify({\"message\": \"Invalid end_date format\"}), 400\nexcept ValueError:\n    return jsonify({\"message\": \"Invalid date format, expected YYYY-MM-DD\"}), 400\n\nif (end_dt - start_dt).days < 0:\n    return jsonify({\"message\": \"End date must be after start date\"}), 400\n\n# Check overlapping rentals\noverlapping_rental = Rental.query.filter(\n    Rental.car_id == car.id,\n    Rental.status != 'completed',\n    Rental.start_date <= end_dt,\n    Rental.end_date >= start_dt\n).first()\nif overlapping_rental:\n    return jsonify({\"message\": \"Car is not available for the requested period\"}), 400\n\nrental_days = (end_dt - start_dt).days + 1\nprice_per_day = car.price_per_day\nif price_per_day is None:\n    return jsonify({\"message\": \"Car price not set\"}), 400\n\nrental_status = data.get('status', 'rented')\nif rental_status not in ['rented', 'reserved', 'booked']:\n    rental_status = 'rented'\n\n# Use Decimal for accurate price computations\nprice_per_day_dec = Decimal(str(price_per_day))\nrental_days_dec = Decimal(rental_days)\ntotal_price = (price_per_day_dec * rental_days_dec).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)\n\nnew_obj = Rental(\n    customer_id=data.get('customer_id'),\n    car_id=car.id,\n    start_date=start_dt,\n    end_date=end_dt,\n    status=rental_status,\n    total_price=total_price\n)\ndb.session.add(new_obj)\nif rental_status in ['rented', 'booked', 'reserved']:\n    car.status = 'rented'\nelse:\n    car.status = 'available'\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/rentals/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Rental",
+            "get_List": false,
+            "json_body": {
+                "customer_id": "integer",
+                "car_id": "integer",
+                "start_date": "string",
+                "end_date": "string",
+                "status": "string",
+                "total_price": "number"
+            },
+            "description": "Retrieve, update (including total_price and status), or cancel a rental by ID only if rental period not started; triggers refund process before deletion",
+            "idx": 6,
+            "handler_name": "rentals_int_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = Rental.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "from decimal import Decimal, ROUND_HALF_UP\nimport datetime\n\ndef parse_date(d):\n    if isinstance(d, str):\n        try:\n            return datetime.datetime.strptime(d, '%Y-%m-%d').date()\n        except ValueError:\n            return None\n    elif isinstance(d, datetime.date):\n        return d\n    return None\n\ndata = request.get_json()\nobj = Rental.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\n\nif 'start_date' in data:\n    parsed_start = parse_date(data['start_date'])\n    if parsed_start is None:\n        return jsonify({\"message\": \"Invalid start_date format\"}), 400\n    data['start_date'] = parsed_start\nif 'end_date' in data:\n    parsed_end = parse_date(data['end_date'])\n    if parsed_end is None:\n        return jsonify({\"message\": \"Invalid end_date format\"}), 400\n    data['end_date'] = parsed_end\n\nstart_date = data.get('start_date', obj.start_date)\nend_date = data.get('end_date', obj.end_date)\n\nif (end_date - start_date).days < 0:\n    return jsonify({\"message\": \"End date must be after start date\"}), 400\n\n# Check overlapping rentals excluding itself\noverlapping_rental = Rental.query.filter(\n    Rental.car_id == obj.car_id,\n    Rental.id != obj.id,\n    Rental.status != 'completed',\n    Rental.start_date <= end_date,\n    Rental.end_date >= start_date\n).first()\nif overlapping_rental:\n    return jsonify({\"message\": \"Car is not available for the requested period\"}), 400\n\n# Update attributes from incoming data except total_price\nfor k, v in data.items():\n    if k != 'total_price':\n        setattr(obj, k, v)\n\nrental_days = (end_date - start_date).days + 1\ncar = Car.query.get(obj.car_id)\nif not car:\n    return jsonify({\"message\": \"Car not found\"}), 404\nprice_per_day = car.price_per_day\nif price_per_day is None:\n    return jsonify({\"message\": \"Car price not set\"}), 400\n\nprice_per_day_dec = Decimal(str(price_per_day))\nrental_days_dec = Decimal(rental_days)\ntotal_price = (price_per_day_dec * rental_days_dec).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)\n\nobj.total_price = total_price\n\nif 'status' in data:\n    if obj.status in ['rented', 'booked', 'reserved']:\n        car.status = 'rented'\n    elif obj.status in ['completed', 'cancelled']:\n        car.status = 'available'\n\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Rental.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\n\nimport datetime\nnow = datetime.datetime.now().date()\nrental_start = obj.start_date if isinstance(obj.start_date, datetime.date) else datetime.datetime.strptime(obj.start_date, '%Y-%m-%d').date()\n# Business rule forbids cancellation after start date\nif rental_start <= now:\n    return jsonify({\"message\": \"Cannot cancel rental after start date\"}), 400\n\n# Trigger refund process here (placeholder)\n\ncar = Car.query.get(obj.car_id)\nif car:\n    car.status = 'available'\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Rental deleted\"})"
+            }
+        },
+        {
+            "path": "/rentals/<int:id>/return",
+            "methods": [
+                "POST"
+            ],
+            "model": "Rental",
+            "get_List": false,
+            "json_body": null,
+            "description": "Mark a rental as returned and completed; update rental and car status accordingly",
+            "idx": 7,
+            "handler_name": "rentals_int_id_return",
+            "params": "id",
+            "branches": {
+                "POST": "obj = Rental.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Rental not found\"}), 404\n# Mark rental as returned and completed\nobj.status = 'completed'\n# Update car status to available\ncar = Car.query.get(obj.car_id)\nif car:\n    car.status = 'available'\ndb.session.commit()\nreturn jsonify(obj.to_dict())"
+            }
+        },
+        {
+            "path": "/locations",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Location",
+            "get_List": true,
+            "json_body": {
+                "name": "string",
+                "address": "string"
+            },
+            "description": "List all locations or create a new location",
+            "idx": 8,
+            "handler_name": "locations",
+            "params": "",
+            "branches": {
+                "GET": "objs = Location.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = Location(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/locations/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Location",
+            "get_List": false,
+            "json_body": {
+                "name": "string",
+                "address": "string"
+            },
+            "description": "Retrieve, update, or delete a specific location by ID",
+            "idx": 9,
+            "handler_name": "locations_int_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = Location.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Location not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Location.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Location not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Location.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Location not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Location deleted\"})"
+            }
+        },
+        {
+            "path": "/analytics_revenue_monthly",
+            "methods": [
+                "GET"
+            ],
+            "model": "Rental",
+            "get_List": false,
+            "json_body": null,
+            "description": "Retrieve aggregated monthly revenue summary analytics",
+            "idx": 10,
+            "handler_name": "analytics_revenue_monthly",
+            "params": "",
+            "branches": {
+                "GET": "from sqlalchemy import extract, func\nimport datetime\n\n# Generate monthly revenue summary\nresults = db.session.query(\n    extract('year', Rental.start_date).label('year'),\n    extract('month', Rental.start_date).label('month'),\n    func.sum(Rental.total_price).label('total_revenue')\n).group_by('year', 'month').all()\n\nresponse = []\nfor r in results:\n    response.append({\n        'year': int(r.year),\n        'month': int(r.month),\n        'total_revenue': float(r.total_revenue)\n    })\n\nreturn jsonify(response)"
+            }
+        },
+        {
+            "path": "/analytics_utilization_car_category",
+            "methods": [
+                "GET"
+            ],
+            "model": "Car",
+            "get_List": false,
+            "json_body": null,
+            "description": "Retrieve utilization rate per car category analytics",
+            "idx": 11,
+            "handler_name": "analytics_utilization_car_category",
+            "params": "",
+            "branches": {
+                "GET": "from sqlalchemy import func\nimport datetime\n\n# Retrieve utilization rate per car category\n\ncars = Car.query.all()\nrental_durations = {}\ncategory_counts = {}\n\nfor car in cars:\n    category = car.category\n    category_counts[category] = category_counts.get(category, 0) + 1\n\n    rentals = Rental.query.filter(Rental.car_id == car.id).all()\n    total_days = 0\n    for r in rentals:\n        start_dt = r.start_date if isinstance(r.start_date, datetime.date) else datetime.datetime.strptime(r.start_date, '%Y-%m-%d').date()\n        end_dt = r.end_date if isinstance(r.end_date, datetime.date) else datetime.datetime.strptime(r.end_date, '%Y-%m-%d').date()\n        days = (end_dt - start_dt).days + 1\n        total_days += max(days, 0)\n\n    rental_durations[category] = rental_durations.get(category, 0) + total_days\n\n# Assuming utilization rate as total rental days / (number of cars in category * 30 days month as approximation)\nresponse = []\nfor category in category_counts:\n    cars_in_cat = category_counts[category]\n    total_rental_days = rental_durations.get(category, 0)\n    utilization_rate = total_rental_days / (cars_in_cat * 30) if cars_in_cat > 0 else 0\n    response.append({\n        'category': category,\n        'utilization_rate': round(utilization_rate, 4)\n    })\n\nreturn jsonify(response)"
+            }
+        }
+    ],
+    "models_import": "Car, Customer, Rental, Location"
+}

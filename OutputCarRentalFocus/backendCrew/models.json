@@ -1,0 +1,193 @@
+{
+    "topic": "Car Rental Service",
+    "models": [
+        {
+            "name": "Car",
+            "table": "cars",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for each car"
+                },
+                {
+                    "name": "brand",
+                    "type": "db.String(50), nullable=False",
+                    "description": "Manufacturer or brand of the car"
+                },
+                {
+                    "name": "model",
+                    "type": "db.String(50), nullable=False",
+                    "description": "Specific model name of the car"
+                },
+                {
+                    "name": "category",
+                    "type": "db.String(50), nullable=False",
+                    "description": "Classification of the car (e.g., SUV, sedan)"
+                },
+                {
+                    "name": "status",
+                    "type": "db.String(20), nullable=False",
+                    "description": "Current availability status (e.g., available, rented)"
+                },
+                {
+                    "name": "plate_no",
+                    "type": "db.String(20), unique=True, nullable=False",
+                    "description": "License plate number, unique per car"
+                },
+                {
+                    "name": "location_id",
+                    "type": "db.Integer, db.ForeignKey('locations.id'), nullable=False",
+                    "description": "Reference to the location where the car is stored"
+                },
+                {
+                    "name": "price_per_day",
+                    "type": "db.Numeric(10, 2), nullable=False",
+                    "description": "Rental price charged per day for this car"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Location",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "Rental",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "location = db.relationship(\n    'Location',\n    back_populates='cars',\n    lazy=True\n)",
+                "rentals = db.relationship(\n    'Rental',\n    back_populates='car',\n    lazy=True,\n    cascade='all, delete-orphan'\n)"
+            ],
+            "to_dict": "def to_dict(self):\n    return {\n        'id': self.id,\n        'brand': self.brand,\n        'model': self.model,\n        'category': self.category,\n        'status': self.status,\n        'plate_no': self.plate_no,\n        'location_id': self.location_id,\n        'price_per_day': float(self.price_per_day) if self.price_per_day is not None else None\n    }"
+        },
+        {
+            "name": "Customer",
+            "table": "customers",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for each customer"
+                },
+                {
+                    "name": "name",
+                    "type": "db.String(100), nullable=False",
+                    "description": "Full name of the customer"
+                },
+                {
+                    "name": "email",
+                    "type": "db.String(100), unique=True, nullable=False",
+                    "description": "Contact email for communication"
+                },
+                {
+                    "name": "phone",
+                    "type": "db.String(20), nullable=True",
+                    "description": "Phone number for contact"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Rental",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "rentals = db.relationship(\n    'Rental',\n    back_populates='customer',\n    lazy=True,\n    cascade='all, delete-orphan'\n)"
+            ]
+        },
+        {
+            "name": "Rental",
+            "table": "rentals",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for the rental"
+                },
+                {
+                    "name": "customer_id",
+                    "type": "db.Integer, db.ForeignKey('customers.id'), nullable=False",
+                    "description": "Reference to the renting customer"
+                },
+                {
+                    "name": "car_id",
+                    "type": "db.Integer, db.ForeignKey('cars.id'), nullable=False",
+                    "description": "Reference to the rented car"
+                },
+                {
+                    "name": "start_date",
+                    "type": "db.Date, nullable=False",
+                    "description": "Start date of the rental period"
+                },
+                {
+                    "name": "end_date",
+                    "type": "db.Date, nullable=False",
+                    "description": "End date of the rental period"
+                },
+                {
+                    "name": "total_price",
+                    "type": "db.Numeric(10, 2), nullable=False",
+                    "description": "Calculated total price for the rental"
+                },
+                {
+                    "name": "status",
+                    "type": "db.String(20), nullable=False",
+                    "description": "Current status of the rental (active, completed, cancelled)"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Customer",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "Car",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                }
+            ],
+            "relationship_lines": [
+                "customer = db.relationship(\n    'Customer',\n    back_populates='rentals',\n    lazy=True\n)",
+                "car = db.relationship(\n    'Car',\n    back_populates='rentals',\n    lazy=True\n)"
+            ],
+            "to_dict": "def to_dict(self):\n    from email.utils import formatdate\n    import datetime\n\n    def fmt_date(d):\n        if not d:\n            return None\n        if isinstance(d, str):\n            try:\n                d = datetime.datetime.strptime(d, '%Y-%m-%d').date()\n            except Exception:\n                return d\n        dt = datetime.datetime.combine(d, datetime.time.min).replace(tzinfo=datetime.timezone.utc)\n        return formatdate(dt.timestamp(), usegmt=True)\n\n    return {\n        'id': self.id,\n        'customer_id': self.customer_id,\n        'car_id': self.car_id,\n        'start_date': fmt_date(self.start_date),\n        'end_date': fmt_date(self.end_date),\n        'status': self.status,\n        'total_price': float(self.total_price) if self.total_price is not None else None\n    }"
+        },
+        {
+            "name": "Location",
+            "table": "locations",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for the location"
+                },
+                {
+                    "name": "name",
+                    "type": "db.String(100), nullable=False",
+                    "description": "Name of the location, e.g., Downtown Branch"
+                },
+                {
+                    "name": "address",
+                    "type": "db.String(200), nullable=False",
+                    "description": "Physical or descriptive address of the location"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Car",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "cars = db.relationship(\n    'Car',\n    back_populates='location',\n    lazy=True,\n    cascade='all, delete-orphan'\n)"
+            ]
+        }
+    ]
+}
