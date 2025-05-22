@@ -1,0 +1,41 @@
+car_rental:
+  topic: Car Rental Service
+  customer: |
+    I need a backend for managing a multi-branch car-rental company.
+
+    ►  Core entities
+      • Car        : plate_no, brand, model, year, category (compact, SUV, van ...),
+                     seats, transmission (auto/manual), fuel_type, daily_rate,
+                     current_odometer, status (available, rented, service), location_id
+      • Location   : name, address, city, country, phone
+      • Customer   : customer_id, name, email, phone, driver_license_no,
+                     license_expiry, vip (bool)
+      • Rental     : rental_id, car_plate_no, customer_id,
+                     pickup_location_id, dropoff_location_id,
+                     pickup_date, dropoff_date, daily_rate_snapshot,
+                     total_price, status (active, closed, cancelled)
+      • Payment    : payment_id, rental_id, amount, method (card, cash),
+                     paid_at, refunded (bool)
+      • Service    : service_id, car_plate_no, service_type (oil, tires, repair),
+                     start_date, end_date, cost, notes
+
+    ►  Must-have features
+      1. CRUD for all entities above.
+      2. **Book a rental**:
+         - choose car by category, dates and pickup location
+         - lock car (status → “rented”), create Rental record with total_price.
+      3. **Return a car**:
+         - mark Rental as “closed”, update car status to “available”,
+           update odometer and current location.
+      4. **Cancel rental** (if it hasn't started) → refund payment.
+      5. **List cars** with filters:
+         - by location, category, seats, transmission, price range
+      6. **Service workflow**:
+         - move car to “service”, create Service entry,
+           car becomes bookable only after service “end_date”.
+      7. **Analytics endpoints**:
+         - revenue per month
+         - utilisation rate (% days rented) per car category
+      8. Search endpoints:
+         - `/customers/search/<string:name>`
+         - `/cars/search/<string:plate_or_model>`
