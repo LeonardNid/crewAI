@@ -1,0 +1,12 @@
+library:
+  topic: Library
+  customer: |
+    I want to manage a small public library.
+    Books have a title, author, ISBN, genre, publication year and a flag whether they are currently borrowed.
+    Members have a name, e-mail address, membership number, and a date when their membership expires.
+    Each loan should track the book, the member, a checkout date and a due date.
+    I'd like endpoints to:
+      - add / edit / delete books and members
+      - borrow and return a book
+      - list overdue loans
+      - search books by title or author
