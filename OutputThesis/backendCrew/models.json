@@ -1,0 +1,370 @@
+{
+    "topic": "Thesis Management",
+    "models": [
+        {
+            "name": "User",
+            "table": "users",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for the user"
+                },
+                {
+                    "name": "email",
+                    "type": "db.String(255), unique=True, nullable=False",
+                    "description": "Email for registration and login"
+                },
+                {
+                    "name": "password",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Password securely stored for authentication"
+                },
+                {
+                    "name": "name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Full name of the user"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "SupervisorAssignment",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "Thesis",
+                    "rel_type": "one_to_many",
+                    "cascade": null
+                },
+                {
+                    "target_model": "MeetingNote",
+                    "rel_type": "one_to_many",
+                    "cascade": null
+                },
+                {
+                    "target_model": "NotificationSettings",
+                    "rel_type": "one_to_one",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "ReminderPeriod",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "supervisorassignments = db.relationship(\n'SupervisorAssignment',\nback_populates='user',\nlazy=True,\ncascade=\"all, delete-orphan\"\n)",
+                "thesiss = db.relationship(\n'Thesis',\nback_populates='user',\nlazy=True,\n\n)",
+                "meetingnotes = db.relationship(\n'MeetingNote',\nback_populates='user',\nlazy=True,\n\n)",
+                "notificationsettings = db.relationship(\n'NotificationSettings',\nuselist=False,\nback_populates='user',\nlazy=True\n)",
+                "reminderperiods = db.relationship(\n'ReminderPeriod',\nback_populates='user',\nlazy=True,\ncascade=\"all, delete-orphan\"\n)"
+            ]
+        },
+        {
+            "name": "Thesis",
+            "table": "theses",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for the thesis"
+                },
+                {
+                    "name": "thesis_type",
+                    "type": "db.String(20), nullable=False",
+                    "description": "Type of thesis (Seminar, Bachelor, Master, PhD)"
+                },
+                {
+                    "name": "title",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Title of the thesis"
+                },
+                {
+                    "name": "description",
+                    "type": "db.Text",
+                    "description": "Description of the thesis"
+                },
+                {
+                    "name": "student_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Name of the student authoring the thesis"
+                },
+                {
+                    "name": "start_supervision_date",
+                    "type": "db.Date",
+                    "description": "Start date of supervision"
+                },
+                {
+                    "name": "official_registration_date",
+                    "type": "db.Date",
+                    "description": "Official registration date"
+                },
+                {
+                    "name": "submission_date",
+                    "type": "db.Date",
+                    "description": "Submission date of the thesis"
+                },
+                {
+                    "name": "colloquium_date",
+                    "type": "db.Date",
+                    "description": "Date of the colloquium"
+                },
+                {
+                    "name": "grade",
+                    "type": "db.String(10)",
+                    "description": "Grade received for the thesis"
+                },
+                {
+                    "name": "second_examiner_id",
+                    "type": "db.Integer, db.ForeignKey('users.id')",
+                    "description": "User ID of the second examiner"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "SupervisorAssignment",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "MeetingNote",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "User",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "Deadline",
+                    "rel_type": "one_to_one",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "ReminderPeriod",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "supervisorassignments = db.relationship(\n'SupervisorAssignment',\nback_populates='thesis',\nlazy=True,\ncascade=\"all, delete-orphan\"\n)",
+                "meetingnotes = db.relationship(\n'MeetingNote',\nback_populates='thesis',\nlazy=True,\ncascade=\"all, delete-orphan\"\n)",
+                "user = db.relationship(\n    'User',\n    back_populates='thesiss',\n    lazy=True\n)",
+                "deadline = db.relationship(\n'Deadline',\nuselist=False,\nback_populates='thesis',\nlazy=True\n)",
+                "reminderperiods = db.relationship(\n'ReminderPeriod',\nback_populates='thesis',\nlazy=True,\ncascade=\"all, delete-orphan\"\n)"
+            ]
+        },
+        {
+            "name": "SupervisorAssignment",
+            "table": "supervisor_assignments",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for the supervisor assignment"
+                },
+                {
+                    "name": "user_id",
+                    "type": "db.Integer, db.ForeignKey('users.id'), nullable=False",
+                    "description": "User ID of the supervisor"
+                },
+                {
+                    "name": "thesis_id",
+                    "type": "db.Integer, db.ForeignKey('theses.id'), nullable=False",
+                    "description": "Thesis ID the supervisor is assigned to"
+                },
+                {
+                    "name": "assigned_date",
+                    "type": "db.Date",
+                    "description": "Date when the supervisor was assigned (optional)"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "User",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "Thesis",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                }
+            ],
+            "relationship_lines": [
+                "user = db.relationship(\n    'User',\n    back_populates='supervisorassignments',\n    lazy=True\n)",
+                "thesis = db.relationship(\n    'Thesis',\n    back_populates='supervisorassignments',\n    lazy=True\n)"
+            ]
+        },
+        {
+            "name": "MeetingNote",
+            "table": "meeting_notes",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for the meeting note"
+                },
+                {
+                    "name": "thesis_id",
+                    "type": "db.Integer, db.ForeignKey('theses.id'), nullable=False",
+                    "description": "ID of the related thesis"
+                },
+                {
+                    "name": "date",
+                    "type": "db.Date",
+                    "description": "Date of the meeting"
+                },
+                {
+                    "name": "summary",
+                    "type": "db.Text",
+                    "description": "Summary/detail of the meeting notes"
+                },
+                {
+                    "name": "creator_id",
+                    "type": "db.Integer, db.ForeignKey('users.id')",
+                    "description": "ID of the user who created the meeting note (optional)"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Thesis",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "User",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                }
+            ],
+            "relationship_lines": [
+                "thesis = db.relationship(\n    'Thesis',\n    back_populates='meetingnotes',\n    lazy=True\n)",
+                "user = db.relationship(\n    'User',\n    back_populates='meetingnotes',\n    lazy=True\n)"
+            ]
+        },
+        {
+            "name": "NotificationSettings",
+            "table": "notification_settings",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for notification settings"
+                },
+                {
+                    "name": "user_id",
+                    "type": "db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False",
+                    "description": "User assigned to these notification settings"
+                },
+                {
+                    "name": "in_app_enabled",
+                    "type": "db.Boolean, default=True",
+                    "description": "Whether in-app notifications are enabled"
+                },
+                {
+                    "name": "email_enabled",
+                    "type": "db.Boolean, default=True",
+                    "description": "Whether email notifications are enabled"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "User",
+                    "rel_type": "one_to_one",
+                    "cascade": null
+                }
+            ],
+            "relationship_lines": [
+                "user = db.relationship(\n'User',\nuselist=False,\nback_populates='notificationsettings',\nlazy=True\n)"
+            ]
+        },
+        {
+            "name": "ReminderPeriod",
+            "table": "reminder_periods",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for the reminder period"
+                },
+                {
+                    "name": "user_id",
+                    "type": "db.Integer, db.ForeignKey('users.id'), nullable=True",
+                    "description": "User ID for user-specific reminder period (nullable for global)"
+                },
+                {
+                    "name": "thesis_id",
+                    "type": "db.Integer, db.ForeignKey('theses.id'), nullable=True",
+                    "description": "Thesis ID for thesis-specific override reminder period (optional)"
+                },
+                {
+                    "name": "days_before_deadline",
+                    "type": "db.Integer, nullable=False",
+                    "description": "Number of days before deadline when reminder should trigger"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "User",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "Thesis",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "Deadline",
+                    "rel_type": "many_to_one",
+                    "cascade": null
+                }
+            ],
+            "relationship_lines": [
+                "user = db.relationship(\n    'User',\n    back_populates='reminderperiods',\n    lazy=True\n)",
+                "thesis = db.relationship(\n    'Thesis',\n    back_populates='reminderperiods',\n    lazy=True\n)",
+                "deadline = db.relationship(\n    'Deadline',\n    back_populates='reminderperiods',\n    lazy=True\n)"
+            ]
+        },
+        {
+            "name": "Deadline",
+            "table": "deadlines",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Unique identifier for the deadline"
+                },
+                {
+                    "name": "thesis_id",
+                    "type": "db.Integer, db.ForeignKey('theses.id'), unique=True, nullable=False",
+                    "description": "Deadline's related thesis"
+                },
+                {
+                    "name": "deadline_date",
+                    "type": "db.Date",
+                    "description": "Custom deadline date per thesis"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Thesis",
+                    "rel_type": "one_to_one",
+                    "cascade": null
+                },
+                {
+                    "target_model": "ReminderPeriod",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "thesis = db.relationship(\n'Thesis',\nuselist=False,\nback_populates='deadline',\nlazy=True\n)",
+                "reminderperiods = db.relationship(\n'ReminderPeriod',\nback_populates='deadline',\nlazy=True,\ncascade=\"all, delete-orphan\"\n)"
+            ]
+        }
+    ]
+}

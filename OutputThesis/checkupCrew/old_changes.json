@@ -1,0 +1,125 @@
+{
+  "file_path": "Output/backendCrew/routes.json",
+  "patch": [
+    {
+      "op": "replace",
+      "path": "/endpoints/1/branches/POST",
+      "value": "data = request.get_json()\nuser = User.query.filter_by(email=data.get('email')).first()\nif user is None:\n    new_obj = User(**data)\n    db.session.add(new_obj)\n    db.session.commit()\n    return jsonify(new_obj.to_dict()), 201\nelse:\n    # Here should be authentication, but existing code incorrectly creates user\n    # Instead return error or token generation (omitted here for fix simplicity)\n    return jsonify({\"message\": \"User already exists\"}), 400",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/2/branches/GET",
+      "value": "parent = User.query.get(user_id)\nif not parent:\n    return jsonify({\"message\": \"User not found\"}), 404\nnotif = parent.notification_settings\nif notif is None:\n    return jsonify({})\nreturn jsonify(notif.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/2/branches/PUT",
+      "value": "parent = User.query.get(user_id)\nif not parent:\n    return jsonify({\"message\": \"User not found\"}), 404\nnotif = parent.notification_settings\nif notif is None:\n    notif = NotificationSettings(user_id=user_id)\n    db.session.add(notif)\n    db.session.commit()\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(notif, k, v)\ndb.session.commit()\nreturn jsonify(notif.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/3/branches/PUT",
+      "value": "parent = User.query.get(user_id)\nif not parent:\n    return jsonify({\"message\": \"User not found\"}), 404\nobj_id = request.get_json().get(\"id\")\nobj = ReminderPeriod.query.get(obj_id) if obj_id else None\nif not obj or obj.user_id != user_id:\n    return jsonify({\"message\": \"ReminderPeriod not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/3/branches/DELETE",
+      "value": "parent = User.query.get(user_id)\nif not parent:\n    return jsonify({\"message\": \"User not found\"}), 404\nobj_id = request.args.get('id', type=int)\nobj = ReminderPeriod.query.get(obj_id) if obj_id else None\nif not obj or obj.user_id != user_id:\n    return jsonify({\"message\": \"ReminderPeriod not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"ReminderPeriod deleted\"})",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/5/branches/GET",
+      "value": "objs = Thesis.query.filter_by(thesis_type=thesis_type).all()\nif not objs:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/6/branches/GET",
+      "value": "objs = Thesis.query.filter_by(grade=grade).all()\nif not objs:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/7/branches/GET",
+      "value": "objs = Thesis.query.filter_by(second_examiner_id=user_id).all()\nif not objs:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/8/branches/GET",
+      "value": "assignments = SupervisorAssignment.query.filter_by(user_id=user_id).all()\nthesis_ids = [a.thesis_id for a in assignments]\nobjs = Thesis.query.filter(Thesis.id.in_(thesis_ids)).all()\nif not objs:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/9/branches/GET",
+      "value": "from datetime import datetime, timedelta\n\ncutoff_date = datetime.utcnow() + timedelta(days=days)\nobjs = Thesis.query.join(Deadline).filter(Deadline.deadline_date <= cutoff_date).all()\nif not objs:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/11/branches/GET",
+      "value": "parent = Thesis.query.get(thesis_id)\nif not parent:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nchildren = parent.supervisors\nreturn jsonify([c.to_dict() for c in children])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/11/branches/POST",
+      "value": "data = request.get_json()\nuser_ids = data.get('user_ids', [])\nif not isinstance(user_ids, list) or not all(isinstance(uid, int) for uid in user_ids):\n    return jsonify({\"message\": \"user_ids must be a list of integers\"}), 400\nparent = Thesis.query.get(thesis_id)\nif not parent:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nadded = []\nfor uid in user_ids:\n    exists = SupervisorAssignment.query.filter_by(thesis_id=thesis_id, user_id=uid).first()\n    if not exists:\n        new_obj = SupervisorAssignment(thesis_id=thesis_id, user_id=uid)\n        db.session.add(new_obj)\n        added.append(new_obj)\ndb.session.commit()\nreturn jsonify([a.to_dict() for a in added]), 201",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/11/branches/PUT",
+      "value": "data = request.get_json()\nuser_ids = data.get('user_ids', [])\nif not isinstance(user_ids, list) or not all(isinstance(uid, int) for uid in user_ids):\n    return jsonify({\"message\": \"user_ids must be a list of integers\"}), 400\nparent = Thesis.query.get(thesis_id)\nif not parent:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nSupervisorAssignment.query.filter_by(thesis_id=thesis_id).delete()\nfor uid in user_ids:\n    new_obj = SupervisorAssignment(thesis_id=thesis_id, user_id=uid)\n    db.session.add(new_obj)\ndb.session.commit()\nchildren = parent.supervisors\nreturn jsonify([c.to_dict() for c in children])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/12/branches/DELETE",
+      "value": "obj = SupervisorAssignment.query.filter_by(thesis_id=thesis_id, user_id=user_id).first()\nif not obj:\n    return jsonify({\"message\": \"SupervisorAssignment not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"SupervisorAssignment deleted\"})",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/13/branches/GET",
+      "value": "parent = Thesis.query.get(thesis_id)\nif not parent:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nchildren = parent.meeting_notes\nreturn jsonify([c.to_dict() for c in children])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/14/branches/GET",
+      "value": "obj = MeetingNote.query.filter_by(thesis_id=thesis_id, id=note_id).first()\nif not obj:\n    return jsonify({\"message\": \"MeetingNote not found\"}), 404\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/14/branches/PUT",
+      "value": "obj = MeetingNote.query.filter_by(thesis_id=thesis_id, id=note_id).first()\nif not obj:\n    return jsonify({\"message\": \"MeetingNote not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/14/branches/DELETE",
+      "value": "obj = MeetingNote.query.filter_by(thesis_id=thesis_id, id=note_id).first()\nif not obj:\n    return jsonify({\"message\": \"MeetingNote not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"MeetingNote deleted\"})",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/15/branches/GET",
+      "value": "parent = Thesis.query.get(thesis_id)\nif not parent:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\ndeadline = parent.deadline\nif deadline is None:\n    return jsonify({})\nreturn jsonify(deadline.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/15/branches/PUT",
+      "value": "parent = Thesis.query.get(thesis_id)\nif not parent:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\ndeadline = parent.deadline\nif deadline is None:\n    deadline = Deadline(thesis_id=thesis_id)\n    db.session.add(deadline)\n    db.session.commit()\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(deadline, k, v)\ndb.session.commit()\nreturn jsonify(deadline.to_dict())",
+      "from_path": null
+    }
+  ]
+}

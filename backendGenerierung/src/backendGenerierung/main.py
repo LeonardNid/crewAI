@@ -16,7 +16,7 @@ from backendGenerierung.Utils import read_file, renderTemplate, enrich_Endpoints
 
 import weave
 
-SCENARIO_KEY = "car_rental_fokus"
+SCENARIO_KEY = "thesis"
 BACKEND_MAX_RETRY = 15
 TEST_MAX_RETRY = 15
 

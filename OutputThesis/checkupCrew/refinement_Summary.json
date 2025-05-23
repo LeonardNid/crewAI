@@ -1,0 +1,11 @@
+{
+  "file_path": "api_thesis_management.json",
+  "patch": [
+    {
+      "op": "replace",
+      "path": "/endpoints/1/branches/POST",
+      "value": "data = request.get_json()\nuser = User.query.filter_by(email=data.get('email')).first()\nif user is None:\n    new_obj = User(**data)\n    db.session.add(new_obj)\n    db.session.commit()\n    return jsonify(new_obj.to_dict()), 201\nelse:\n    # Here add proper password verification for authentication\n    # Assuming user has a method verify_password\n    if user.verify_password(data.get('password')):\n        # Generate and return token or a success message\n        return jsonify({\"message\": \"Login successful\"}), 200\n    else:\n        return jsonify({\"message\": \"Invalid credentials\"}), 401",
+      "from_path": null
+    }
+  ]
+}
