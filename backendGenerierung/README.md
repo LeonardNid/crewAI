@@ -55,9 +55,9 @@ For support, questions, or feedback regarding the {{crew_name}} Crew or crewAI.
 
 Let's create wonders together with the power and simplicity of crewAI.
 
-chcp 65001 > $null
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $Env:PYTHONIOENCODING = 'utf-8'
+chcp 65001
 
 
 only write log: crewai run *> crewai-full.log

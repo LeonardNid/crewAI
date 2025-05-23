@@ -1,0 +1,113 @@
+{
+  "file_path": "Output/backendCrew/routes.json",
+  "patch": [
+    {
+      "op": "replace",
+      "path": "/endpoints/1/branches/POST",
+      "value": "data = request.get_json()\nuser = User.query.filter_by(email=data.get('email')).first()\nif not user or not user.check_password(data.get('password')):\n    return jsonify({\"message\": \"Invalid credentials\"}), 401\nreturn jsonify(user.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/3/branches/GET",
+      "value": "objs = ReminderPeriod.query.filter_by(user_id=user_id).all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/4/branches/PUT",
+      "value": "obj = ReminderPeriod.query.filter_by(user_id=user_id, id=id).first()\nif not obj:\n    return jsonify({\"message\": \"ReminderPeriod not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/4/branches/DELETE",
+      "value": "obj = ReminderPeriod.query.filter_by(user_id=user_id, id=id).first()\nif not obj:\n    return jsonify({\"message\": \"ReminderPeriod not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"ReminderPeriod deleted\"})",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/6/branches/GET",
+      "value": "objs = Thesis.query.filter_by(type=type).all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/7/branches/GET",
+      "value": "objs = Thesis.query.filter_by(grade=grade).all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/8/branches/GET",
+      "value": "objs = Thesis.query.filter_by(second_examiner_id=user_id).all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/9/branches/GET",
+      "value": "assignments = SupervisorAssignment.query.filter_by(user_id=user_id).all()\nthesis_ids = [a.thesis_id for a in assignments]\nobjs = Thesis.query.filter(Thesis.id.in_(thesis_ids)).all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/10/branches/GET",
+      "value": "from datetime import datetime, timedelta\nimport json\nthreshold_date = (datetime.utcnow() + timedelta(days=days)).date()\nobjs = Thesis.query.filter(Thesis.submission_date <= threshold_date.strftime('%Y-%m-%d')).all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/12/branches/GET",
+      "value": "objs = SupervisorAssignment.query.filter_by(thesis_id=thesis_id).all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/12/branches/POST",
+      "value": "data = request.get_json()\nobjs = []\nfor assignment_data in data.get('assignments', []):\n    new_obj = SupervisorAssignment(thesis_id=thesis_id, **assignment_data)\n    db.session.add(new_obj)\n    objs.append(new_obj)\ndb.session.commit()\nreturn jsonify([o.to_dict() for o in objs]), 201",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/12/branches/PUT",
+      "value": "objs = SupervisorAssignment.query.filter_by(thesis_id=thesis_id).all()\nfor obj in objs:\n    db.session.delete(obj)\nnew_assignments = request.get_json().get('assignments', [])\nnew_objs = []\nfor assignment_data in new_assignments:\n    new_obj = SupervisorAssignment(thesis_id=thesis_id, **assignment_data)\n    db.session.add(new_obj)\n    new_objs.append(new_obj)\ndb.session.commit()\nreturn jsonify([o.to_dict() for o in new_objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/14/branches/GET",
+      "value": "objs = MeetingNote.query.filter_by(thesis_id=thesis_id).all()\nreturn jsonify([o.to_dict() for o in objs])",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/15/branches/GET",
+      "value": "obj = MeetingNote.query.filter_by(thesis_id=thesis_id, id=id).first()\nif not obj:\n    return jsonify({\"message\": \"MeetingNote not found\"}), 404\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/15/branches/PUT",
+      "value": "obj = MeetingNote.query.filter_by(thesis_id=thesis_id, id=id).first()\nif not obj:\n    return jsonify({\"message\": \"MeetingNote not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/15/branches/DELETE",
+      "value": "obj = MeetingNote.query.filter_by(thesis_id=thesis_id, id=id).first()\nif not obj:\n    return jsonify({\"message\": \"MeetingNote not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"MeetingNote deleted\"})",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/16/branches/GET",
+      "value": "obj = Deadline.query.filter_by(thesis_id=thesis_id).first()\nif not obj:\n    return jsonify({\"message\": \"Deadline not found\"}), 404\nreturn jsonify(obj.to_dict())",
+      "from_path": null
+    },
+    {
+      "op": "replace",
+      "path": "/endpoints/16/branches/PUT",
+      "value": "obj = Deadline.query.filter_by(thesis_id=thesis_id).first()\nif not obj:\n    # Create new deadline if not existing\n    data = request.get_json()\n    new_obj = Deadline(thesis_id=thesis_id, **data)\n    db.session.add(new_obj)\n    db.session.commit()\n    return jsonify(new_obj.to_dict()), 201\nelse:\n    data = request.get_json()\n    for k, v in data.items():\n        setattr(obj, k, v)\n    db.session.commit()\n    return jsonify(obj.to_dict())",
+      "from_path": null
+    }
+  ]
+}

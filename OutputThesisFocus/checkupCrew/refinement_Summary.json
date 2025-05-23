@@ -1,0 +1,11 @@
+{
+  "file_path": "api_spec.json",
+  "patch": [
+    {
+      "op": "replace",
+      "path": "/endpoints/13/branches/DELETE",
+      "value": "obj = SupervisorAssignment.query.filter_by(thesis_id=thesis_id, user_id=user_id).first()\nif not obj:\n    return jsonify({\"message\": \"SupervisorAssignment not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"SupervisorAssignment deleted\"})",
+      "from_path": null
+    }
+  ]
+}

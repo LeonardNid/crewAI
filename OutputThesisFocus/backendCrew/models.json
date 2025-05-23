@@ -1,0 +1,880 @@
+{
+    "topic": "Thesis Management Extended with Missing Entities",
+    "models": [
+        {
+            "name": "User",
+            "table": "users",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "email",
+                    "type": "db.String(255), unique=True, nullable=False",
+                    "description": "User's email address"
+                },
+                {
+                    "name": "password_hash",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Hashed password"
+                },
+                {
+                    "name": "name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "User full name"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "SupervisorAssignment",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "MeetingNote",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "NotificationSettings",
+                    "rel_type": "one_to_one",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "ReminderPeriod",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "Thesis",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "supervisorassignments = db.relationship('SupervisorAssignment', back_populates='user', lazy='select', cascade='all, delete-orphan')",
+                "meetingnotes = db.relationship('MeetingNote', back_populates='user', lazy='select', cascade='all, delete-orphan')",
+                "notificationsettings = db.relationship('NotificationSettings', uselist=False, back_populates='user', lazy='select', cascade='all, delete-orphan')",
+                "reminderperiods = db.relationship('ReminderPeriod', back_populates='user', lazy='select', cascade='all, delete-orphan')",
+                "thesiss = db.relationship('Thesis', back_populates='user', lazy='select', cascade='all, delete-orphan')",
+                "points = db.relationship('Point', back_populates='user', lazy='select')"
+            ],
+            "methods": [
+                "def set_password(self, password):\n    from werkzeug.security import generate_password_hash\n    self.password_hash = generate_password_hash(password)",
+                "def check_password(self, password):\n    from werkzeug.security import check_password_hash\n    return check_password_hash(self.password_hash, password)",
+                "def to_dict(self, exclude_password=False):\n    result = {\n        'id': self.id,\n        'email': self.email,\n        'name': self.name\n    }\n    if not exclude_password:\n        result['password_hash'] = self.password_hash\n    return result"
+            ]
+        },
+        {
+            "name": "Thesis",
+            "table": "theses",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "type",
+                    "type": "db.Enum('Seminar', 'Bachelor', 'Master', 'PhD', name='thesis_type'), nullable=False",
+                    "description": "Type of thesis"
+                },
+                {
+                    "name": "title",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Title of the thesis"
+                },
+                {
+                    "name": "description",
+                    "type": "db.Text, nullable=True",
+                    "description": "Description or abstract"
+                },
+                {
+                    "name": "student_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Name of the student"
+                },
+                {
+                    "name": "start_supervision_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Date supervision started"
+                },
+                {
+                    "name": "official_registration_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Date of official registration"
+                },
+                {
+                    "name": "submission_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Date thesis was submitted"
+                },
+                {
+                    "name": "colloquium_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Date of colloquium"
+                },
+                {
+                    "name": "grade",
+                    "type": "db.String(10), nullable=True",
+                    "description": "Grade awarded"
+                },
+                {
+                    "name": "second_examiner_id",
+                    "type": "db.Integer, db.ForeignKey('users.id'), nullable=True",
+                    "description": "Second examiner user id"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "SupervisorAssignment",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "MeetingNote",
+                    "rel_type": "one_to_many",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "Deadline",
+                    "rel_type": "one_to_one",
+                    "cascade": "all, delete-orphan"
+                },
+                {
+                    "target_model": "User",
+                    "rel_type": "many_to_one",
+                    "cascade": ""
+                }
+            ],
+            "relationship_lines": [
+                "supervisorassignments = db.relationship('SupervisorAssignment', back_populates='thesis', lazy='select', cascade='all, delete-orphan')",
+                "meetingnotes = db.relationship('MeetingNote', back_populates='thesis', lazy='select', cascade='all, delete-orphan')",
+                "deadline = db.relationship('Deadline', uselist=False, back_populates='thesis', lazy='select')",
+                "user = db.relationship('User', back_populates='thesiss', lazy='select')"
+            ]
+        },
+        {
+            "name": "SupervisorAssignment",
+            "table": "supervisor_assignments",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "thesis_id",
+                    "type": "db.Integer, db.ForeignKey('theses.id'), nullable=False",
+                    "description": "Thesis reference"
+                },
+                {
+                    "name": "user_id",
+                    "type": "db.Integer, db.ForeignKey('users.id'), nullable=False",
+                    "description": "Supervisor User"
+                },
+                {
+                    "name": "assignment_date",
+                    "type": "db.Date, nullable=False",
+                    "description": "Date of supervisor assignment"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Thesis",
+                    "rel_type": "many_to_one",
+                    "cascade": ""
+                },
+                {
+                    "target_model": "User",
+                    "rel_type": "many_to_one",
+                    "cascade": ""
+                }
+            ],
+            "relationship_lines": [
+                "thesis = db.relationship('Thesis', back_populates='supervisorassignments', lazy='select')",
+                "user = db.relationship('User', back_populates='supervisorassignments', lazy='select')"
+            ]
+        },
+        {
+            "name": "MeetingNote",
+            "table": "meeting_notes",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "date",
+                    "type": "db.Date, nullable=False",
+                    "description": "Date of the meeting note"
+                },
+                {
+                    "name": "content",
+                    "type": "db.Text, nullable=False",
+                    "description": "Content of the meeting note"
+                },
+                {
+                    "name": "thesis_id",
+                    "type": "db.Integer, db.ForeignKey('theses.id'), nullable=False",
+                    "description": "Thesis reference"
+                },
+                {
+                    "name": "author_id",
+                    "type": "db.Integer, db.ForeignKey('users.id'), nullable=True",
+                    "description": "Author of the note"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Thesis",
+                    "rel_type": "many_to_one",
+                    "cascade": ""
+                },
+                {
+                    "target_model": "User",
+                    "rel_type": "many_to_one",
+                    "cascade": ""
+                }
+            ],
+            "relationship_lines": [
+                "thesis = db.relationship('Thesis', back_populates='meetingnotes', lazy='select')",
+                "user = db.relationship('User', back_populates='meetingnotes', lazy='select')"
+            ]
+        },
+        {
+            "name": "NotificationSettings",
+            "table": "notification_settings",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "user_id",
+                    "type": "db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False",
+                    "description": "User owning this notification setting"
+                },
+                {
+                    "name": "in_app_enabled",
+                    "type": "db.Boolean, nullable=False",
+                    "description": "Whether in-app notifications are enabled"
+                },
+                {
+                    "name": "email_enabled",
+                    "type": "db.Boolean, nullable=False",
+                    "description": "Whether email notifications are enabled"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "User",
+                    "rel_type": "one_to_one",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "user = db.relationship('User', uselist=False, back_populates='notificationsettings', lazy='select')"
+            ]
+        },
+        {
+            "name": "Deadline",
+            "table": "deadlines",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "thesis_id",
+                    "type": "db.Integer, db.ForeignKey('theses.id'), unique=True, nullable=False",
+                    "description": "Thesis to which this deadline belongs"
+                },
+                {
+                    "name": "deadline_date",
+                    "type": "db.Date, nullable=False",
+                    "description": "Deadline date"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "Thesis",
+                    "rel_type": "one_to_one",
+                    "cascade": "all, delete-orphan"
+                }
+            ],
+            "relationship_lines": [
+                "thesis = db.relationship(\n'Thesis',\nuselist=False,\nback_populates='deadline',\nlazy=True\n)"
+            ]
+        },
+        {
+            "name": "ReminderPeriod",
+            "table": "reminder_periods",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "user_id",
+                    "type": "db.Integer, db.ForeignKey('users.id'), nullable=False",
+                    "description": "User reference"
+                },
+                {
+                    "name": "days_before_deadline",
+                    "type": "db.Integer, nullable=False",
+                    "description": "Days before deadline to be reminded"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "User",
+                    "rel_type": "many_to_one",
+                    "cascade": ""
+                }
+            ],
+            "relationship_lines": [
+                "user = db.relationship('User', back_populates='reminderperiods', lazy='select')"
+            ]
+        },
+        {
+            "name": "BillTask",
+            "table": "billtasks",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "task_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Name of the task"
+                },
+                {
+                    "name": "due_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Due date"
+                },
+                {
+                    "name": "priority",
+                    "type": "db.Integer, nullable=True",
+                    "description": "Priority level"
+                },
+                {
+                    "name": "completed",
+                    "type": "db.Boolean, nullable=False, default=False",
+                    "description": "Completion status"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [
+                "thesis = db.relationship('Thesis', uselist=False, back_populates='deadline', lazy='select')"
+            ],
+            "methods": []
+        },
+        {
+            "name": "CalPolicy",
+            "table": "calpolicys",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "policy_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Policy name"
+                },
+                {
+                    "name": "effective_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Effective date"
+                },
+                {
+                    "name": "expiration_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Expiration date"
+                },
+                {
+                    "name": "active",
+                    "type": "db.Boolean, nullable=False, default=True",
+                    "description": "Policy active status"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [
+                "user = db.relationship('User', back_populates='reminderperiods', lazy='select')"
+            ],
+            "methods": []
+        },
+        {
+            "name": "Campaign",
+            "table": "campaigns",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "campaign_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Name of the campaign"
+                },
+                {
+                    "name": "start_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Start date"
+                },
+                {
+                    "name": "end_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "End date"
+                },
+                {
+                    "name": "budget",
+                    "type": "db.Float, nullable=True",
+                    "description": "Budget amount"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "DiscountDistribution",
+            "table": "discountdistributions",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "distribution_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Distribution name"
+                },
+                {
+                    "name": "discount_percentage",
+                    "type": "db.Float, nullable=False",
+                    "description": "Discount %"
+                },
+                {
+                    "name": "valid_from",
+                    "type": "db.Date, nullable=True",
+                    "description": "Start validity"
+                },
+                {
+                    "name": "valid_to",
+                    "type": "db.Date, nullable=True",
+                    "description": "End validity"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "DonorReward",
+            "table": "donorrewards",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "reward_type",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Type of reward"
+                },
+                {
+                    "name": "amount",
+                    "type": "db.Float, nullable=False",
+                    "description": "Reward amount"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "Invoice",
+            "table": "invoices",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "invoice_number",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Invoice number"
+                },
+                {
+                    "name": "amount_due",
+                    "type": "db.Float, nullable=False",
+                    "description": "Amount due"
+                },
+                {
+                    "name": "due_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Due date"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "Job",
+            "table": "jobs",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "job_title",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Job title"
+                },
+                {
+                    "name": "description",
+                    "type": "db.Text, nullable=True",
+                    "description": "Job description"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "LifeStage",
+            "table": "lifestages",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "stage_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Life stage name"
+                },
+                {
+                    "name": "age_range_start",
+                    "type": "db.Integer, nullable=True",
+                    "description": "Start age"
+                },
+                {
+                    "name": "age_range_end",
+                    "type": "db.Integer, nullable=True",
+                    "description": "End age"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "Notification",
+            "table": "notifications",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "notification_text",
+                    "type": "db.Text, nullable=False",
+                    "description": "Notification content"
+                },
+                {
+                    "name": "sent_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Date sent"
+                },
+                {
+                    "name": "read",
+                    "type": "db.Boolean, nullable=False, default=False",
+                    "description": "Read status"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "PaymentHistory",
+            "table": "paymenthistories",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "payment_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Payment date"
+                },
+                {
+                    "name": "amount",
+                    "type": "db.Float, nullable=False",
+                    "description": "Payment amount"
+                },
+                {
+                    "name": "method",
+                    "type": "db.String(255), nullable=True",
+                    "description": "Payment method"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "PaymentMethod",
+            "table": "paymentmethods",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "method_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Payment method name"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "Payment",
+            "table": "payments",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "payment_id",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Payment identifier"
+                },
+                {
+                    "name": "amount_paid",
+                    "type": "db.Float, nullable=False",
+                    "description": "Amount paid"
+                },
+                {
+                    "name": "payment_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Date of payment"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "Point",
+            "table": "points",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "user_id",
+                    "type": "db.Integer, db.ForeignKey('users.id'), nullable=False",
+                    "description": "User reference"
+                },
+                {
+                    "name": "points",
+                    "type": "db.Integer, nullable=False",
+                    "description": "Points earned"
+                }
+            ],
+            "relationships": [
+                {
+                    "target_model": "User",
+                    "rel_type": "many_to_one",
+                    "cascade": ""
+                }
+            ],
+            "relationship_lines": [
+                "user = db.relationship('User', back_populates='points', lazy='select')"
+            ],
+            "methods": []
+        },
+        {
+            "name": "Quest",
+            "table": "quests",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "quest_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Quest title"
+                },
+                {
+                    "name": "description",
+                    "type": "db.Text, nullable=True",
+                    "description": "Quest description"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "RedeemRequest",
+            "table": "redeemrequests",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "request_id",
+                    "type": "db.Integer, nullable=False",
+                    "description": "Redeem request identifier"
+                },
+                {
+                    "name": "points_redeemed",
+                    "type": "db.Integer, nullable=False",
+                    "description": "Points redeemed"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "RewardHistory",
+            "table": "rewardhistories",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "reward_id",
+                    "type": "db.Integer, nullable=False",
+                    "description": "Reward reference"
+                },
+                {
+                    "name": "user_id",
+                    "type": "db.Integer, nullable=False",
+                    "description": "User who redeemed"
+                },
+                {
+                    "name": "redeemed_date",
+                    "type": "db.Date, nullable=True",
+                    "description": "Date redeemed"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "Reward",
+            "table": "rewards",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "reward_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Reward name"
+                },
+                {
+                    "name": "points_required",
+                    "type": "db.Integer, nullable=False",
+                    "description": "Points required for reward"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "Role",
+            "table": "roles",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "role_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Role name"
+                },
+                {
+                    "name": "permissions",
+                    "type": "db.JSON, nullable=True",
+                    "description": "List of permissions"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        },
+        {
+            "name": "SocialMedia",
+            "table": "socialmedias",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "db.Integer, primary_key=True, autoincrement=True",
+                    "description": "Primary key"
+                },
+                {
+                    "name": "platform_name",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Platform name"
+                },
+                {
+                    "name": "profile_url",
+                    "type": "db.String(255), nullable=False",
+                    "description": "Profile URL"
+                }
+            ],
+            "relationships": [],
+            "relationship_lines": [],
+            "methods": []
+        }
+    ]
+}

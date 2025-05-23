@@ -1,0 +1,610 @@
+{
+    "topic": "Thesis Management Extended with Missing Endpoints",
+    "endpoints": [
+        {
+            "path": "/users",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "User",
+            "get_List": true,
+            "json_body": {
+                "email": "string",
+                "password": "string",
+                "name": "string"
+            },
+            "description": "Create new user or list all users",
+            "idx": 0,
+            "handler_name": "users",
+            "params": "",
+            "branches": {
+                "GET": "objs = User.query.all()\nreturn jsonify([o.to_dict(exclude_password=True) for o in objs])",
+                "POST": "data = request.get_json()\nexisting_user = User.query.filter_by(email=data.get('email')).first()\nif existing_user:\n    return jsonify({'message': 'User with this email already exists'}), 400\nnew_obj = User()\nnew_obj.email = data.get('email')\nnew_obj.name = data.get('name')\nnew_obj.set_password(data.get('password'))\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict(exclude_password=True)), 201"
+            }
+        },
+        {
+            "path": "/users_login",
+            "methods": [
+                "POST"
+            ],
+            "model": "User",
+            "get_List": false,
+            "json_body": {
+                "email": "string",
+                "password": "string"
+            },
+            "description": "Authenticate user by email and password",
+            "idx": 1,
+            "handler_name": "users_login",
+            "params": "",
+            "branches": {
+                "POST": "data = request.get_json()\nuser = User.query.filter_by(email=data.get('email')).first()\nif not user or not user.check_password(data.get('password')):\n    return jsonify({'message': 'Invalid credentials'}), 401\nreturn jsonify(user.to_dict(exclude_password=True))"
+            }
+        },
+        {
+            "path": "/users_<int:user_id>_notification_settings",
+            "methods": [
+                "GET",
+                "PUT"
+            ],
+            "model": "NotificationSettings",
+            "get_List": false,
+            "json_body": {
+                "in_app_enabled": "boolean",
+                "email_enabled": "boolean"
+            },
+            "description": "Retrieve or update notification settings for a specific user",
+            "idx": 2,
+            "handler_name": "users_int_user_id_notification_settings",
+            "params": "user_id",
+            "branches": {
+                "GET": "obj = NotificationSettings.query.filter_by(user_id=user_id).first()\nif not obj:\n    user = User.query.get(user_id)\n    if not user:\n        return jsonify({'message': 'NotificationSettings not found'}), 404\n    # create default\n    obj = NotificationSettings(user_id=user_id, in_app_enabled=True, email_enabled=True)\n    db.session.add(obj)\n    db.session.commit()\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = NotificationSettings.query.filter_by(user_id=user_id).first()\nif not obj:\n    user = User.query.get(user_id)\n    if not user:\n        return jsonify({'message': 'NotificationSettings not found'}), 404\n    obj = NotificationSettings(user_id=user_id)\n    db.session.add(obj)\n    db.session.commit()\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())"
+            }
+        },
+        {
+            "path": "/users_<int:user_id>_reminder_periods",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "ReminderPeriod",
+            "get_List": true,
+            "json_body": {
+                "days_before_deadline": "integer"
+            },
+            "description": "List or create reminder periods for a specific user",
+            "idx": 3,
+            "handler_name": "users_int_user_id_reminder_periods",
+            "params": "user_id",
+            "branches": {
+                "GET": "objs = ReminderPeriod.query.filter_by(user_id=user_id).all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nuser_id = user_id\nnew_obj = ReminderPeriod(user_id=user_id, days_before_deadline=data.get('days_before_deadline'))\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/users_<int:user_id>_reminder_periods_<int:id>",
+            "methods": [
+                "PUT",
+                "DELETE"
+            ],
+            "model": "ReminderPeriod",
+            "get_List": false,
+            "json_body": {
+                "days_before_deadline": "integer"
+            },
+            "description": "Update or delete a specific reminder period for a specific user",
+            "idx": 4,
+            "handler_name": "users_int_user_id_reminder_periods_int_id",
+            "params": "user_id, id",
+            "branches": {
+                "PUT": "obj = ReminderPeriod.query.filter_by(user_id=user_id, id=id).first()\nif not obj:\n    return jsonify({\"message\": \"ReminderPeriod not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = ReminderPeriod.query.filter_by(user_id=user_id, id=id).first()\nif not obj:\n    return jsonify({\"message\": \"ReminderPeriod not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"ReminderPeriod deleted\"})"
+            }
+        },
+        {
+            "path": "/theses",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": {
+                "type": "string",
+                "title": "string",
+                "description": "string",
+                "student_name": "string",
+                "start_supervision_date": "string",
+                "official_registration_date": "string",
+                "submission_date": "string",
+                "colloquium_date": "string",
+                "grade": "string",
+                "second_examiner_id": "integer"
+            },
+            "description": "List all theses or create a new thesis",
+            "idx": 5,
+            "handler_name": "theses",
+            "params": "",
+            "branches": {
+                "GET": "def normalize_type(t):\n    if not t:\n        return t\n    type_map = {\n        'seminar': 'Seminar',\n        'bachelor': 'Bachelor',\n        'master': 'Master',\n        'master thesis': 'Master',\n        'phd': 'PhD'\n    }\n    t_lower = t.lower()\n    return type_map.get(t_lower, t)\n\nobjs = Thesis.query.all()\nfor o in objs:\n    # Normalize types to prevent LookupError on serialization\n    if hasattr(o, 'type') and o.type:\n        o.type = normalize_type(o.type)\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "from datetime import datetime\n\ndef normalize_type(t):\n    if not t:\n        return t\n    type_map = {\n        'seminar': 'Seminar',\n        'bachelor': 'Bachelor',\n        'master': 'Master',\n        'master thesis': 'Master',\n        'phd': 'PhD'\n    }\n    t_lower = t.lower()\n    return type_map.get(t_lower, t)\n\ndata = request.get_json()\ntry:\n    def parse_date(date_str):\n        if date_str is None:\n            return None\n        return datetime.strptime(date_str, '%Y-%m-%d').date()\n\n    data['start_supervision_date'] = parse_date(data.get('start_supervision_date'))\n    data['official_registration_date'] = parse_date(data.get('official_registration_date'))\n    data['submission_date'] = parse_date(data.get('submission_date'))\n    data['colloquium_date'] = parse_date(data.get('colloquium_date'))\nexcept Exception as e:\n    return jsonify({'message': 'Invalid date format'}), 400\n\nif 'type' in data:\n    data['type'] = normalize_type(data['type'])\n\nnew_obj = Thesis(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/theses_type_<string:type>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Filter theses by thesis type",
+            "idx": 6,
+            "handler_name": "theses_type_string_type",
+            "params": "type",
+            "branches": {
+                "GET": "def normalize_type(t):\n    if not t:\n        return t\n    type_map = {\n        'seminar': 'Seminar',\n        'bachelor': 'Bachelor',\n        'master': 'Master',\n        'master thesis': 'Master',\n        'phd': 'PhD'\n    }\n    t_lower = t.lower()\n    return type_map.get(t_lower, t)\n\nnorm_type = normalize_type(type)\nobjs = Thesis.query.filter_by(type=norm_type).all()\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/theses_grade_<string:grade>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Filter theses by thesis grade",
+            "idx": 7,
+            "handler_name": "theses_grade_string_grade",
+            "params": "grade",
+            "branches": {
+                "GET": "objs = Thesis.query.filter_by(grade=grade).all()\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/theses_second_examiner_<int:user_id>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Filter theses by second examiner user ID",
+            "idx": 8,
+            "handler_name": "theses_second_examiner_int_user_id",
+            "params": "user_id",
+            "branches": {
+                "GET": "objs = Thesis.query.filter_by(second_examiner_id=user_id).all()\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/theses_supervisor_<int:user_id>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Filter theses by supervisor user ID via SupervisorAssignment relationship",
+            "idx": 9,
+            "handler_name": "theses_supervisor_int_user_id",
+            "params": "user_id",
+            "branches": {
+                "GET": "assignments = SupervisorAssignment.query.filter_by(user_id=user_id).all()\nthesis_ids = [a.thesis_id for a in assignments]\nobjs = Thesis.query.filter(Thesis.id.in_(thesis_ids)).all()\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/theses_deadline_proximity_<int:days>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Filter theses with deadlines within specified days",
+            "idx": 10,
+            "handler_name": "theses_deadline_proximity_int_days",
+            "params": "days",
+            "branches": {
+                "GET": "from datetime import datetime, timedelta\nimport json\nthreshold_date = (datetime.utcnow() + timedelta(days=days)).date()\nobjs = Thesis.query.filter(Thesis.submission_date <= threshold_date).all()\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/theses_<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Thesis",
+            "get_List": false,
+            "json_body": {
+                "type": "string",
+                "title": "string",
+                "description": "string",
+                "student_name": "string",
+                "start_supervision_date": "string",
+                "official_registration_date": "string",
+                "submission_date": "string",
+                "colloquium_date": "string",
+                "grade": "string",
+                "second_examiner_id": "integer"
+            },
+            "description": "Retrieve, update, or delete a specific thesis by ID; delete cascades supervisors, meeting notes, and deadline",
+            "idx": 11,
+            "handler_name": "theses_int_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = Thesis.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "def normalize_type(t):\n    if not t:\n        return t\n    type_map = {\n        'seminar': 'Seminar',\n        'bachelor': 'Bachelor',\n        'master': 'Master',\n        'master thesis': 'Master',\n        'phd': 'PhD'\n    }\n    t_lower = t.lower()\n    return type_map.get(t_lower, t)\n\nobj = Thesis.query.get(id)\nif not obj:\n    return jsonify({'message': 'Thesis not found'}), 404\njson_data = request.get_json()\nif 'type' in json_data:\n    json_data['type'] = normalize_type(json_data['type'])\nfor k, v in json_data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Thesis.query.get(id)\nif not obj:\n    return jsonify({'message': 'Thesis not found'}), 404\ntry:\n    db.session.delete(obj)\n    db.session.commit()\nexcept Exception:\n    return jsonify({'message': 'Error deleting thesis'}), 500\nreturn jsonify({'message': 'Thesis deleted'})"
+            }
+        },
+        {
+            "path": "/theses_<int:thesis_id>_supervisors",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT"
+            ],
+            "model": "SupervisorAssignment",
+            "get_List": true,
+            "json_body": {
+                "assignments": [
+                    {
+                        "user_id": "integer",
+                        "assignment_date": "string"
+                    }
+                ]
+            },
+            "description": "List supervisor assignments, add one or multiple supervisors, or replace all supervisors of a thesis",
+            "idx": 12,
+            "handler_name": "theses_int_thesis_id_supervisors",
+            "params": "thesis_id",
+            "branches": {
+                "GET": "objs = SupervisorAssignment.query.filter_by(thesis_id=thesis_id).all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "from datetime import datetime\n\ndata = request.get_json()\nobjs = []\nfor assignment_data in data.get('assignments', []):\n    try:\n        assignment_date_str = assignment_data.get('assignment_date')\n        assignment_data['assignment_date'] = datetime.strptime(assignment_date_str, '%Y-%m-%d').date() if assignment_date_str else None\n    except Exception:\n        return jsonify({'message': 'Invalid date format for assignment_date'}), 400\n    new_obj = SupervisorAssignment(thesis_id=thesis_id, **assignment_data)\n    db.session.add(new_obj)\n    objs.append(new_obj)\ndb.session.commit()\nreturn jsonify([o.to_dict() for o in objs]), 201",
+                "PUT": "from datetime import datetime\nobjs = SupervisorAssignment.query.filter_by(thesis_id=thesis_id).all()\nfor obj in objs:\n    db.session.delete(obj)\nnew_assignments = request.get_json().get('assignments', [])\nnew_objs = []\nfor assignment_data in new_assignments:\n    try:\n        assignment_date_str = assignment_data.get('assignment_date')\n        assignment_data['assignment_date'] = datetime.strptime(assignment_date_str, '%Y-%m-%d').date() if assignment_date_str else None\n    except Exception:\n        return jsonify({'message': 'Invalid date format for assignment_date'}), 400\n    new_obj = SupervisorAssignment(thesis_id=thesis_id, **assignment_data)\n    db.session.add(new_obj)\n    new_objs.append(new_obj)\ndb.session.commit()\nreturn jsonify([o.to_dict() for o in new_objs])"
+            }
+        },
+        {
+            "path": "/theses_<int:thesis_id>_supervisors_<int:user_id>",
+            "methods": [
+                "DELETE"
+            ],
+            "model": "SupervisorAssignment",
+            "get_List": false,
+            "json_body": null,
+            "description": "Remove a specific supervisor from a thesis by user ID",
+            "idx": 13,
+            "handler_name": "theses_int_thesis_id_supervisors_int_user_id",
+            "params": "thesis_id, user_id",
+            "branches": {
+                "DELETE": "obj = SupervisorAssignment.query.filter_by(thesis_id=thesis_id, user_id=user_id).first()\nif not obj:\n    return jsonify({'message': 'SupervisorAssignment not found'}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({'message': 'SupervisorAssignment deleted'})"
+            }
+        },
+        {
+            "path": "/theses_<int:thesis_id>_meeting_notes",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "MeetingNote",
+            "get_List": true,
+            "json_body": {
+                "date": "string",
+                "content": "string",
+                "author_id": "integer"
+            },
+            "description": "List or create meeting notes for a specific thesis",
+            "idx": 14,
+            "handler_name": "theses_int_thesis_id_meeting_notes",
+            "params": "thesis_id",
+            "branches": {
+                "GET": "objs = MeetingNote.query.filter_by(thesis_id=thesis_id).all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "from datetime import datetime\n\ndata = request.get_json()\ntry:\n    date_str = data.get('date')\n    data['date'] = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else None\nexcept Exception:\n    return jsonify({'message': 'Invalid date format for date'}), 400\n\n# force thesis_id from route param\nnew_obj = MeetingNote(thesis_id=thesis_id, **data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/theses_<int:thesis_id>_meeting_notes_<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "MeetingNote",
+            "get_List": false,
+            "json_body": {
+                "date": "string",
+                "content": "string",
+                "thesis_id": "integer",
+                "author_id": "integer"
+            },
+            "description": "Retrieve, update, or delete a specific meeting note of a thesis",
+            "idx": 15,
+            "handler_name": "theses_int_thesis_id_meeting_notes_int_id",
+            "params": "thesis_id, id",
+            "branches": {
+                "GET": "obj = MeetingNote.query.filter_by(thesis_id=thesis_id, id=id).first()\nif not obj:\n    return jsonify({\"message\": \"MeetingNote not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = MeetingNote.query.filter_by(thesis_id=thesis_id, id=id).first()\nif not obj:\n    return jsonify({'message': 'MeetingNote not found'}), 404\nfrom datetime import datetime\ndata = request.get_json()\ntry:\n    date_str = data.get('date')\n    data['date'] = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else None\nexcept Exception:\n    return jsonify({'message': 'Invalid date format for date'}), 400\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = MeetingNote.query.filter_by(thesis_id=thesis_id, id=id).first()\nif not obj:\n    return jsonify({\"message\": \"MeetingNote not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"MeetingNote deleted\"})"
+            }
+        },
+        {
+            "path": "/theses_<int:thesis_id>_deadline",
+            "methods": [
+                "GET",
+                "PUT"
+            ],
+            "model": "Deadline",
+            "get_List": false,
+            "json_body": {
+                "deadline_date": "string"
+            },
+            "description": "View, set, or update the deadline for a specific thesis",
+            "idx": 16,
+            "handler_name": "theses_int_thesis_id_deadline",
+            "params": "thesis_id",
+            "branches": {
+                "GET": "obj = Deadline.query.filter_by(thesis_id=thesis_id).first()\nif not obj:\n    return jsonify({'message': 'Deadline not found'}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "from datetime import datetime\nobj = Deadline.query.filter_by(thesis_id=thesis_id).first()\ndata = request.get_json()\ntry:\n    deadline_date_str = data.get('deadline_date')\n    data['deadline_date'] = datetime.strptime(deadline_date_str, '%Y-%m-%d').date() if deadline_date_str else None\nexcept Exception:\n    return jsonify({'message': 'Invalid date format for deadline_date'}), 400\nif not obj:\n    new_obj = Deadline(thesis_id=thesis_id, **data)\n    db.session.add(new_obj)\n    db.session.commit()\n    return jsonify(new_obj.to_dict()), 201\nelse:\n    for k, v in data.items():\n        setattr(obj, k, v)\n    db.session.commit()\n    return jsonify(obj.to_dict())"
+            }
+        },
+        {
+            "path": "/dashboard",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Retrieve aggregated thesis overview dashboard with optional filtering and sorting",
+            "idx": 17,
+            "handler_name": "dashboard",
+            "params": "",
+            "branches": {
+                "GET": "objs = Thesis.query.all()\nfor o in objs:\n    # Normalize type string for safe serialization\n    if hasattr(o, 'type') and o.type:\n        o.type = {\n            'Seminar': 'Seminar',\n            'Bachelor': 'Bachelor',\n            'Master': 'Master',\n            'PhD': 'PhD'\n        }.get(o.type, o.type)\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/billtasks",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "BillTask",
+            "get_List": true,
+            "json_body": {
+                "task_name": "string",
+                "due_date": "string",
+                "priority": "integer",
+                "completed": "boolean"
+            },
+            "description": "List all bill tasks or create a new bill task",
+            "idx": 18,
+            "handler_name": "billtasks",
+            "params": "",
+            "branches": {
+                "GET": "objs = BillTask.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "from datetime import datetime\n\ndata = request.get_json()\ntry:\n    due_date_str = data.get('due_date')\n    data['due_date'] = datetime.strptime(due_date_str, '%Y-%m-%d').date() if due_date_str else None\nexcept Exception:\n    return jsonify({'message': 'Invalid date format for due_date'}), 400\n\nnew_obj = BillTask(\n    task_name=data.get('task_name'),\n    due_date=data.get('due_date'),\n    priority=data.get('priority'),\n    completed=data.get('completed', False)\n)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/billtasks/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "BillTask",
+            "get_List": false,
+            "json_body": {
+                "task_name": "string",
+                "due_date": "string",
+                "priority": "integer",
+                "completed": "boolean"
+            },
+            "description": "Get, update, or delete a bill task by ID",
+            "idx": 19,
+            "handler_name": "billtask_by_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = BillTask.query.get(id)\nif not obj:\n    return jsonify({'message': 'BillTask not found'}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = BillTask.query.get(id)\nif not obj:\n    return jsonify({'message': 'BillTask not found'}), 404\nfrom datetime import datetime\n\ndata = request.get_json()\ntry:\n    due_date_str = data.get('due_date')\n    data['due_date'] = datetime.strptime(due_date_str, '%Y-%m-%d').date() if due_date_str else None\nexcept Exception:\n    return jsonify({'message': 'Invalid date format for due_date'}), 400\nfor k,v in data.items():\n    setattr(obj,k,v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = BillTask.query.get(id)\nif not obj:\n    return jsonify({'message': 'BillTask not found'}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({'message': 'BillTask deleted'})"
+            }
+        },
+        {
+            "path": "/calpolicys",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "CalPolicy",
+            "get_List": true,
+            "json_body": {
+                "policy_name": "string",
+                "effective_date": "string",
+                "expiration_date": "string",
+                "active": "boolean"
+            },
+            "description": "List or create calpolicys",
+            "idx": 20,
+            "handler_name": "calpolicys",
+            "params": "",
+            "branches": {
+                "GET": "objs = CalPolicy.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "from datetime import datetime\n\ndata = request.get_json()\ntry:\n    effective_date_str = data.get('effective_date')\n    expiration_date_str = data.get('expiration_date')\n    data['effective_date'] = datetime.strptime(effective_date_str, '%Y-%m-%d').date() if effective_date_str else None\n    data['expiration_date'] = datetime.strptime(expiration_date_str, '%Y-%m-%d').date() if expiration_date_str else None\nexcept Exception:\n    return jsonify({'message': 'Invalid date format'}), 400\nnew_obj = CalPolicy(\n    policy_name=data.get('policy_name'),\n    effective_date=data.get('effective_date'),\n    expiration_date=data.get('expiration_date'),\n    active=data.get('active', True)\n)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/calpolicys/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "CalPolicy",
+            "get_List": false,
+            "json_body": {
+                "policy_name": "string",
+                "effective_date": "string",
+                "expiration_date": "string",
+                "active": "boolean"
+            },
+            "description": "Get, update or delete calpolicy by ID",
+            "idx": 21,
+            "handler_name": "calpolicy_by_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = CalPolicy.query.get(id)\nif not obj:\n    return jsonify({'message': 'CalPolicy not found'}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = CalPolicy.query.get(id)\nif not obj:\n    return jsonify({'message': 'CalPolicy not found'}), 404\nfrom datetime import datetime\n\ndata = request.get_json()\ntry:\n    effective_date_str = data.get('effective_date')\n    expiration_date_str = data.get('expiration_date')\n    data['effective_date'] = datetime.strptime(effective_date_str, '%Y-%m-%d').date() if effective_date_str else None\n    data['expiration_date'] = datetime.strptime(expiration_date_str, '%Y-%m-%d').date() if expiration_date_str else None\nexcept Exception:\n    return jsonify({'message': 'Invalid date format'}), 400\nfor k,v in data.items():\n    setattr(obj,k,v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = CalPolicy.query.get(id)\nif not obj:\n    return jsonify({'message': 'CalPolicy not found'}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({'message': 'CalPolicy deleted'})"
+            }
+        },
+        {
+            "path": "/campaigns",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Campaign",
+            "get_List": true,
+            "json_body": {
+                "campaign_name": "string",
+                "start_date": "string",
+                "end_date": "string",
+                "budget": "number"
+            },
+            "description": "List or create campaigns",
+            "idx": 22,
+            "handler_name": "campaigns",
+            "params": "",
+            "branches": {
+                "GET": "objs = Campaign.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "from datetime import datetime\n\ndata = request.get_json()\ntry:\n    start_date_str = data.get('start_date')\n    end_date_str = data.get('end_date')\n    data['start_date'] = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else None\n    data['end_date'] = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else None\nexcept Exception:\n    return jsonify({'message': 'Invalid date format'}), 400\nnew_obj = Campaign(\n    campaign_name=data.get('campaign_name'),\n    start_date=data.get('start_date'),\n    end_date=data.get('end_date'),\n    budget=data.get('budget')\n)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/campaigns/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Campaign",
+            "get_List": false,
+            "json_body": {
+                "campaign_name": "string",
+                "start_date": "string",
+                "end_date": "string",
+                "budget": "number"
+            },
+            "description": "Get, update or delete campaign by ID",
+            "idx": 23,
+            "handler_name": "campaign_by_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = Campaign.query.get(id)\nif not obj:\n    return jsonify({'message': 'Campaign not found'}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Campaign.query.get(id)\nif not obj:\n    return jsonify({'message': 'Campaign not found'}), 404\nfrom datetime import datetime\n\ndata = request.get_json()\ntry:\n    start_date_str = data.get('start_date')\n    end_date_str = data.get('end_date')\n    data['start_date'] = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else None\n    data['end_date'] = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else None\nexcept Exception:\n    return jsonify({'message': 'Invalid date format'}), 400\nfor k,v in data.items():\n    setattr(obj,k,v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Campaign.query.get(id)\nif not obj:\n    return jsonify({'message': 'Campaign not found'}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({'message': 'Campaign deleted'})"
+            }
+        },
+        {
+            "path": "/discountdistributions",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "DiscountDistribution",
+            "get_List": true,
+            "json_body": {
+                "distribution_name": "string",
+                "discount_percentage": "number",
+                "valid_from": "string",
+                "valid_to": "string"
+            },
+            "description": "List or create discount distributions",
+            "idx": 24,
+            "handler_name": "discountdistributions",
+            "params": "",
+            "branches": {
+                "GET": "objs = DiscountDistribution.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "from datetime import datetime\n\ndata = request.get_json()\ntry:\n    valid_from_str = data.get('valid_from')\n    valid_to_str = data.get('valid_to')\n    data['valid_from'] = datetime.strptime(valid_from_str, '%Y-%m-%d').date() if valid_from_str else None\n    data['valid_to'] = datetime.strptime(valid_to_str, '%Y-%m-%d').date() if valid_to_str else None\nexcept Exception:\n    return jsonify({'message': 'Invalid date format'}), 400\nnew_obj = DiscountDistribution(\n    distribution_name=data.get('distribution_name'),\n    discount_percentage=data.get('discount_percentage'),\n    valid_from=data.get('valid_from'),\n    valid_to=data.get('valid_to')\n)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/discountdistributions/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "DiscountDistribution",
+            "get_List": false,
+            "json_body": {
+                "distribution_name": "string",
+                "discount_percentage": "number",
+                "valid_from": "string",
+                "valid_to": "string"
+            },
+            "description": "Get, update or delete discountdistribution by ID",
+            "idx": 25,
+            "handler_name": "discountdistribution_by_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = DiscountDistribution.query.get(id)\nif not obj:\n    return jsonify({'message': 'DiscountDistribution not found'}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = DiscountDistribution.query.get(id)\nif not obj:\n    return jsonify({'message': 'DiscountDistribution not found'}), 404\nfrom datetime import datetime\n data = request.get_json()\ntry:\n    valid_from_str = data.get('valid_from')\n    valid_to_str = data.get('valid_to')\n    data['valid_from'] = datetime.strptime(valid_from_str, '%Y-%m-%d').date() if valid_from_str else None\n    data['valid_to'] = datetime.strptime(valid_to_str, '%Y-%m-%d').date() if valid_to_str else None\nexcept Exception:\n    return jsonify({'message': 'Invalid date format'}), 400\nfor k,v in data.items():\n    setattr(obj,k,v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = DiscountDistribution.query.get(id)\nif not obj:\n    return jsonify({'message': 'DiscountDistribution not found'}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({'message': 'DiscountDistribution deleted'})"
+            }
+        },
+        {
+            "path": "/donorrewards",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "DonorReward",
+            "get_List": true,
+            "json_body": {
+                "reward_type": "string",
+                "amount": "number"
+            },
+            "description": "List or create donor rewards",
+            "idx": 26,
+            "handler_name": "donorrewards",
+            "params": "",
+            "branches": {
+                "GET": "objs = DonorReward.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = DonorReward(\n    reward_type=data.get('reward_type'),\n    amount=data.get('amount')\n)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/donorrewards/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "DonorReward",
+            "get_List": false,
+            "json_body": {
+                "reward_type": "string",
+                "amount": "number"
+            },
+            "description": "Get, update or delete donorreward by ID",
+            "idx": 27,
+            "handler_name": "donorreward_by_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = DonorReward.query.get(id)\nif not obj:\n    return jsonify({'message': 'DonorReward not found'}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = DonorReward.query.get(id)\nif not obj:\n    return jsonify({'message': 'DonorReward not found'}), 404\ndata = request.get_json()\nfor k,v in data.items():\n    setattr(obj,k,v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = DonorReward.query.get(id)\nif not obj:\n    return jsonify({'message': 'DonorReward not found'}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({'message': 'DonorReward deleted'})"
+            }
+        }
+    ],
+    "models_import": "User, Thesis, SupervisorAssignment, MeetingNote, NotificationSettings, Deadline, ReminderPeriod"
+}

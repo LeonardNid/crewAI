@@ -162,3 +162,49 @@ thesis:
     5. Authentication
     Email-based registration and login
     Secure authentication system
+
+thesis_focus:
+  topic: Thesis Management Application
+  customer: |
+    Core Data Models
+      - **User**: email, password, name
+      - **Thesis**: type (Seminar/Bachelor/Master/PhD), title, description, student_name,
+        start_supervision_date, official_registration_date, submission_date,
+        colloquium_date, grade, second_examiner_id
+      - **SupervisorAssignment**: link table Thesis ⟷ User, stores assignment_date
+      - **MeetingNote**: attached to Thesis (date, content, optional author_id)
+      - **NotificationSettings**: per User - in_app_enabled, email_enabled
+      - **Deadline**: thesis_id, deadline_date
+      - **ReminderPeriod**: user_id, days_before_deadline
+
+    Essential Endpoints (CRUD & Logic)
+      - `POST /users`: create new user (email, password, name)
+      - `POST /users/login`: authenticate by email & password
+      - `GET,PUT /users/<id>/notification_settings`: retrieve / update notification prefs
+      - `GET,POST,PUT,DELETE /users/<id>/reminder_periods`: manage reminder days
+      - `GET,POST /theses`: list all theses or create new thesis
+      - `GET /theses/type/<string:type>`: filter by thesis type
+      - `GET /theses/grade/<string:grade>`: filter by grade
+      - `GET /theses/second_examiner/<int:user_id>`: filter by second examiner
+      - `GET /theses/supervisor/<int:user_id>`: filter by supervisor (via SupervisorAssignment)
+      - `GET /theses/deadline_proximity/<int:days>`: theses with deadlines in ≤ days
+      - `GET,PUT,DELETE /theses/<int:id>`: retrieve, update or delete a thesis (cascading deletes)
+      - `GET,POST,PUT /theses/<int:id>/supervisors`: list, add or replace supervisors
+      - `DELETE /theses/<int:id>/supervisors/<int:user_id>`: remove supervisor
+      - `GET,POST /theses/<id>/meeting_notes`: list or create meeting notes
+      - `GET,PUT,DELETE /theses/<id>/meeting_notes/<note_id>`: single note ops
+      - `GET,PUT /theses/<id>/deadline`: view or set a thesis deadline
+      - `GET /dashboard`: aggregated thesis overview (filter/sort optional)
+
+    Business Rules
+      - Deleting a User also removes his SupervisorAssignments and NotificationSettings
+      - Deleting a Thesis cascades to supervisors, meeting notes and deadline
+      - A User cannot be assigned twice as supervisor to the same Thesis
+      - Supervisors and second examiners must exist in the User table
+      - NotificationSettings and Deadline: create only if missing (no duplicates)
+
+    Implementation Notes
+      - Use SQLAlchemy relationships with proper `cascade` options
+      - Store passwords securely (hashing, e.g., bcrypt/PBKDF2)
+      - Avoid circular references in JSON responses; do not serialize nested relationships recursively
+      - Focus on the core supervision workflow - omit advanced analytics for this iteration
