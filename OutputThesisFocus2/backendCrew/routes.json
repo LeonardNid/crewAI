@@ -1,0 +1,383 @@
+{
+    "topic": "Thesis Management",
+    "endpoints": [
+        {
+            "path": "/users",
+            "methods": [
+                "POST"
+            ],
+            "model": "User",
+            "get_List": false,
+            "json_body": {
+                "email": "string",
+                "password": "string",
+                "name": "string"
+            },
+            "description": "Create a new user with email, password (plaintext, to be hashed internally), and name",
+            "idx": 0,
+            "handler_name": "users",
+            "params": "",
+            "branches": {
+                "POST": "data = request.get_json()\nfrom werkzeug.security import generate_password_hash\nhashed_password = generate_password_hash(data.get('password'))\ndata['password_hash'] = hashed_password\n# Remove plain password key to not cause error if constructor expects password_hash only\ndata.pop('password', None)\nnew_obj = User(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/users/login",
+            "methods": [
+                "POST"
+            ],
+            "model": "User",
+            "get_List": false,
+            "json_body": {
+                "email": "string",
+                "password": "string"
+            },
+            "description": "Authenticate a user by email and password (login)",
+            "idx": 1,
+            "handler_name": "users_login",
+            "params": "",
+            "branches": {
+                "POST": "data = request.get_json()\nuser = User.query.filter_by(email=data.get('email')).first()\nif user is not None:\n    from werkzeug.security import check_password_hash\n    if check_password_hash(user.password_hash, data.get('password')):\n        return jsonify(user.to_dict()), 200\nreturn jsonify({\"message\": \"Authentication failed\"}), 401"
+            }
+        },
+        {
+            "path": "/users/<int:id>/notification_settings",
+            "methods": [
+                "GET",
+                "PUT"
+            ],
+            "model": "NotificationSettings",
+            "get_List": false,
+            "json_body": {
+                "in_app_enabled": "boolean",
+                "email_enabled": "boolean"
+            },
+            "description": "Retrieve or update a user's notification settings",
+            "idx": 2,
+            "handler_name": "users_int_id_notification_settings",
+            "params": "id",
+            "branches": {
+                "GET": "parent = User.query.get(id)\nif not parent:\n    return jsonify({\"message\": \"User not found\"}), 404\nchildren = parent.notificationsettings\nreturn jsonify([children.to_dict()] if children else [])",
+                "PUT": "parent = User.query.get(id)\nif not parent:\n    return jsonify({\"message\": \"User not found\"}), 404\ndata = request.get_json()\nnotification_settings = parent.notificationsettings\nif notification_settings:\n    for k, v in data.items():\n        setattr(notification_settings, k, v)\n    db.session.commit()\n    return jsonify(notification_settings.to_dict())\nelse:\n    new_settings = NotificationSettings(user_id=id, **data)\n    db.session.add(new_settings)\n    db.session.commit()\n    return jsonify(new_settings.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/users/<int:id>/reminder_periods",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "ReminderPeriod",
+            "get_List": true,
+            "json_body": {
+                "days_before_deadline": "integer"
+            },
+            "description": "List all reminder periods for a user or create a new reminder period",
+            "idx": 3,
+            "handler_name": "users_int_id_reminder_periods",
+            "params": "id",
+            "branches": {
+                "GET": "parent = User.query.get(id)\nif not parent:\n    return jsonify({\"message\": \"User not found\"}), 404\nchildren = parent.reminderperiods\nreturn jsonify([c.to_dict() for c in children])",
+                "POST": "data = request.get_json()\ndata['user_id'] = id\nnew_obj = ReminderPeriod(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/users/<int:id>/reminder_periods/<int:reminder_id>",
+            "methods": [
+                "PUT",
+                "DELETE"
+            ],
+            "model": "ReminderPeriod",
+            "get_List": false,
+            "json_body": {
+                "days_before_deadline": "integer"
+            },
+            "description": "Update or delete an existing reminder period for a user",
+            "idx": 4,
+            "handler_name": "users_int_id_reminder_periods_int_reminder_id",
+            "params": "id, reminder_id",
+            "branches": {
+                "PUT": "obj = ReminderPeriod.query.filter_by(user_id=id, id=reminder_id).first()\nif not obj:\n    return jsonify({\"message\": \"ReminderPeriod not found\"}), 404\n    \ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = ReminderPeriod.query.filter_by(user_id=id, id=reminder_id).first()\nif not obj:\n    return jsonify({\"message\": \"ReminderPeriod not found\"}), 404\n    \ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"ReminderPeriod deleted\"})"
+            }
+        },
+        {
+            "path": "/users/<int:id>",
+            "methods": [
+                "DELETE"
+            ],
+            "model": "User",
+            "get_List": false,
+            "json_body": null,
+            "description": "Delete a user and cascade delete related supervisor assignments and notification settings",
+            "idx": 5,
+            "handler_name": "users_int_id",
+            "params": "id",
+            "branches": {
+                "DELETE": "obj = User.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"User not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"User deleted\"})"
+            }
+        },
+        {
+            "path": "/theses",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": {
+                "type": "string",
+                "title": "string",
+                "description": "string",
+                "student_name": "string",
+                "start_supervision_date": "string",
+                "official_registration_date": "string",
+                "submission_date": "string",
+                "colloquium_date": "string",
+                "grade": "string",
+                "second_examiner_id": "integer"
+            },
+            "description": "List all theses or create a new thesis",
+            "idx": 6,
+            "handler_name": "theses",
+            "params": "",
+            "branches": {
+                "GET": "objs = Thesis.query.all()\nreturn jsonify([o.to_dict() for o in objs])",
+                "POST": "data = request.get_json()\nnew_obj = Thesis(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/theses/type/<string:type>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Filter theses by thesis type",
+            "idx": 7,
+            "handler_name": "theses_type_string_type",
+            "params": "type",
+            "branches": {
+                "GET": "objs = Thesis.query.filter_by(type=type).all()\nif not objs:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/theses/grade/<string:grade>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Filter theses by grade",
+            "idx": 8,
+            "handler_name": "theses_grade_string_grade",
+            "params": "grade",
+            "branches": {
+                "GET": "objs = Thesis.query.filter_by(grade=grade).all()\nif not objs:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/theses/second_examiner/<int:user_id>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Filter theses by second examiner user ID",
+            "idx": 9,
+            "handler_name": "theses_second_examiner_int_user_id",
+            "params": "user_id",
+            "branches": {
+                "GET": "objs = Thesis.query.filter_by(second_examiner_id=user_id).all()\nif not objs:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/theses/supervisor/<int:user_id>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Filter theses by supervisor user ID via supervisor assignments",
+            "idx": 10,
+            "handler_name": "theses_supervisor_int_user_id",
+            "params": "user_id",
+            "branches": {
+                "GET": "objs = db.session.query(Thesis).join(SupervisorAssignment).filter(SupervisorAssignment.user_id == user_id).all()\nif not objs:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/theses/deadline_proximity/<int:days>",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Filter theses by deadline proximity within given days",
+            "idx": 11,
+            "handler_name": "theses_deadline_proximity_int_days",
+            "params": "days",
+            "branches": {
+                "GET": "# 'deadline_proximity' filter is domain specific and must be implemented appropriately\nfrom datetime import datetime, timedelta\nnow = datetime.utcnow()\nthreshold = now + timedelta(days=days)\nobjs = Thesis.query.filter(Thesis.submission_date <= threshold.strftime('%Y-%m-%d')).all()\nif not objs:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        },
+        {
+            "path": "/theses/<int:id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "Thesis",
+            "get_List": false,
+            "json_body": {
+                "type": "string",
+                "title": "string",
+                "description": "string",
+                "student_name": "string",
+                "start_supervision_date": "string",
+                "official_registration_date": "string",
+                "submission_date": "string",
+                "colloquium_date": "string",
+                "grade": "string",
+                "second_examiner_id": "integer"
+            },
+            "description": "Retrieve, update, or delete a thesis by ID with cascading deletes of related entities",
+            "idx": 12,
+            "handler_name": "theses_int_id",
+            "params": "id",
+            "branches": {
+                "GET": "obj = Thesis.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = Thesis.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\n\n# Update thesis attributes\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = Thesis.query.get(id)\nif not obj:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\n# Assuming cascading delete configured in database schema or handled here explicitly\nSupervisorAssignment.query.filter_by(thesis_id=id).delete()\nMeetingNote.query.filter_by(thesis_id=id).delete()\ndeadline = Deadline.query.filter_by(thesis_id=id).first()\nif deadline:\n    db.session.delete(deadline)\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Thesis deleted\"})"
+            }
+        },
+        {
+            "path": "/theses/<int:id>/supervisors",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT"
+            ],
+            "model": "SupervisorAssignment",
+            "get_List": true,
+            "json_body": {
+                "assignment_date": "string",
+                "user_id": "integer"
+            },
+            "description": "List all supervisors assigned to a thesis, add supervisor, or replace all supervisors",
+            "idx": 13,
+            "handler_name": "theses_int_id_supervisors",
+            "params": "id",
+            "branches": {
+                "GET": "parent = Thesis.query.get(id)\nif not parent:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nchildren = parent.supervisorassignments\nreturn jsonify([c.to_dict() for c in children])",
+                "POST": "data = request.get_json()\ndata[\"thesis_id\"] = id\nnew_obj = SupervisorAssignment(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201",
+                "PUT": "parent = Thesis.query.get(id)\nif not parent:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\n# Remove all existing supervisors\nSupervisorAssignment.query.filter_by(thesis_id=id).delete()\n# Add new supervisors\nnew_supervisors = request.get_json()\nif not isinstance(new_supervisors, list):\n    return jsonify({\"message\": \"Invalid data format, expected a list\"}), 400\nfor supervisor_data in new_supervisors:\n    supervisor_data[\"thesis_id\"] = id\n    new_obj = SupervisorAssignment(**supervisor_data)\n    db.session.add(new_obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"Supervisors replaced\"})"
+            }
+        },
+        {
+            "path": "/theses/<int:id>/supervisors/<int:user_id>",
+            "methods": [
+                "DELETE"
+            ],
+            "model": "SupervisorAssignment",
+            "get_List": false,
+            "json_body": null,
+            "description": "Remove a specific supervisor from a thesis by thesis ID and supervisor user ID",
+            "idx": 14,
+            "handler_name": "theses_int_id_supervisors_int_user_id",
+            "params": "id, user_id",
+            "branches": {
+                "DELETE": "obj = SupervisorAssignment.query.filter_by(thesis_id=id, user_id=user_id).first()\nif not obj:\n    return jsonify({\"message\": \"SupervisorAssignment not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"SupervisorAssignment deleted\"})"
+            }
+        },
+        {
+            "path": "/theses/<int:id>/meeting_notes",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "model": "MeetingNote",
+            "get_List": true,
+            "json_body": {
+                "date": "string",
+                "content": "string",
+                "author_id": "integer"
+            },
+            "description": "List all meeting notes for a thesis or create a new meeting note",
+            "idx": 15,
+            "handler_name": "theses_int_id_meeting_notes",
+            "params": "id",
+            "branches": {
+                "GET": "parent = Thesis.query.get(id)\nif not parent:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\nchildren = parent.meetingnotes\nreturn jsonify([c.to_dict() for c in children])",
+                "POST": "data = request.get_json()\ndata[\"thesis_id\"] = id\nnew_obj = MeetingNote(**data)\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201"
+            }
+        },
+        {
+            "path": "/theses/<int:id>/meeting_notes/<int:note_id>",
+            "methods": [
+                "GET",
+                "PUT",
+                "DELETE"
+            ],
+            "model": "MeetingNote",
+            "get_List": false,
+            "json_body": {
+                "date": "string",
+                "content": "string",
+                "author_id": "integer"
+            },
+            "description": "Retrieve, update, or delete a specific meeting note by thesis ID and note ID",
+            "idx": 16,
+            "handler_name": "theses_int_id_meeting_notes_int_note_id",
+            "params": "id, note_id",
+            "branches": {
+                "GET": "obj = MeetingNote.query.filter_by(thesis_id=id, id=note_id).first()\nif not obj:\n    return jsonify({\"message\": \"MeetingNote not found\"}), 404\nreturn jsonify(obj.to_dict())",
+                "PUT": "obj = MeetingNote.query.filter_by(thesis_id=id, id=note_id).first()\nif not obj:\n    return jsonify({\"message\": \"MeetingNote not found\"}), 404\ndata = request.get_json()\nfor k, v in data.items():\n    setattr(obj, k, v)\ndb.session.commit()\nreturn jsonify(obj.to_dict())",
+                "DELETE": "obj = MeetingNote.query.filter_by(thesis_id=id, id=note_id).first()\nif not obj:\n    return jsonify({\"message\": \"MeetingNote not found\"}), 404\ndb.session.delete(obj)\ndb.session.commit()\nreturn jsonify({\"message\": \"MeetingNote deleted\"})"
+            }
+        },
+        {
+            "path": "/theses/<int:id>/deadline",
+            "methods": [
+                "GET",
+                "PUT"
+            ],
+            "model": "Deadline",
+            "get_List": false,
+            "json_body": {
+                "deadline_date": "string"
+            },
+            "description": "Retrieve or set/update the deadline for a thesis",
+            "idx": 17,
+            "handler_name": "theses_int_id_deadline",
+            "params": "id",
+            "branches": {
+                "GET": "parent = Thesis.query.get(id)\nif not parent:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\ndeadline = parent.deadline\nreturn jsonify(deadline.to_dict() if deadline else {})",
+                "PUT": "parent = Thesis.query.get(id)\nif not parent:\n    return jsonify({\"message\": \"Thesis not found\"}), 404\ndata = request.get_json()\ndeadline = parent.deadline\nif not deadline:\n    deadline = Deadline(thesis_id=id, **data)\n    db.session.add(deadline)\nelse:\n    for k, v in data.items():\n        setattr(deadline, k, v)\ndb.session.commit()\nreturn jsonify(deadline.to_dict())"
+            }
+        },
+        {
+            "path": "/dashboard",
+            "methods": [
+                "GET"
+            ],
+            "model": "Thesis",
+            "get_List": true,
+            "json_body": null,
+            "description": "Retrieve an aggregated thesis overview on the dashboard with optional filters and sorting",
+            "idx": 18,
+            "handler_name": "dashboard",
+            "params": "",
+            "branches": {
+                "GET": "objs = Thesis.query.all()\nreturn jsonify([o.to_dict() for o in objs])"
+            }
+        }
+    ],
+    "models_import": "User, Thesis, SupervisorAssignment, MeetingNote, NotificationSettings, Deadline, ReminderPeriod"
+}

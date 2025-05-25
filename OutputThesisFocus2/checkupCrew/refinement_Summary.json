@@ -1,0 +1,11 @@
+{
+  "file_path": "./api/thesis_management.json",
+  "patch": [
+    {
+      "op": "replace",
+      "path": "/endpoints/3/branches/POST",
+      "value": "data = request.get_json()\nuser = User.query.get(id)\nif not user:\n    return jsonify({\"message\": \"User not found\"}), 404\nnew_obj = ReminderPeriod(user_id=id, days_before_deadline=data.get('days_before_deadline'))\ndb.session.add(new_obj)\ndb.session.commit()\nreturn jsonify(new_obj.to_dict()), 201",
+      "from_path": null
+    }
+  ]
+}
