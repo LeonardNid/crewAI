@@ -16,9 +16,9 @@ from backendGenerierung.Utils import read_file, renderTemplate, enrich_Endpoints
 
 import weave
 
-SCENARIO_KEY = "thesis_focus"
-BACKEND_MAX_RETRY = 15
-TEST_MAX_RETRY = 15
+SCENARIO_KEY = "demo"
+BACKEND_MAX_RETRY = 1
+TEST_MAX_RETRY = 2
 
 class BackendLoop(BaseModel):
     count: int = 0
@@ -42,7 +42,7 @@ class BackendState(BaseModel):
 
 class BackendFlow(Flow[BackendState]):
 
-    weave.init(project_name="backendGenerierung")
+    # weave.init(project_name="backendGenerierung")
 
     @start()
     def start(self):

@@ -39,6 +39,10 @@ class TestCrew:
             res = FlaskTestClientTool().run(**payload)
             if isinstance(res, str) and res.startswith("Validation failed"):
                 raise ValueError(res)
+            print(res)
+            # Write the response to a bug report file for debugging
+            with open("Output/test_crew/response_bug_report.txt", "w", encoding="utf-8") as f:
+                f.write(str(res))
             return True, res
         except (AttributeError, ValidationError, ValueError) as err:
             return False, str(err)

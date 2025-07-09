@@ -1,9 +1,27 @@
-football:
-  topic: Football
+demo:
+  topic: Demo Application
   customer: |
-    I want to save my football team and player data.
-    Every team has a name, a city, a country, and a stadium.
-    Every player has a name, a position, a team, and a country.
+    I want to create a demo application for a simple task management system.
+    The application should allow users to create, get, update, and delete tasks.
+    Each task should have a title, description, and status (e.g., pending, in progress, completed).
+
+    Models: Only one model is needed for this application: Task with the following fields:
+      - id (integer, auto-incremente, primary key)
+      - title (string)
+      - description (string)
+      - status (string)
+      
+    Endpoints:
+      - Create a new task
+      - Get all tasks
+      - Get a specific task by ID
+      - Update a task
+      - Delete a task
+      - Filter tasks by status
+      - Change every Task's Titel to uppercase
+
+        
+
 
 library:
   topic: Library
@@ -98,7 +116,6 @@ car_rental_focus:
       - Focus strictly on the described endpoints
       - Maintain clear, modular code structure suitable for future extension
       - Adhere to REST API best practices and Python PEP8 guidelines
-
 
 thesis:
   topic: Thesis Management Application
